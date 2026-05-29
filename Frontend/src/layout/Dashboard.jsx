@@ -1,0 +1,262 @@
+import { useState, useEffect } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
+import storeAuth from "../context/storeAuth";
+import useFetch from "../hooks/useFetch";
+
+// Importación de activos
+import userIcon from "../assets/user.png";
+import quejasIcon from "../assets/quejas.png";
+import QaI from "../assets/asistente-ai.png";
+import iaIcon from "../assets/ia.png";
+import personasIcon from "../assets/personas.png";
+import formulariosIcon from "../assets/formularios.png";
+import mensajeroIcon from "../assets/mensajero.png";
+import hamburguesaIcon from "../assets/hamburgesa.png";
+
+// Asegúrate de tener estos iconos o cámbialos por los correctos
+// import insumosIcon from "../assets/insumos.png"; 
+// import tableIcon from "../assets/table.png";
+
+const Dashboard = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const urlActual = location.pathname;
+  const { logout, user: usuarioAuth, token, setUser } = storeAuth();
+  const { fetchDataBackend } = useFetch();
+  const [cargandoUsuario, setCargandoUsuario] = useState(false);
+
+  // Estado para el sidebar
+  const [isCollapsed, setIsCollapsed] = useState(false); // Recomendado empezar expandido en desktop
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Usuario por defecto o autenticado
+  const user = usuarioAuth || {
+    nombre: "Usuario",
+    username: "usuario",
+    avatarUsuario: null,
+    rol: "usuario",
+  };
+
+  const esAdministrador = user?.rol === "administrador";
+  const esSolicitante = user?.rol?.toLowerCase().includes("solicitante");
+
+  // Cargar datos del perfil si no están en el store
+  useEffect(() => {
+    const cargarDatosUsuario = async () => {
+      if (token && !usuarioAuth) {
+        setCargandoUsuario(true);
+        try {
+          const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/mi-perfil`;
+          const response = await fetchDataBackend(url, null, "GET", token, false);
+          if (response?.usuario) {
+            setUser(response.usuario);
+          }
+        } catch (error) {
+          console.error("Error al cargar perfil de usuario:", error);
+        } finally {
+          setCargandoUsuario(false);
+        }
+      }
+    };
+    cargarDatosUsuario();
+  }, [token, usuarioAuth, setUser]);
+
+  // Manejo de Logout
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  const toggleSidebar = () => setIsCollapsed(!isCollapsed);
+  const handleMenuItemClick = () => setMobileMenuOpen(false);
+
+  function getHDImage(url) {
+    if (!url) return url;
+    if (url.includes("googleusercontent.com") || url.includes("gstatic.com")) {
+      return url.replace(/=s\d+/, "=s1024");
+    }
+    return url;
+  }
+
+  // Carga de fuente externa
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.href = "https://fonts.googleapis.com/css2?family=Gowun+Batang&display=swap";
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, []);
+
+  return (
+    <div className="flex h-screen font-sans flex-col md:flex-row bg-gray-50" style={{ fontFamily: "Gowun Batang, serif" }}>
+      
+      {/* HEADER MÓVIL */}
+      <div className="md:hidden flex items-center justify-between bg-gray-100 border-b border-gray-300 px-4 py-2 flex-shrink-0">
+        <h1 className="text-xl font-bold text-[#17243D]">Jezt</h1>
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center hover:bg-[#17243D] hover:text-white transition duration-200"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+
+      {/* SIDEBAR */}
+      <aside
+        className={`fixed md:relative z-40 transition-all duration-300 ease-in-out bg-gray-100 border-r border-gray-300 flex flex-col h-full
+          ${mobileMenuOpen ? "left-0" : "-left-full"} md:left-0 
+          ${isCollapsed ? "md:w-20" : "md:w-64"} w-64`}
+      >
+        <div className="p-4 flex flex-col h-full">
+          {/* Botón Colapsar (Desktop) */}
+          <button
+            onClick={toggleSidebar}
+            className="hidden md:flex h-10 w-10 bg-gray-200 rounded-full items-center justify-center hover:bg-gray-300 transition mb-4 self-end"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={`w-5 h-5 transform transition ${isCollapsed ? "rotate-180" : ""}`}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
+          </button>
+
+          {/* Perfil Usuario */}
+          <div className={`flex items-center mb-6 transition-all ${isCollapsed ? "justify-center" : "px-2"}`}>
+            <img
+              src={getHDImage(user?.avatarUsuario) || "/usuarioSinfoto.jpg"}
+              alt="Avatar"
+              className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm"
+            />
+            {!isCollapsed && (
+              <div className="ml-3 overflow-hidden">
+                <p className="text-sm font-bold text-gray-800 truncate">{user?.nombre}</p>
+                <p className="text-xs text-gray-500 capitalize">{user?.rol}</p>
+              </div>
+            )}
+          </div>
+
+          <hr className="border-gray-300 mb-6" />
+
+          {/* Navegación */}
+          <nav className="flex-1 overflow-y-auto">
+            <ul className="space-y-2 text-sm">
+              
+              {/* Menú Usuario Estándar (No Admins) */}
+              {!esAdministrador && (
+                <>
+                  {/* Enlace común para todos (Mis Tablas/Insumos) */}
+                  <li>
+                    <Link
+                      to="/dashboard/tablas"
+                      onClick={handleMenuItemClick}
+                      className={`flex items-center p-2 rounded-lg transition ${
+                        urlActual === "/dashboard/tablas" ? "bg-[#17243D] text-white" : "text-gray-700 hover:bg-gray-200"
+                      } ${isCollapsed ? "justify-center" : ""}`}
+                    >
+                      <img src={personasIcon} alt="" className={`w-5 h-5 ${urlActual === "/dashboard/tablas" ? "brightness-200" : ""}`} />
+                      {!isCollapsed && <span className="ml-3">Solicitudes de Codigo</span>}
+                    </Link>
+                  </li>
+
+                  {/* MODULO EXCLUSIVO PARA SOLICITANTE */}
+                  {esSolicitante && (
+                    <>
+                      <li>
+                        <Link
+                          to="/dashboard/insumos"
+                          onClick={handleMenuItemClick}
+                          className={`flex items-center p-2 rounded-lg transition ${
+                            urlActual === "/dashboard/insumos" ? "bg-[#17243D] text-white" : "text-gray-700 hover:bg-gray-200"
+                          } ${isCollapsed ? "justify-center" : ""}`}
+                        >
+                          <img src={formulariosIcon} alt="" className={`w-5 h-5 ${urlActual === "/dashboard/insumos" ? "brightness-200" : ""}`} />
+                          {!isCollapsed && <span className="ml-3">Nuevo Insumo</span>}
+                        </Link>
+                      </li>
+
+                      {/* NUEVA OPCIÓN: Seguimiento de estados basado en image_87469b.png */}
+                      <li>
+                        <Link
+                          to="/dashboard/mis-solicitudes"
+                          onClick={handleMenuItemClick}
+                          className={`flex items-center p-2 rounded-lg transition ${
+                            urlActual === "/dashboard/mis-solicitudes" ? "bg-[#17243D] text-white" : "text-gray-700 hover:bg-gray-200"
+                          } ${isCollapsed ? "justify-center" : ""}`}
+                        >
+                          <img src={mensajeroIcon} alt="" className={`w-5 h-5 ${urlActual === "/dashboard/mis-solicitudes" ? "brightness-200" : ""}`} />
+                          {!isCollapsed && <span className="ml-3">Estado Solicitudes</span>}
+                        </Link>
+                      </li>
+                    </>
+                  )}
+                </>
+              )}
+
+              {/* Menú Administrador */}
+              {esAdministrador && (
+                <>
+                  <p className={`text-[10px] font-bold text-gray-400 uppercase mb-2 mt-4 ${isCollapsed ? "text-center" : "px-2"}`}>Admin</p>
+                  {[
+                    { path: "/dashboard/admin/usuarios", label: "Usuarios", icon: "user" },
+                    { path: "/dashboard/admin/reportes", label: "Reportes", icon: "chart" },
+                  ].map((item) => (
+                    <li key={item.path}>
+                      <Link
+                        to={item.path}
+                        onClick={handleMenuItemClick}
+                        className={`flex items-center p-2 rounded-lg transition ${
+                          urlActual === item.path ? "bg-red-800 text-white" : "text-gray-700 hover:bg-gray-200"
+                        } ${isCollapsed ? "justify-center" : ""}`}
+                      >
+                        <div className="w-5 h-5 flex items-center justify-center">
+                          {item.icon === "user" ? (
+                            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
+                          ) : (
+                            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2V17zm4 0h-2V7h2V17zm4 0h-2v-4h2V17z" /></svg>
+                          )}
+                        </div>
+                        {!isCollapsed && <span className="ml-3">{item.label}</span>}
+                      </Link>
+                    </li>
+                  ))}
+                </>
+              )}
+            </ul>
+          </nav>
+
+          {/* Logout */}
+          <div className="mt-auto pt-4">
+            <button
+              onClick={handleLogout}
+              className={`w-full flex items-center p-2 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition ${isCollapsed ? "justify-center" : ""}`}
+            >
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+              </svg>
+              {!isCollapsed && <span className="ml-3 font-medium">Cerrar Sesión</span>}
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* CONTENIDO PRINCIPAL */}
+      <main className="flex-1 h-full overflow-y-auto bg-white">
+        <div className="p-4 md:p-8">
+          <Outlet />
+        </div>
+      </main>
+
+      {/* Overlay para móvil */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default Dashboard;
