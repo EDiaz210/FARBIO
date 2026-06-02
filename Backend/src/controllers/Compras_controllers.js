@@ -1,5 +1,6 @@
 import pool from '../database.js';
 import axios from 'axios';
+import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 
 
 // INSERTAR PARTES DEL  CÓDIGO (Solo COMPRAS)
@@ -27,7 +28,7 @@ import axios from 'axios';
     }
 
     // 2. VALIDAR EXISTENCIA DEL REGISTRO
-    const queryExistencia = 'SELECT id FROM codigos WHERE id = ?';
+    const queryExistencia = 'SELECT id, codigo, lead_time, dias_tolerancia, status FROM codigos WHERE id = ?';
     const [existe] = await pool.query(queryExistencia, [id]);
     
     if (existe.length === 0) {
@@ -65,6 +66,26 @@ import axios from 'axios';
       userId,                        // 5. updated_by
       id                             // 6. WHERE id = ?
     ]);
+
+    await registrarReporteCodigo({
+      codigoId: id,
+      codigo: existe[0].codigo,
+      modulo: 'compras',
+      accion: 'Actualización de compras',
+      campoAfectado: 'lead_time,dias_tolerancia,status',
+      valorAnterior: {
+        lead_time: existe[0].lead_time,
+        dias_tolerancia: existe[0].dias_tolerancia,
+        status: existe[0].status
+      },
+      valorNuevo: {
+        lead_time,
+        dias_tolerancia,
+        status: 'En Contabilidad'
+      },
+      usuarioId: userId,
+      usuarioNombre: userName || 'Compras'
+    });
 
     return res.status(200).json({ 
       success: true, 

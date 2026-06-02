@@ -1,5 +1,6 @@
 import pool from '../database.js';
 import axios from 'axios';
+import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 
 // INSERTAR PARTES DEL  CÓDIGO (Solo CONTABILIDAD)
 const updateContabilidadCodigo = async (req, res) => {
@@ -26,7 +27,7 @@ const updateContabilidadCodigo = async (req, res) => {
     }
 
     // 2. VALIDAR EXISTENCIA DEL REGISTRO
-    const queryExistencia = 'SELECT id FROM codigos WHERE id = ?';
+    const queryExistencia = 'SELECT id, codigo, grupo_articulos, tipo_bien, status FROM codigos WHERE id = ?';
     const [existe] = await pool.query(queryExistencia, [id]);
     
     if (existe.length === 0) {
@@ -65,6 +66,26 @@ const updateContabilidadCodigo = async (req, res) => {
       userId,                           // 5. updated_by 
       id                                // 6. WHERE id = ?
     ]);
+
+    await registrarReporteCodigo({
+      codigoId: id,
+      codigo: existe[0].codigo,
+      modulo: 'contabilidad',
+      accion: 'Actualización de contabilidad',
+      campoAfectado: 'grupo_articulos,tipo_bien,status',
+      valorAnterior: {
+        grupo_articulos: existe[0].grupo_articulos,
+        tipo_bien: existe[0].tipo_bien,
+        status: existe[0].status
+      },
+      valorNuevo: {
+        grupo_articulos,
+        tipo_bien,
+        status: 'Con Maestro de Datos'
+      },
+      usuarioId: userId,
+      usuarioNombre: userName || 'Contabilidad'
+    });
 
     return res.status(200).json({ 
       success: true, 

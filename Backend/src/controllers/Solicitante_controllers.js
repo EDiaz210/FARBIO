@@ -1,5 +1,6 @@
 import pool from '../database.js';
 import axios from 'axios';
+import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 
 
 
@@ -55,6 +56,23 @@ import axios from 'axios';
       userId                  // 6. created_by 
     ]);
 
+    await registrarReporteCodigo({
+      codigoId: insertResult.insertId,
+      codigo: null,
+      modulo: 'creacion',
+      accion: 'Creación de código',
+      campoAfectado: 'descripcion,detalles,link_referencia,status',
+      valorAnterior: null,
+      valorNuevo: {
+        status: 'Nuevo',
+        descripcion: descripcionSolicitante,
+        detalles,
+        link_referencia
+      },
+      usuarioId: userId,
+      usuarioNombre: userName || 'Solicitante'
+    });
+
     res.status(201).json({ success: true, message: 'Código creado exitosamente', id: insertResult.insertId });
     console.log('Código creado exitosamente');
     
@@ -96,7 +114,7 @@ import axios from 'axios';
     }
 
     // 2. Validar existencia del registro
-    const queryExistencia = 'SELECT id FROM codigos WHERE id = ?';
+    const queryExistencia = 'SELECT id, codigo, descripcion, detalles, link_referencia, status FROM codigos WHERE id = ?';
     const [existe] = await pool.query(queryExistencia, [id]);
     
     if (existe.length === 0) {
@@ -114,6 +132,8 @@ import axios from 'axios';
       fecha: new Date().toISOString().split('T')[0],
       accion: 'Actualización Solicitante'
     }]);
+
+    const codigoAnterior = existe[0];
     
     // 4. Query corregida (Sin la "f" y con nombres de columnas revisados)
     const updateQuery = `
@@ -135,6 +155,28 @@ import axios from 'axios';
       userId, 
       id 
     ]);
+
+    await registrarReporteCodigo({
+      codigoId: id,
+      codigo: codigoAnterior.codigo,
+      modulo: 'creacion',
+      accion: 'Actualización de solicitud',
+      campoAfectado: 'descripcion,detalles,link_referencia',
+      valorAnterior: {
+        descripcion: codigoAnterior.descripcion,
+        detalles: codigoAnterior.detalles,
+        link_referencia: codigoAnterior.link_referencia,
+        status: codigoAnterior.status
+      },
+      valorNuevo: {
+        descripcion: descripcionSolicitante,
+        detalles,
+        link_referencia,
+        status: codigoAnterior.status
+      },
+      usuarioId: userId,
+      usuarioNombre: userName || 'Solicitante'
+    });
 
     console.log(`Código ${id} actualizado exitosamente por ${userName}`);
     
