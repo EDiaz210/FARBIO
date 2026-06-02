@@ -4,7 +4,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 
 
 // INSERTAR PARTES DEL  CÓDIGO (Solo COMPRAS)
-    const updateComprasCodigo = async (req, res) => {
+  const updateComprasCodigo = async (req, res) => {
   const { id } = req.params; 
   const {  
     lead_time, 
