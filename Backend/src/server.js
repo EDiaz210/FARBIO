@@ -9,6 +9,7 @@ import solicitanteRoutes from './routers/Solicitante_routes.js';
 import comprasRoutes from './routers/Compras_routes.js';
 import contabilidadRoutes from './routers/Contabilidad_routes.js';
 import maestroRoutes from './routers/Maestro_routes.js';
+import reportesRoutes from './routers/Reportes_routes.js';
 
 
 //Inicializaciones
@@ -59,6 +60,9 @@ app.use('/api/contabilidad', contabilidadRoutes);
 
 // Rutas de Maestro de datos
 app.use('/api/maestro', maestroRoutes);
+
+// Rutas de Reportes
+app.use('/api/reportes', reportesRoutes);
 
 
 
