@@ -8,13 +8,12 @@ import storeAuth from "./context/storeAuth";
 import Dashboard from "./layout/Dashboard";
 
 // Pages
-import Login from "./pages/Login";
-import ItemForm from "./pages/ItemForm";
-import TablaCodigos from "./pages/TablaCodigos"; 
-import AdminUsuarios from "./pages/AdminUsuarios";
-import AdminReportes from "./pages/AdminReportes";
-import Insumos from "./pages/ItemForm";
-import MisSolicitudes from "./pages/MisSolicitudes";
+import Login from "./pages/Autenticación/Login";
+import TablaCodigos from "./pages/Tabla/TablaCodigos"; 
+import AdminUsuarios from "./pages/Administrador/AdminUsuarios";
+import AdminReportes from "./pages/Reportes/AdminReportes";
+import Insumos from "./pages/Articulo/ItemForm";
+import MisSolicitudes from "./pages/Solicitudes/MisSolicitudes";
 
 function App() {
   const token = storeAuth(state => state.token);
