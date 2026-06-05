@@ -7,6 +7,36 @@ const httpsAgent = new https.Agent({
   rejectUnauthorized: false
 });
 
+// OBTENER CODIGOS FINALIZADOS PARA EXPORTACION
+const obtenerCodigosFinalizadosMaestro = async (req, res) => {
+  const connection = await pool.getConnection();
+
+  try {
+    const [codigos] = await connection.query(
+      `SELECT *
+       FROM codigos
+       WHERE status = ?
+       ORDER BY updated_at DESC, created_at DESC`,
+      ['Finalizado']
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Códigos finalizados obtenidos exitosamente',
+      codigos
+    });
+  } catch (error) {
+    console.error('Error obteniendo códigos finalizados para maestro:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor',
+      error: error.message
+    });
+  } finally {
+    connection.release();
+  }
+};
+
 // UPDATE Y ENVIO A SAP - MAESTRO DE DATOS
 
   const updateMaestroDatos = async (req, res) => {
@@ -369,4 +399,4 @@ const httpsAgent = new https.Agent({
   }
 };
 
-export { updateMaestroDatos };
+export { updateMaestroDatos, obtenerCodigosFinalizadosMaestro };
