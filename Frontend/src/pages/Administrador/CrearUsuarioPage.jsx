@@ -20,7 +20,6 @@ const CrearUsuarioPage = () => {
       nombre: '',
       cedula: '',
       email: '',
-      username: '',
       password: '',
       rol: 'solicitante',
     },
@@ -113,16 +112,6 @@ const CrearUsuarioPage = () => {
                   })}
                 />
                 {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>}
-              </div>
-
-              <div className="flex flex-col">
-                <label className="text-slate-800 font-semibold mb-2">Username (opcional)</label>
-                <input
-                  type="text"
-                  placeholder="juanperez"
-                  className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-                  {...register('username')}
-                />
               </div>
 
               <div className="flex flex-col">

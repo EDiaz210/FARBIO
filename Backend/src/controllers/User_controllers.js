@@ -103,7 +103,7 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
       });
     }
 
-    const { email, password, username, nombre, cedula, rol } = req.body;
+    const { email, password, nombre, cedula, rol } = req.body;
 
     // Validar que todos los campos requeridos estén presentes
     if (!email || !password || !nombre || !cedula || !rol) {
@@ -163,8 +163,8 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
 
     // Insertar el nuevo usuario en la base de datos
     const [result] = await connection.query(
-      'INSERT INTO usuarios (nombre, cedula, email, password, rol, username) VALUES (?, ?, ?, ?, ?, ?)',
-      [nombre, cedula, emailLower, passwordEncriptada, rol, username || null]
+      'INSERT INTO usuarios (nombre, cedula, email, password, rol) VALUES (?, ?, ?, ?, ?)',
+      [nombre, cedula, emailLower, passwordEncriptada, rol]
     );
 
     return res.status(201).json({
