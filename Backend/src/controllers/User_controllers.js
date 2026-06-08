@@ -43,7 +43,6 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
         id: usuario.id,
         nombre: usuario.nombre,
         email: usuario.email,
-        username: usuario.username,
         rol: usuario.rol
       }
     });
@@ -147,16 +146,6 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
       return res.status(400).json({ msg: "La cédula ya está registrada" });
     }
 
-    // Verificar que el username sea único (si se proporciona)
-    if (username) {
-      const [usernameExistente] = await connection.query(
-        'SELECT * FROM usuarios WHERE username = ?',
-        [username]
-      );
-      if (usernameExistente.length > 0) {
-        return res.status(400).json({ msg: "El nombre de usuario ya está en uso" });
-      }
-    }
 
     // Encriptar contraseña
     const passwordEncriptada = await bcryptjs.hash(password, 10);
@@ -198,7 +187,7 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
       });
     }
 
-    const [usuarios] = await connection.query('SELECT id, nombre, cedula, email, username, rol, created_at FROM usuarios');
+    const [usuarios] = await connection.query('SELECT id, nombre, cedula, email, rol, created_at FROM usuarios');
 
     return res.status(200).json({
       msg: "Usuarios obtenidos exitosamente",
@@ -228,7 +217,7 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
     const { id } = req.params;
 
     const [usuarios] = await connection.query(
-      'SELECT id, nombre, cedula, email, username, rol, created_at FROM usuarios WHERE id = ?',
+      'SELECT id, nombre, cedula, email, rol, created_at FROM usuarios WHERE id = ?',
       [id]
     );
 
