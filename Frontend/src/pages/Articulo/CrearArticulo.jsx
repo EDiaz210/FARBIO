@@ -133,6 +133,7 @@ const CrearArticulo = () => {
 
       const codigoData = {
         descripcionSolicitante: data.RequestorDescription,
+        RequestorArea: data.RequestorArea,
         detalles: data.Details,
         link_referencia: data.ReferenceLink,
         userId: userID

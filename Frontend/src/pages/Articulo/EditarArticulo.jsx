@@ -168,6 +168,7 @@ const EditarArticulo = ({ id }) => {
 
       const codigoData = {
         descripcionSolicitante: data.RequestorDescription,
+        RequestorArea: data.RequestorArea,
         detalles: data.Details,
         link_referencia: data.ReferenceLink,
         userId: userID
@@ -221,7 +222,7 @@ const EditarArticulo = ({ id }) => {
         compra: data.PurchaseItem ? 'tYES' : 'tNO',
         status: 'finalizado',
         userId: userID,
-        userName: user?.nombre || user?.email || 'Usuario'
+        userName: 'Usuario'
       };
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/maestro/codigos/${id}`;
