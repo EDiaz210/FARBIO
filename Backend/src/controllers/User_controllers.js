@@ -68,7 +68,7 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
     }
 
     const [usuarios] = await connection.query(
-      'SELECT id, nombre, cedula, email, username, rol, created_at FROM usuarios WHERE id = ?',
+      'SELECT id, nombre, cedula, email, rol, created_at FROM usuarios WHERE id = ?',
       [usuarioId]
     );
 

@@ -13,6 +13,5 @@ CREATE TABLE IF NOT EXISTS usuarios (
   INDEX idx_id (id),
   INDEX idx_cedula (cedula),
   INDEX idx_email (email),
-  INDEX idx_username (username),
   INDEX idx_rol (rol)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
