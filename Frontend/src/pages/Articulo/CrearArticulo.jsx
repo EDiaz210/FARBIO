@@ -5,6 +5,7 @@ import useFetch from '../../hooks/useFetch';
 import storeAuth from '../../context/storeAuth';
 import ArticuloFormLayout from './ArticuloFormLayout';
 import { ITEM_TYPES, isFieldEnabled } from './ArticuloFormUtils';
+import { getAuthClaims } from '../../utils/authClaims';
 
 const defaultValues = {
   ItemCode: '',
@@ -26,7 +27,7 @@ const defaultValues = {
 };
 
 const CrearArticulo = () => {
-  const { token, user } = storeAuth();
+  const { token } = storeAuth();
   const { fetchDataBackend } = useFetch();
   const [vatGroups, setVatGroups] = useState([]);
   const [itemsGroups, setItemsGroups] = useState([]);
@@ -34,8 +35,9 @@ const CrearArticulo = () => {
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const userRole = user?.rol?.toLowerCase() || '';
-  const userID = user?.id || null;
+  const claims = getAuthClaims(token);
+  const userRole = claims?.rol?.toLowerCase() || '';
+  const userID = claims?.id || null;
 
   const {
     register,
@@ -133,8 +135,7 @@ const CrearArticulo = () => {
         descripcionSolicitante: data.RequestorDescription,
         detalles: data.Details,
         link_referencia: data.ReferenceLink,
-        userId: userID,
-        userName: user?.nombre || user?.email || 'Usuario'
+        userId: userID
       };
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/solicitante/codigos/create`;

@@ -15,7 +15,6 @@ const UsuariosList = ({ usuarios, loading, onEdit, onDelete, token }) => {
                 <th className="px-4 py-4 text-left font-semibold tracking-wide">ID</th>
                 <th className="px-4 py-4 text-left font-semibold tracking-wide">Nombre</th>
                 <th className="px-4 py-4 text-left font-semibold tracking-wide">Email</th>
-                <th className="px-4 py-4 text-left font-semibold tracking-wide">Usuario</th>
                 <th className="px-4 py-4 text-left font-semibold tracking-wide">Cédula</th>
                 <th className="px-4 py-4 text-left font-semibold tracking-wide">Rol</th>
                 <th className="px-4 py-4 text-left font-semibold tracking-wide">Creado</th>
@@ -28,7 +27,6 @@ const UsuariosList = ({ usuarios, loading, onEdit, onDelete, token }) => {
                   <td className="px-4 py-4 text-slate-800">{usuario.id}</td>
                   <td className="px-4 py-4 text-slate-900 font-medium">{usuario.nombre}</td>
                   <td className="px-4 py-4 text-slate-700">{usuario.email}</td>
-                  <td className="px-4 py-4 text-slate-700">{usuario.username || '-'}</td>
                   <td className="px-4 py-4 text-slate-700">{usuario.cedula}</td>
                   <td className="px-4 py-4">
                     <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">

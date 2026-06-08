@@ -3,9 +3,9 @@ import storeAuth from "../context/storeAuth"
 
 const PublicRoute  = () => { 
 
-    const sessionId = storeAuth((state) => state.sessionId)
+    const token = storeAuth((state) => state.token)
 
-    return sessionId ? <Navigate to="/dashboard" /> : <Outlet />
+    return token ? <Navigate to="/dashboard" /> : <Outlet />
 
 }
 

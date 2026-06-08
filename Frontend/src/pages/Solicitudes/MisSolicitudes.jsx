@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import useFetch from '../../hooks/useFetch';
 import storeAuth from '../../context/storeAuth';
+import { getAuthClaims } from '../../utils/authClaims';
 
 const ITEMS_PER_PAGE = 5;
 const STATUS_ORDER = ['Nuevo', 'En Contabilidad', 'Con Maestro de Datos', 'Completado'];
@@ -101,9 +102,10 @@ const MisSolicitudes = () => {
   const [solicitudes, setSolicitudes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const { fetchDataBackend } = useFetch();
-  const { user, token } = storeAuth();
+  const { token } = storeAuth();
+  const claims = getAuthClaims(token);
 
-  const roleStatus = useMemo(() => getRoleStatus(user?.rol), [user?.rol]);
+  const roleStatus = useMemo(() => getRoleStatus(claims?.rol), [claims?.rol]);
 
   const fetchData = useCallback(async () => {
     if (!roleStatus) return;
@@ -119,8 +121,8 @@ const MisSolicitudes = () => {
   }, [fetchDataBackend, roleStatus, token]);
 
   useEffect(() => {
-    if (user?.id && roleStatus) fetchData();
-  }, [user?.id, roleStatus, fetchData]);
+    if (claims?.id && roleStatus) fetchData();
+  }, [claims?.id, roleStatus, fetchData]);
 
   const totalPages = useMemo(() => Math.ceil(solicitudes.length / ITEMS_PER_PAGE), [solicitudes.length]);
   const currentSolicitudes = useMemo(() => {

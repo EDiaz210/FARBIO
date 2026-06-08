@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import storeAuth from "../context/storeAuth";
 import useFetch from "../hooks/useFetch";
+import { getAuthClaims } from "../utils/authClaims";
 
 // Importación de activos
 import userIcon from "../assets/user.png";
@@ -21,45 +22,44 @@ const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const urlActual = location.pathname;
-  const { logout, user: usuarioAuth, token, setUser } = storeAuth();
+  const { logout, token } = storeAuth();
   const { fetchDataBackend } = useFetch();
   const [cargandoUsuario, setCargandoUsuario] = useState(false);
+  const [perfilUsuario, setPerfilUsuario] = useState(null);
+
+  const claims = getAuthClaims(token);
+  const userRole = claims?.rol || "";
 
   // Estado para el sidebar
   const [isCollapsed, setIsCollapsed] = useState(false); // Recomendado empezar expandido en desktop
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Usuario por defecto o autenticado
-  const user = usuarioAuth || {
-    nombre: "Usuario",
-    username: "usuario",
-    avatarUsuario: null,
-    rol: "usuario",
-  };
+  const esAdministrador = userRole === "administrador";
+  const esSolicitante = userRole.toLowerCase().includes("solicitante");
 
-  const esAdministrador = user?.rol === "administrador";
-  const esSolicitante = user?.rol?.toLowerCase().includes("solicitante");
-
-  // Cargar datos del perfil si no están en el store
+  // Cargar datos del perfil solo para mostrar nombre/avatar en la UI
   useEffect(() => {
     const cargarDatosUsuario = async () => {
-      if (token && !usuarioAuth) {
-        setCargandoUsuario(true);
-        try {
-          const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/mi-perfil`;
-          const response = await fetchDataBackend(url, null, "GET", token, false);
-          if (response?.usuario) {
-            setUser(response.usuario);
-          }
-        } catch (error) {
-          console.error("Error al cargar perfil de usuario:", error);
-        } finally {
-          setCargandoUsuario(false);
+      if (!token) {
+        setPerfilUsuario(null);
+        return;
+      }
+
+      setCargandoUsuario(true);
+      try {
+        const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/mi-perfil`;
+        const response = await fetchDataBackend(url, null, "GET", token, false);
+        if (response?.usuario) {
+          setPerfilUsuario(response.usuario);
         }
+      } catch (error) {
+        console.error("Error al cargar perfil de usuario:", error);
+      } finally {
+        setCargandoUsuario(false);
       }
     };
     cargarDatosUsuario();
-  }, [token, usuarioAuth, setUser]);
+  }, [token, fetchDataBackend]);
 
   // Manejo de Logout
   const handleLogout = () => {
@@ -125,14 +125,14 @@ const Dashboard = () => {
           {/* Perfil Usuario */}
           <div className={`flex items-center mb-6 transition-all ${isCollapsed ? "justify-center" : "px-2"}`}>
             <img
-              src={getHDImage(user?.avatarUsuario) || "/usuarioSinfoto.jpg"}
+              src={getHDImage(perfilUsuario?.avatarUsuario) || "/usuarioSinfoto.jpg"}
               alt="Avatar"
               className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm"
             />
             {!isCollapsed && (
               <div className="ml-3 overflow-hidden">
-                <p className="text-sm font-bold text-gray-800 truncate">{user?.nombre}</p>
-                <p className="text-xs text-gray-500 capitalize">{user?.rol}</p>
+                <p className="text-sm font-bold text-gray-800 truncate">{perfilUsuario?.nombre || "Usuario"}</p>
+                <p className="text-xs text-gray-500 capitalize">{userRole || "usuario"}</p>
               </div>
             )}
           </div>

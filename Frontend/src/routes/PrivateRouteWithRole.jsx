@@ -1,16 +1,20 @@
 import storeAuth from '../context/storeAuth';
 import { Forbidden } from '../pages/Forbidden';
 import { Navigate } from 'react-router';
+import { getAuthClaims } from '../utils/authClaims';
 
 export default function PrivateRouteWithRole({ children, allowedRoles = [] }) {
-    const sessionId = storeAuth.getState().sessionId;
+    const token = storeAuth.getState().token;
+    const claims = getAuthClaims(token);
+    const role = claims?.rol || '';
     
-    // Si no hay sessionId, redirigir a login
-    if (!sessionId) {
+    if (!token) {
         return <Navigate to="/login" replace />;
     }
     
-    // Por ahora solo validamos que haya sessionId
-    // En el futuro puedes agregar validación de roles desde el backend
+    if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
+        return <Navigate to="/forbidden" replace />;
+    }
+
     return children;
 }

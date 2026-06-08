@@ -17,7 +17,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { fetchDataBackend } = useFetch();
-  const { setToken, setUser, setRol } = storeAuth();
+  const { setToken } = storeAuth();
 
   const {
     register,
@@ -32,10 +32,8 @@ const Login = () => {
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/login`;
       const response = await fetchDataBackend(url, data, 'POST', null);
 
-      if (response?.token && response?.usuario) {
+      if (response?.token) {
         setToken(response.token);
-        setUser(response.usuario);
-        setRol(response.usuario.rol);
         navigate('/dashboard');
       }
     } catch (error) {

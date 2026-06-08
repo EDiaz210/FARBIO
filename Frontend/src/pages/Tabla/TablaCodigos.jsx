@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useFetch from '../../hooks/useFetch';
 import storeAuth from '../../context/storeAuth';
+import { getAuthClaims } from '../../utils/authClaims';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -69,10 +70,11 @@ const TablaCodigos = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { fetchDataBackend } = useFetch();
-  const { user } = storeAuth();
+  const { token } = storeAuth();
   const navigate = useNavigate();
 
-  const userRole = user?.rol?.toLowerCase() || '';
+  const claims = getAuthClaims(token);
+  const userRole = claims?.rol?.toLowerCase() || '';
 
   const statusRole = useMemo(() => getStatusByRole(userRole), [userRole]);
 
