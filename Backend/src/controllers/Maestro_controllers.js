@@ -225,7 +225,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
         PurchaseUnit: unidad_compra,
         ArTaxCode: purchaseVAT,
         ApTaxCode: salesVAT,
-        U_FB_LEAD_TIME: parseInt(lead_time),
+        LeadTime: parseInt(lead_time),
         ItemsGroupCode: parseInt(grupo_articulos),
         U_TIPO_BIEN: tipo_bien,
         InventoryItem: inventario === 'tYES' ? 'tYES' : 'tNO',
