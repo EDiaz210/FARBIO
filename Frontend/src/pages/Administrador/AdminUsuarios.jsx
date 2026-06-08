@@ -1,18 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import useFetch from '../../hooks/useFetch';
 import storeAuth from '../../context/storeAuth';
 import UsuariosList from './UsuariosList';
-import CrearUsuario from './CrearUsuario';
 import EditarUsuario from './EditarUsuario';
 
 const AdminUsuarios = () => {
+  const navigate = useNavigate();
   const { fetchDataBackend } = useFetch();
   const { token } = storeAuth();
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modo, setModo] = useState('list');
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterRole, setFilterRole] = useState('Todos');
 
   const obtenerUsuarios = async () => {
     setLoading(true);
@@ -39,9 +42,27 @@ const AdminUsuarios = () => {
     }
   }, [token]);
 
+  const roles = useMemo(() => {
+    const uniqueRoles = Array.from(new Set(usuarios.map((usuario) => usuario.rol).filter(Boolean)));
+    return ['Todos', ...uniqueRoles];
+  }, [usuarios]);
+
+  const filteredUsuarios = useMemo(() => {
+    return usuarios.filter((usuario) => {
+      const search = searchTerm.toLowerCase().trim();
+      const matchesSearch =
+        usuario.nombre?.toLowerCase().includes(search) ||
+        usuario.email?.toLowerCase().includes(search) ||
+        usuario.username?.toLowerCase().includes(search) ||
+        usuario.cedula?.toString().includes(search);
+
+      const matchesRole = filterRole === 'Todos' || usuario.rol === filterRole;
+      return matchesSearch && matchesRole;
+    });
+  }, [usuarios, searchTerm, filterRole]);
+
   const handleCrearUsuario = () => {
-    setUsuarioSeleccionado(null);
-    setModo('create');
+    navigate('/dashboard/admin/usuarios/nuevo');
   };
 
   const handleEditarUsuario = (usuario) => {
@@ -65,44 +86,85 @@ const AdminUsuarios = () => {
   };
 
   return (
-    <div className="w-full bg-white p-6 min-h-screen" style={{ fontFamily: 'Gowun Batang, serif' }}>
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <ToastContainer />
-
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-[#17243D] mb-2">Gestión de Usuarios</h1>
-            <p className="text-gray-600">Crea, edita y elimina usuarios del sistema</p>
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="space-y-6 mb-6">
+          <div className="space-y-3">
+            <p className="text-sm uppercase tracking-[0.22em] text-slate-500">Panel administrativo</p>
+            <div className="space-y-2">
+              <h1 className="text-4xl font-semibold text-slate-950">Gestión de usuarios</h1>
+              <p className="max-w-2xl text-slate-600">Visualiza, filtra y administra todos los usuarios del sistema en un solo lugar.</p>
+            </div>
           </div>
-          <button
-            onClick={modo === 'list' ? handleCrearUsuario : handleCancelar}
-            className="bg-[#17243D] hover:bg-[#EF3340] text-white font-bold py-3 px-6 rounded-lg transition"
-          >
-            {modo === 'list' ? '+ Nuevo Usuario' : 'Volver a la lista'}
-          </button>
+
+          <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/50">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto] items-end mb-6">
+              <label className="block">
+                <span className="text-sm font-medium text-slate-700">Buscar usuario</span>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Nombre, email, username o cédula"
+                  className="mt-2 w-full rounded-[28px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-sm font-medium text-slate-700">Filtrar por rol</span>
+                <select
+                  value={filterRole}
+                  onChange={(e) => setFilterRole(e.target.value)}
+                  className="mt-2 w-full rounded-[28px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                >
+                  {roles.map((rol) => (
+                    <option key={rol} value={rol}>
+                      {rol}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchTerm('');
+                  setFilterRole('Todos');
+                }}
+                className="inline-flex h-14 items-center justify-center rounded-[28px] border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Limpiar
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCrearUsuario}
+                className="inline-flex h-14 items-center justify-center rounded-[28px] bg-[#17243D] px-5 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                Nuevo Usuario
+              </button>
+            </div>
+
+            <UsuariosList
+              usuarios={filteredUsuarios}
+              loading={loading}
+              onEdit={handleEditarUsuario}
+              onDelete={handleUsuarioEliminado}
+              token={token}
+            />
+          </div>
         </div>
 
-        {modo === 'list' && (
-          <UsuariosList
-            usuarios={usuarios}
-            loading={loading}
-            onEdit={handleEditarUsuario}
-            onDelete={handleUsuarioEliminado}
-            token={token}
-          />
-        )}
-
-        {modo === 'create' && (
-          <CrearUsuario token={token} onSuccess={handleExito} onCancel={handleCancelar} />
-        )}
-
         {modo === 'edit' && usuarioSeleccionado && (
-          <EditarUsuario
-            token={token}
-            usuario={usuarioSeleccionado}
-            onSuccess={handleExito}
-            onCancel={handleCancelar}
-          />
+          <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/50 mt-6">
+            <EditarUsuario
+              token={token}
+              usuario={usuarioSeleccionado}
+              onSuccess={handleExito}
+              onCancel={handleCancelar}
+            />
+          </div>
         )}
       </div>
     </div>

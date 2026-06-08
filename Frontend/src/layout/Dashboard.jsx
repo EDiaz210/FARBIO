@@ -107,7 +107,7 @@ const Dashboard = () => {
 
       {/* SIDEBAR */}
       <aside
-        className={`fixed md:relative z-40 transition-all duration-300 ease-in-out bg-gray-100 border-r border-gray-300 flex flex-col h-full
+        className={`fixed md:relative z-40 transition-all duration-300 ease-in-out bg-white border-r border-slate-200 flex flex-col h-full
           ${mobileMenuOpen ? "left-0" : "-left-full"} md:left-0 
           ${isCollapsed ? "md:w-20" : "md:w-64"} w-64`}
       >
@@ -137,7 +137,7 @@ const Dashboard = () => {
             )}
           </div>
 
-          <hr className="border-gray-300 mb-6" />
+          <hr className="border-slate-200 mb-6" />
 
           {/* Navegación */}
           <nav className="flex-1 overflow-y-auto">
@@ -152,10 +152,17 @@ const Dashboard = () => {
                       to="/dashboard/tablas"
                       onClick={handleMenuItemClick}
                       className={`flex items-center p-2 rounded-lg transition ${
-                        urlActual === "/dashboard/tablas" ? "bg-[#17243D] text-white" : "text-gray-700 hover:bg-gray-200"
+                        urlActual === "/dashboard/tablas"
+                          ? "bg-blue-100 text-blue-800 font-bold"
+                          : "text-slate-600 hover:bg-slate-100"
                       } ${isCollapsed ? "justify-center" : ""}`}
                     >
-                      <img src={personasIcon} alt="" className={`w-5 h-5 ${urlActual === "/dashboard/tablas" ? "brightness-200" : ""}`} />
+                      <img
+                        src={personasIcon}
+                        alt=""
+                        className={`w-5 h-5 ${urlActual === "/dashboard/tablas" ? "opacity-100" : "opacity-70"}`}
+                        style={urlActual === "/dashboard/tablas" ? { filter: 'invert(21%) sepia(91%) saturate(2363%) hue-rotate(217deg) brightness(90%) contrast(95%)' } : { filter: 'grayscale(100%) brightness(80%)' }}
+                      />
                       {!isCollapsed && <span className="ml-3">Solicitudes de Codigo</span>}
                     </Link>
                   </li>
@@ -168,10 +175,17 @@ const Dashboard = () => {
                           to="/dashboard/insumos"
                           onClick={handleMenuItemClick}
                           className={`flex items-center p-2 rounded-lg transition ${
-                            urlActual === "/dashboard/insumos" ? "bg-[#17243D] text-white" : "text-gray-700 hover:bg-gray-200"
-                          } ${isCollapsed ? "justify-center" : ""}`}
+                          urlActual === "/dashboard/insumos"
+                            ? "bg-blue-100 text-blue-800 font-bold"
+                            : "text-slate-600 hover:bg-slate-100"
+                        } ${isCollapsed ? "justify-center" : ""}`}
                         >
-                          <img src={formulariosIcon} alt="" className={`w-5 h-5 ${urlActual === "/dashboard/insumos" ? "brightness-200" : ""}`} />
+                          <img
+                            src={formulariosIcon}
+                            alt=""
+                            className={`w-5 h-5 ${urlActual === "/dashboard/insumos" ? "opacity-100" : "opacity-70"}`}
+                            style={urlActual === "/dashboard/insumos" ? { filter: 'invert(21%) sepia(91%) saturate(2363%) hue-rotate(217deg) brightness(90%) contrast(95%)' } : { filter: 'grayscale(100%) brightness(80%)' }}
+                          />
                           {!isCollapsed && <span className="ml-3">Nuevo Insumo</span>}
                         </Link>
                       </li>
@@ -182,10 +196,17 @@ const Dashboard = () => {
                           to="/dashboard/mis-solicitudes"
                           onClick={handleMenuItemClick}
                           className={`flex items-center p-2 rounded-lg transition ${
-                            urlActual === "/dashboard/mis-solicitudes" ? "bg-[#17243D] text-white" : "text-gray-700 hover:bg-gray-200"
-                          } ${isCollapsed ? "justify-center" : ""}`}
+                          urlActual === "/dashboard/mis-solicitudes"
+                            ? "bg-blue-100 text-blue-800 font-bold"
+                            : "text-slate-600 hover:bg-slate-100"
+                        } ${isCollapsed ? "justify-center" : ""}`}
                         >
-                          <img src={mensajeroIcon} alt="" className={`w-5 h-5 ${urlActual === "/dashboard/mis-solicitudes" ? "brightness-200" : ""}`} />
+                          <img
+                            src={mensajeroIcon}
+                            alt=""
+                            className={`w-5 h-5 ${urlActual === "/dashboard/mis-solicitudes" ? "opacity-100" : "opacity-70"}`}
+                            style={urlActual === "/dashboard/mis-solicitudes" ? { filter: 'invert(21%) sepia(91%) saturate(2363%) hue-rotate(217deg) brightness(90%) contrast(95%)' } : { filter: 'grayscale(100%) brightness(80%)' }}
+                          />
                           {!isCollapsed && <span className="ml-3">Estado Solicitudes</span>}
                         </Link>
                       </li>
@@ -207,7 +228,9 @@ const Dashboard = () => {
                         to={item.path}
                         onClick={handleMenuItemClick}
                         className={`flex items-center p-2 rounded-lg transition ${
-                          urlActual === item.path ? "bg-red-800 text-white" : "text-gray-700 hover:bg-gray-200"
+                          urlActual === item.path
+                            ? "bg-sky-100 text-sky-700"
+                            : "text-slate-600 hover:bg-slate-100"
                         } ${isCollapsed ? "justify-center" : ""}`}
                       >
                         <div className="w-5 h-5 flex items-center justify-center">
@@ -242,8 +265,8 @@ const Dashboard = () => {
       </aside>
 
       {/* CONTENIDO PRINCIPAL */}
-      <main className="flex-1 h-full overflow-y-auto bg-white">
-        <div className="p-4 md:p-8">
+      <main className="flex-1 min-h-screen overflow-y-auto bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
+        <div className="p-4 md:p-8 min-h-full">
           <Outlet />
         </div>
       </main>

@@ -20,13 +20,13 @@ const StepIcon = ({ currentStatus, stepName }) => {
   const isCompleted = currentIndex >= stepIndex && currentIndex !== -1;
 
   return isCompleted ? (
-    <div className="w-7 h-7 bg-green-500 rounded-lg flex items-center justify-center text-white shadow-sm transition-all duration-300">
+    <div className="w-7 h-7 bg-[#3B6EE8] rounded-lg flex items-center justify-center text-white shadow-sm transition-all duration-300">
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
       </svg>
     </div>
   ) : (
-    <div className="w-7 h-7 border-2 border-gray-300 rounded-lg bg-gray-50"></div>
+    <div className="w-7 h-7 border-2 border-slate-200 rounded-lg bg-slate-50"></div>
   );
 };
 
@@ -36,10 +36,10 @@ const SolicitudRow = ({ item }) => {
   const status = item.status || '';
 
   return (
-    <tr className="hover:bg-blue-50/50 transition-colors">
-      <td className="p-5 font-bold text-[#17243D]">#{item.id}</td>
-      <td className="p-5 text-center font-mono text-sm text-gray-500">{code}</td>
-      <td className="p-5 text-gray-700 font-medium">{description}</td>
+    <tr className="bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      <td className="rounded-[20px] rounded-r-none p-5 font-bold text-slate-900">#{item.id}</td>
+      <td className="p-5 text-center font-mono text-sm text-slate-500">{code}</td>
+      <td className="p-5 text-slate-700 font-medium">{description}</td>
       <td className="p-5 text-center">
         <div className="flex justify-center"><StepIcon currentStatus={status} stepName="Nuevo" /></div>
       </td>
@@ -49,7 +49,7 @@ const SolicitudRow = ({ item }) => {
       <td className="p-5 text-center">
         <div className="flex justify-center"><StepIcon currentStatus={status} stepName="Con Maestro de Datos" /></div>
       </td>
-      <td className="p-5 text-center">
+      <td className="rounded-[20px] rounded-l-none p-5 text-center">
         <div className="flex justify-center"><StepIcon currentStatus={status} stepName="Completado" /></div>
       </td>
     </tr>
@@ -60,15 +60,15 @@ const Pagination = ({ currentPage, totalPages, onChangePage }) => {
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between p-6 bg-gray-50 border-t border-gray-100">
-      <div className="text-sm text-gray-600">
-        Mostrando <span className="font-semibold">{currentPage}</span> de <span className="font-semibold">{totalPages}</span> páginas
+    <div className="flex items-center justify-between p-6 bg-slate-50 border-t border-slate-100">
+      <div className="text-sm text-slate-600">
+        Mostrando <span className="font-semibold text-slate-900">{currentPage}</span> de <span className="font-semibold text-slate-900">{totalPages}</span> páginas
       </div>
       <div className="flex gap-2">
         <button
           onClick={() => onChangePage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
-          className="px-4 py-2 bg-[#17243D] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#1e2d4a] transition-colors"
+          className="px-4 py-2 bg-[#3B6EE8] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0f1b35] transition-colors"
         >
           ← Anterior
         </button>
@@ -78,8 +78,8 @@ const Pagination = ({ currentPage, totalPages, onChangePage }) => {
             onClick={() => onChangePage(page)}
             className={`px-3 py-2 rounded-lg transition-colors ${
               page === currentPage
-                ? 'bg-[#17243D] text-white font-semibold'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-[#3B6EE8] text-white font-semibold'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             {page}
@@ -88,7 +88,7 @@ const Pagination = ({ currentPage, totalPages, onChangePage }) => {
         <button
           onClick={() => onChangePage((prev) => Math.min(prev + 1, totalPages))}
           disabled={currentPage === totalPages}
-          className="px-4 py-2 bg-[#17243D] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#1e2d4a] transition-colors"
+          className="px-4 py-2 bg-[#3B6EE8] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0f1b35] transition-colors"
         >
           Siguiente →
         </button>
@@ -129,27 +129,27 @@ const MisSolicitudes = () => {
   }, [currentPage, solicitudes]);
 
   return (
-    <div className="p-8 bg-[#F8FAFC] min-h-screen font-sans">
-      <div className="max-w-7xl mx-auto">
+    <div className="py-8 min-h-screen font-sans" style={{ fontFamily: 'Gowun Batang, serif' }}>
+      <div className="w-full max-w-7xl mx-auto px-6 lg:px-8">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-[#17243D]">Mis Solicitudes</h1>
-          <p className="text-gray-500 mt-2">Seguimiento en tiempo real del proceso de creación</p>
+          <h1 className="text-4xl font-semibold text-slate-900">Mis Solicitudes</h1>
+          <p className="text-base text-slate-600 mt-2">Seguimiento en tiempo real del proceso de creación</p>
         </header>
 
-        <div className="bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-100">
-          <table className="w-full text-left">
+        <div className="w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60">
+          <table className="w-full text-left border-separate border-spacing-y-4">
             <thead>
-              <tr className="bg-[#17243D] text-white">
-                <th className="p-5 border-b border-gray-700">ID</th>
-                <th className="p-5 border-b border-gray-700 text-center">SAP Code</th>
-                <th className="p-5 border-b border-gray-700">Descripción</th>
-                <th className="p-5 border-b border-gray-700 text-center uppercase text-xs tracking-wider">Compras</th>
-                <th className="p-5 border-b border-gray-700 text-center uppercase text-xs tracking-wider">Contabilidad</th>
-                <th className="p-5 border-b border-gray-700 text-center uppercase text-xs tracking-wider">Maestro Datos</th>
-                <th className="p-5 border-b border-gray-700 text-center uppercase text-xs tracking-wider">SAP</th>
+              <tr className="bg-[#1E3A8A] text-white">
+                <th className="rounded-tl-[24px] p-5 text-sm font-semibold uppercase tracking-[0.08em]">ID</th>
+                <th className="p-5 text-center text-sm font-semibold uppercase tracking-[0.08em]">SAP Code</th>
+                <th className="p-5 text-sm font-semibold uppercase tracking-[0.08em]">Descripción</th>
+                <th className="p-5 text-center text-sm font-semibold uppercase tracking-[0.08em]">Compras</th>
+                <th className="p-5 text-center text-sm font-semibold uppercase tracking-[0.08em]">Contabilidad</th>
+                <th className="p-5 text-center text-sm font-semibold uppercase tracking-[0.08em]">Maestro Datos</th>
+                <th className="rounded-tr-[24px] p-5 text-center text-sm font-semibold uppercase tracking-[0.08em]">SAP</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {currentSolicitudes.map((item) => (
                 <SolicitudRow key={item.id} item={item} />
               ))}
@@ -157,7 +157,7 @@ const MisSolicitudes = () => {
           </table>
 
           {solicitudes.length === 0 && (
-            <div className="p-20 text-center text-gray-400">No tienes solicitudes registradas actualmente.</div>
+            <div className="p-20 text-center text-slate-400">No tienes solicitudes registradas actualmente.</div>
           )}
 
           <Pagination currentPage={currentPage} totalPages={totalPages} onChangePage={setCurrentPage} />

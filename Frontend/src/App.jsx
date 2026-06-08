@@ -14,6 +14,7 @@ import AdminUsuarios from "./pages/Administrador/AdminUsuarios";
 import AdminReportes from "./pages/Reportes/AdminReportes";
 import Insumos from "./pages/Articulo/ItemForm";
 import MisSolicitudes from "./pages/Solicitudes/MisSolicitudes";
+import CrearUsuarioPage from "./pages/Administrador/CrearUsuarioPage";
 
 function App() {
   const token = storeAuth(state => state.token);
@@ -50,6 +51,7 @@ function App() {
 
           {/* 🔹 Rutas para Administrador */}
           <Route path="admin/usuarios" element={<AdminUsuarios />} />
+          <Route path="admin/usuarios/nuevo" element={<CrearUsuarioPage />} />
           <Route path="admin/reportes" element={<AdminReportes />} />
         </Route>
 

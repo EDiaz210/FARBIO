@@ -2,54 +2,45 @@ import EliminarUsuario from './EliminarUsuario';
 
 const UsuariosList = ({ usuarios, loading, onEdit, onDelete, token }) => {
   return (
-    <div className="bg-[#f8f9fa] p-8 rounded-lg mb-8 border border-gray-200">
-      <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-[#17243D]">Lista de Usuarios</h2>
-          <p className="text-gray-600 mt-1">Revisa los usuarios activos y administra sus permisos.</p>
-        </div>
-      </div>
-
+    <div>
       {loading ? (
-        <div className="text-center py-12 text-gray-600">Cargando usuarios...</div>
+        <div className="text-center py-20 text-slate-500">Cargando usuarios...</div>
       ) : usuarios.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">No hay usuarios registrados.</div>
+        <div className="text-center py-20 text-slate-500">No se encontraron usuarios.</div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse border border-gray-300">
-            <thead className="bg-[#17243D] text-white text-left">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead className="bg-slate-950 text-white">
               <tr>
-                <th className="p-3 border border-[#dee2e6]">ID</th>
-                <th className="p-3 border border-[#dee2e6]">Nombre</th>
-                <th className="p-3 border border-[#dee2e6]">Email</th>
-                <th className="p-3 border border-[#dee2e6]">Username</th>
-                <th className="p-3 border border-[#dee2e6]">Cédula</th>
-                <th className="p-3 border border-[#dee2e6]">Rol</th>
-                <th className="p-3 border border-[#dee2e6]">Creado</th>
-                <th className="p-3 border border-[#dee2e6] text-center">Acciones</th>
+                <th className="px-4 py-4 text-left font-semibold tracking-wide">ID</th>
+                <th className="px-4 py-4 text-left font-semibold tracking-wide">Nombre</th>
+                <th className="px-4 py-4 text-left font-semibold tracking-wide">Email</th>
+                <th className="px-4 py-4 text-left font-semibold tracking-wide">Usuario</th>
+                <th className="px-4 py-4 text-left font-semibold tracking-wide">Cédula</th>
+                <th className="px-4 py-4 text-left font-semibold tracking-wide">Rol</th>
+                <th className="px-4 py-4 text-left font-semibold tracking-wide">Creado</th>
+                <th className="px-4 py-4 text-center font-semibold tracking-wide">Acciones</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-200 bg-white">
               {usuarios.map((usuario, index) => (
-                <tr key={usuario.id} className={index % 2 === 0 ? 'bg-[#f8f9fa]' : 'bg-white'}>
-                  <td className="p-3 border border-[#dee2e6] text-[#17243D]">{usuario.id}</td>
-                  <td className="p-3 border border-[#dee2e6] text-[#17243D] font-medium">{usuario.nombre}</td>
-                  <td className="p-3 border border-[#dee2e6] text-[#17243D]">{usuario.email}</td>
-                  <td className="p-3 border border-[#dee2e6] text-[#17243D]">{usuario.username || '-'}</td>
-                  <td className="p-3 border border-[#dee2e6] text-[#17243D]">{usuario.cedula}</td>
-                  <td className="p-3 border border-[#dee2e6]">
-                    <span className="px-3 py-1 bg-[#dee2e6] text-[#17243D] rounded-full text-sm font-semibold">
+                <tr key={usuario.id} className={index % 2 === 0 ? 'bg-slate-50' : 'bg-white'}>
+                  <td className="px-4 py-4 text-slate-800">{usuario.id}</td>
+                  <td className="px-4 py-4 text-slate-900 font-medium">{usuario.nombre}</td>
+                  <td className="px-4 py-4 text-slate-700">{usuario.email}</td>
+                  <td className="px-4 py-4 text-slate-700">{usuario.username || '-'}</td>
+                  <td className="px-4 py-4 text-slate-700">{usuario.cedula}</td>
+                  <td className="px-4 py-4">
+                    <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
                       {usuario.rol}
                     </span>
                   </td>
-                  <td className="p-3 border border-[#dee2e6] text-[#17243D]">
-                    {new Date(usuario.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="p-3 border border-[#dee2e6] text-center">
-                    <div className="flex flex-wrap gap-2 justify-center">
+                  <td className="px-4 py-4 text-slate-700">{new Date(usuario.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-4 text-center">
+                    <div className="flex items-center justify-center gap-2 whitespace-nowrap">
                       <button
                         onClick={() => onEdit(usuario)}
-                        className="bg-[#17243D] hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition text-sm font-semibold"
+                        className="rounded-2xl bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
                       >
                         Editar
                       </button>

@@ -1,5 +1,4 @@
 import pool from '../database.js';
-import axios from 'axios';
 
 
 // Obtener código por ID 
@@ -55,6 +54,7 @@ import axios from 'axios';
     return res.status(200).json({ codigos });
 
   } catch (err) {
+    console.error('Error obteniendo códigos:', err);
     return res.status(500).json({ msg: 'Error de servidor' });
   } finally {
     connection.release();

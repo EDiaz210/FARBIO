@@ -6,20 +6,20 @@ import storeAuth from '../../context/storeAuth';
 const ITEMS_PER_PAGE = 5;
 
 const TableRow = ({ item, onEdit }) => (
-  <tr key={item.id} className="border-b hover:bg-gray-50 transition">
-    <td className="p-4 font-bold">#{item.id}</td>
-    <td className="p-4">
-      <span className="px-2 py-1 rounded text-xs font-bold uppercase bg-blue-100 text-blue-800">{item.codigo || 'S/N'}</span>
+  <tr className="bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+    <td className="rounded-[20px] rounded-r-none p-5 font-bold text-slate-900">#{item.id}</td>
+    <td className="p-5">
+      <span className="px-2 py-1 rounded-full text-xs font-semibold uppercase bg-slate-100 text-slate-700">{item.codigo || 'S/N'}</span>
     </td>
-    <td className="p-4 truncate max-w-[200px]">{item.descripcion}</td>
-    <td className="p-4 truncate max-w-[200px]">{item.detalles}</td>
-    <td className="p-4">
-      <span className="text-sm font-medium capitalize bg-gray-100 px-3 py-1 rounded-full text-gray-700">{item.status}</span>
+    <td className="p-5 truncate max-w-[220px] text-slate-700">{item.descripcion}</td>
+    <td className="p-5 truncate max-w-[220px] text-slate-700">{item.detalles}</td>
+    <td className="p-5">
+      <span className="text-sm font-medium capitalize bg-slate-100 px-3 py-1 rounded-full text-slate-700">{item.status}</span>
     </td>
-    <td className="p-4 text-center">
-      <button 
+    <td className="rounded-[20px] rounded-l-none p-5 text-center">
+      <button
         onClick={() => onEdit(item.id)}
-        className="p-2 bg-[#17243D] text-white rounded-full hover:bg-[#EF3340] transition inline-flex items-center justify-center"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#3B6EE8] text-white transition hover:bg-[#0f1b35]"
         title="Editar registro"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,23 +76,29 @@ const TablaCodigos = () => {
 
   const statusRole = useMemo(() => getStatusByRole(userRole), [userRole]);
 
-  const loadData = useCallback(async () => {
-    if (!statusRole) return;
-    setLoading(true);
-    try {
-      const sanitizedStatus = encodeURIComponent(statusRole.trim());
-      const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=${sanitizedStatus}`;
-      const response = await fetchDataBackend(url, null, 'GET', null);
-      if (response?.codigos) setItems(response.codigos);
-    } catch (err) {
-      console.error('Error cargando códigos:', err);
-    } finally {
-      setLoading(false);
-      setCurrentPage(1);
-    }
-  }, [fetchDataBackend, statusRole]);
+  useEffect(() => {
+    const loadData = async () => {
+      if (!statusRole) {
+        setLoading(false);
+        return;
+      }
 
-  useEffect(() => { loadData(); }, [loadData]);
+      setLoading(true);
+      try {
+        const sanitizedStatus = encodeURIComponent(statusRole.trim());
+        const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=${sanitizedStatus}`;
+        const response = await fetchDataBackend(url, null, 'GET', null);
+        if (response?.codigos) setItems(response.codigos);
+      } catch (err) {
+        console.error('Error cargando códigos:', err);
+      } finally {
+        setLoading(false);
+        setCurrentPage(1);
+      }
+    };
+
+    loadData();
+  }, [fetchDataBackend, statusRole]);
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE)), [items.length]);
 
@@ -104,39 +110,41 @@ const TablaCodigos = () => {
   const handleEdit = (id) => navigate(`/dashboard/insumos/${id}`);
 
   return (
-    <div className="p-6 bg-white min-h-screen" style={{ fontFamily: 'Gowun Batang, serif' }}>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#17243D]">Gestión de Códigos</h1>
-        <p className="text-gray-600">Este módulo sirve para mostrar la lista entrante de códigos:</p>
-      </div>
+    <div className="py-8 min-h-screen font-sans" style={{ fontFamily: 'Gowun Batang, serif' }}>
+      <div className="w-full max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="mb-6">
+          <h1 className="text-4xl font-semibold text-slate-900">Gestión de Códigos</h1>
+          <p className="text-base text-slate-600 mt-2">Este módulo sirve para mostrar la lista entrante de códigos:</p>
+        </div>
 
-      <div className="overflow-x-auto shadow-lg rounded-lg">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-[#17243D] text-white">
-              <th className="p-4">ID</th>
-              <th className="p-4">SAP Code</th>
-              <th className="p-4">Descripción</th>
-              <th className="p-4">Detalles</th>
-              <th className="p-4">Status</th>
-              <th className="p-4 text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={6} className="p-10 text-center">Cargando registros...</td></tr>
-            ) : currentItems.length === 0 ? (
-              <tr><td colSpan={6} className="p-10 text-center text-gray-500">No hay códigos pendientes para tu rol.</td></tr>
-            ) : (
-              currentItems.map((item) => <TableRow key={item.id} item={item} onEdit={handleEdit} />)
-            )}
-          </tbody>
-        </table>
-      </div>
+        <div className="w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60">
+          <table className="w-full text-left border-separate border-spacing-y-4">
+            <thead>
+              <tr className="bg-[#1E3A8A] text-white">
+                <th className="rounded-tl-[24px] p-5 text-sm font-semibold uppercase tracking-[0.08em]">ID</th>
+                <th className="p-5 text-center text-sm font-semibold uppercase tracking-[0.08em]">SAP Code</th>
+                <th className="p-5 text-sm font-semibold uppercase tracking-[0.08em]">Descripción</th>
+                <th className="p-5 text-sm font-semibold uppercase tracking-[0.08em]">Detalles</th>
+                <th className="p-5 text-sm font-semibold uppercase tracking-[0.08em]">Status</th>
+                <th className="rounded-tr-[24px] p-5 text-center text-sm font-semibold uppercase tracking-[0.08em]">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} className="p-10 text-center text-slate-500">Cargando registros...</td></tr>
+              ) : currentItems.length === 0 ? (
+                <tr><td colSpan={6} className="p-10 text-center text-slate-500">No hay códigos pendientes para tu rol.</td></tr>
+              ) : (
+                currentItems.map((item) => <TableRow key={item.id} item={item} onEdit={handleEdit} />)
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      {!loading && items.length > 0 && (
-        <Pagination currentPage={currentPage} totalPages={totalPages} onChange={setCurrentPage} />
-      )}
+        {!loading && items.length > 0 && (
+          <Pagination currentPage={currentPage} totalPages={totalPages} onChange={setCurrentPage} />
+        )}
+      </div>
     </div>
   );
 };

@@ -153,7 +153,7 @@ const CrearArticulo = () => {
   return (
     <ArticuloFormLayout
       title="Crear Código"
-      description="Completa los datos según tu rol de acceso"
+      description="Completa los datos del artículo que deseas solicitar."
       loading={loading}
       isSubmitting={isSubmitting}
       id={null}
