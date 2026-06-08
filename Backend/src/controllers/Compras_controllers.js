@@ -9,6 +9,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
   const {  
     lead_time, 
     dias_tolerancia,
+    descripcion_sap,
     userId,
     userName
   } = req.body;
@@ -35,7 +36,11 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       return res.status(404).json({ success: false, message: 'El código no existe' });
     }
 
-    // 3. VALIDACIÓN DE CAMPOS (al menos uno debe estar presente)
+    // 3. VALIDACIÓN DE CAMPOS
+    // ahora se requiere `descripcion_sap` además de al menos uno de los números
+    if (!descripcion_sap) {
+      return res.status(400).json({ success: false, message: 'Falta campo requerido: descripcion_sap' });
+    }
     if (!lead_time && !dias_tolerancia) {
       return res.status(400).json({ success: false, message: 'Faltan campos: lead_time o dias_tolerancia' });
     }
@@ -50,6 +55,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     const updateQuery = `
       UPDATE codigos 
       SET  
+          descripcion_sap = ?,
           lead_time = ?, 
           dias_tolerancia = ?, 
           status = ?,
@@ -59,12 +65,13 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     `;
 
     await pool.query(updateQuery, [
-      lead_time,                     // 1. lead_time
-      dias_tolerancia,               // 2. dias_tolerancia
-      'En Contabilidad',             // 3. status
-      historyEntry,                  // 4. r_compras
-      userId,                        // 5. updated_by
-      id                             // 6. WHERE id = ?
+      descripcion_sap,               // 1. descripcion_sap
+      lead_time,                     // 2. lead_time
+      dias_tolerancia,               // 3. dias_tolerancia
+      'En Contabilidad',             // 4. status
+      historyEntry,                  // 5. r_compras
+      userId,                        // 6. updated_by
+      id                             // 7. WHERE id = ?
     ]);
 
     await registrarReporteCodigo({
@@ -72,13 +79,15 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       codigo: existe[0].codigo,
       modulo: 'compras',
       accion: 'Actualización de compras',
-      campoAfectado: 'lead_time,dias_tolerancia,status',
+      campoAfectado: 'descripcion_sap,lead_time,dias_tolerancia,status',
       valorAnterior: {
+        descripcion_sap: existe[0].descripcion_sap,
         lead_time: existe[0].lead_time,
         dias_tolerancia: existe[0].dias_tolerancia,
         status: existe[0].status
       },
       valorNuevo: {
+        descripcion_sap,
         lead_time,
         dias_tolerancia,
         status: 'En Contabilidad'

@@ -10,9 +10,40 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     descripcionSolicitante, 
     detalles, 
     link_referencia,
+    RequestorArea,
     userId,
     userName
   } = req.body;
+
+  const AREA_OPTIONS = [
+    'BODEGA MATERIALES',
+    'BODEGA PRODUCTO TERMINADO',
+    'CARTERA',
+    'COMERCIAL HUMANA',
+    'COMERCIAL VETERINARIA',
+    'COMPRAS E IMPORTACIONES',
+    'CONTABILIDAD',
+    'CONTROL DE CALIDAD',
+    'DCRAV',
+    'DIRECCION TECNICA',
+    'DISEÑO',
+    'ESTABILIDADES',
+    'FACTURACION',
+    'GERENCIA GENERAL',
+    'GESTION DEL TALENTO',
+    'INVESTIGACION Y DESARROLLO',
+    'MANTENIMIENTO',
+    'MARKETING',
+    'PLANIFICACION',
+    'PRODUCCION BIOLOGICOS',
+    'PRODUCCION EL CARMEN',
+    'PRODUCCION EXTRACTOS',
+    'PRODUCCION HUMANA',
+    'PRODUCCION VETERINARIA',
+    'SEGURIDAD INDUSTRIAL',
+    'SUBGERENCIA GENERAL',
+    'VALIDACIONES',
+  ];
 
   try {
     // Validar que sea solicitante
@@ -29,8 +60,13 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     }
 
     // Validaciones básicas
-    if ( !detalles || !link_referencia || !descripcionSolicitante) {
-      return res.status(400).json({ success: false, message: 'Detalles, link de referencia y descripción son requeridos' });
+    if (!detalles || !link_referencia || !descripcionSolicitante || !RequestorArea) {
+      return res.status(400).json({ success: false, message: 'Detalles, link de referencia, descripción y área son requeridos' });
+    }
+
+    // Validar área
+    if (!AREA_OPTIONS.includes(RequestorArea)) {
+      return res.status(400).json({ success: false, message: `Área inválida. Debe ser una de: ${AREA_OPTIONS.join(', ')}` });
     }
 
     // Crear historial inicial
@@ -42,18 +78,18 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 
     const insertQuery = `
       INSERT INTO codigos 
-      (status, descripcion, detalles, link_referencia, r_creacion, created_by)
-      VALUES (?, ?, ?, ?, ?, ?)
+      (status, descripcion, requestor_area, detalles, link_referencia, r_creacion, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
 
-    // Pasamos exactamente 7 valores para esas 7 columnas
     const [insertResult] = await pool.query(insertQuery, [
       'Nuevo',                // 1. status
       descripcionSolicitante, // 2. descripcion
-      detalles,               // 3. detalles
-      link_referencia,        // 4. link_referencia
-      historyEntry,           // 5. id_registro (JSON con historial)
-      userId                  // 6. created_by 
+      RequestorArea,          // 3. requestor_area
+      detalles,               // 4. detalles
+      link_referencia,        // 5. link_referencia
+      historyEntry,           // 6. r_creacion (JSON con historial)
+      userId                  // 7. created_by 
     ]);
 
     await registrarReporteCodigo({
@@ -61,11 +97,12 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       codigo: null,
       modulo: 'creacion',
       accion: 'Creación de código',
-      campoAfectado: 'descripcion,detalles,link_referencia,status',
+      campoAfectado: 'descripcion,requestor_area,detalles,link_referencia,status',
       valorAnterior: null,
       valorNuevo: {
         status: 'Nuevo',
         descripcion: descripcionSolicitante,
+        requestor_area: RequestorArea,
         detalles,
         link_referencia
       },
@@ -95,6 +132,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     descripcionSolicitante, 
     detalles, 
     link_referencia,
+    RequestorArea,
     userId,
     userName
   } = req.body;
@@ -122,8 +160,13 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     }
 
     // 3. Validaciones de campos
-    if (!detalles || !link_referencia || !descripcionSolicitante) {
+    if (!detalles || !link_referencia || !descripcionSolicitante || !RequestorArea) {
       return res.status(400).json({ success: false, message: 'Faltan campos obligatorios' });
+    }
+
+    // Validar área
+    if (!AREA_OPTIONS.includes(RequestorArea)) {
+      return res.status(400).json({ success: false, message: `Área inválida. Debe ser una de: ${AREA_OPTIONS.join(', ')}` });
     }
 
     // Preparar JSONs
@@ -140,6 +183,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       UPDATE codigos 
       SET 
         descripcion = ?, 
+        requestor_area = ?,
         detalles = ?, 
         link_referencia = ?, 
         r_creacion = ?, 
@@ -149,6 +193,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 
     await pool.query(updateQuery, [
       descripcionSolicitante, 
+      RequestorArea,
       detalles, 
       link_referencia, 
       historyEntry, 
@@ -161,15 +206,17 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       codigo: codigoAnterior.codigo,
       modulo: 'creacion',
       accion: 'Actualización de solicitud',
-      campoAfectado: 'descripcion,detalles,link_referencia',
+      campoAfectado: 'descripcion,requestor_area,detalles,link_referencia',
       valorAnterior: {
         descripcion: codigoAnterior.descripcion,
+        requestor_area: codigoAnterior.requestor_area,
         detalles: codigoAnterior.detalles,
         link_referencia: codigoAnterior.link_referencia,
         status: codigoAnterior.status
       },
       valorNuevo: {
         descripcion: descripcionSolicitante,
+        requestor_area: RequestorArea,
         detalles,
         link_referencia,
         status: codigoAnterior.status
