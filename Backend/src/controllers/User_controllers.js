@@ -262,6 +262,11 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
     if (nombre) actualizaciones.nombre = nombre;
     if (email) actualizaciones.email = email.toLowerCase();
     if (rol) actualizaciones.rol = rol;
+  
+
+    if (password) {
+      actualizaciones.password = await bcryptjs.hash(password, 10);
+    }
 
     // Si no hay cambios
     if (Object.keys(actualizaciones).length === 0) {
@@ -279,7 +284,7 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
 
     return res.status(200).json({
       msg: "Usuario actualizado exitosamente",
-      usuario: { id, ...actualizaciones }
+      usuario: { id, nombre: actualizaciones.nombre || usuarioExistente[0].nombre, email: actualizaciones.email || usuarioExistente[0].email, rol: actualizaciones.rol || usuarioExistente[0].rol }
     });
 
   } catch (err) {
