@@ -102,6 +102,16 @@ const TablaCodigos = () => {
     loadData();
   }, [fetchDataBackend, statusRole]);
 
+
+  const activeColorsByRole = {
+      solicitante: "bg-blue-100 text-blue-800",
+      compras: "bg-green-100 text-green-800",
+      contabilidad: "bg-yellow-100 text-yellow-800",
+      maestrodedatos: "bg-purple-100 text-purple-800",
+      administrador: "bg-zinc-200 text-zinc-800",
+    };
+    const clasesColor = activeColorsByRole[userRole] ;
+
   const totalPages = useMemo(() => Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE)), [items.length]);
 
   const currentItems = useMemo(() => {
@@ -110,6 +120,8 @@ const TablaCodigos = () => {
   }, [items, currentPage]);
 
   const handleEdit = (id) => navigate(`/dashboard/insumos/${id}`);
+
+  
 
   return (
     <div className="py-8 min-h-screen font-sans" style={{ fontFamily: 'Gowun Batang, serif' }}>
@@ -122,7 +134,7 @@ const TablaCodigos = () => {
         <div className="w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60">
           <table className="w-full text-left border-separate border-spacing-y-4">
             <thead>
-              <tr className="bg-[#1E3A8A] text-white">
+              <tr className={`${clasesColor} border-b border-slate-200`}>
                 <th className="rounded-tl-[24px] p-5 text-sm font-semibold uppercase tracking-[0.08em]">ID</th>
                 <th className="p-5 text-center text-sm font-semibold uppercase tracking-[0.08em]">SAP Code</th>
                 <th className="p-5 text-sm font-semibold uppercase tracking-[0.08em]">Descripción</th>

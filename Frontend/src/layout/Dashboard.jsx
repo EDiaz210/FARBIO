@@ -97,6 +97,15 @@ const Dashboard = () => {
         administrador: "from-zinc-100 via-slate-50 to-zinc-200",         // Gris claro
         };
 
+    
+    const activeColorsByRole = {
+      solicitante: "bg-blue-100 text-blue-800",
+      compras: "bg-green-100 text-green-800",
+      contabilidad: "bg-yellow-100 text-yellow-800",
+      maestrodedatos: "bg-purple-100 text-purple-800",
+      administrador: "bg-zinc-200 text-zinc-800",
+    };
+
     const currentBg = bgColorsByRole[userRole] || bgColorsByRole.user;
 
   return (
@@ -159,22 +168,30 @@ const Dashboard = () => {
                   {/* Enlace común para todos (Mis Tablas/Insumos) */}
                   <li>
                     <Link
-                      to="/dashboard/tablas"
-                      onClick={handleMenuItemClick}
-                      className={`flex items-center p-2 rounded-lg transition ${
-                        urlActual === "/dashboard/tablas"
-                          ? "bg-blue-100 text-blue-800 font-bold"
-                          : "text-slate-600 hover:bg-slate-100"
-                      } ${isCollapsed ? "justify-center" : ""}`}
-                    >
-                      <img
-                        src={personasIcon}
-                        alt=""
-                        className={`w-5 h-5 ${urlActual === "/dashboard/tablas" ? "opacity-100" : "opacity-70"}`}
-                        style={urlActual === "/dashboard/tablas" ? { filter: 'invert(21%) sepia(91%) saturate(2363%) hue-rotate(217deg) brightness(90%) contrast(95%)' } : { filter: 'grayscale(100%) brightness(80%)' }}
-                      />
-                      {!isCollapsed && <span className="ml-3">Solicitudes de Codigo</span>}
-                    </Link>
+                        to="/dashboard/tablas"
+                        onClick={handleMenuItemClick}
+                        className={`flex items-center p-2 rounded-lg transition ${
+                          urlActual === "/dashboard/tablas"
+                            ? `${activeColorsByRole[userRole]} font-bold`
+                            : "text-slate-600 hover:bg-slate-100"
+                        } ${isCollapsed ? "justify-center" : ""}`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className={`w-6 h-6 transition-opacity ${
+                            urlActual === "/dashboard/tablas" ? "opacity-100" : "opacity-70"
+                          }`}
+                        >
+                          <path d="M9.615 20h-2.615a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8M14 19l2 2 4-4M9 8h4M9 12h2" />
+                        </svg>
+                        <span className={isCollapsed ? "hidden" : "ml-3"}>Códigos</span>
+                      </Link> 
                   </li>
 
                   {/* MODULO EXCLUSIVO PARA SOLICITANTE */}
@@ -185,17 +202,26 @@ const Dashboard = () => {
                           to="/dashboard/insumos"
                           onClick={handleMenuItemClick}
                           className={`flex items-center p-2 rounded-lg transition ${
-                          urlActual === "/dashboard/insumos"
-                            ? "bg-blue-100 text-blue-800 font-bold"
-                            : "text-slate-600 hover:bg-slate-100"
-                        } ${isCollapsed ? "justify-center" : ""}`}
+                            urlActual === "/dashboard/insumos"
+                              ? "bg-blue-100 text-blue-800 font-bold"
+                              : "text-slate-600 hover:bg-slate-100"
+                          } ${isCollapsed ? "justify-center" : ""}`}
                         >
-                          <img
-                            src={formulariosIcon}
-                            alt=""
-                            className={`w-5 h-5 ${urlActual === "/dashboard/insumos" ? "opacity-100" : "opacity-70"}`}
-                            style={urlActual === "/dashboard/insumos" ? { filter: 'invert(21%) sepia(91%) saturate(2363%) hue-rotate(217deg) brightness(90%) contrast(95%)' } : { filter: 'grayscale(100%) brightness(80%)' }}
-                          />
+                          {/* SVG REEMPLAZANDO A LA IMAGEN ANTERIOR */}
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor" /* Cambia de color solo con el texto de Tailwind */
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={`w-6 h-6 transition-opacity ${
+                                      urlActual === "/dashboard/insumos" ? "opacity-100" : "opacity-70"
+                                    }`}     
+                          >
+                            <path d="M14 10a2 2 0 1 0 4 0 2 2 0 1 0-4 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM12.5 11.5l-4 4 1.5 1.5M12 15l-1.5-1.5" />
+                          </svg>
                           {!isCollapsed && <span className="ml-3">Nuevo Insumo</span>}
                         </Link>
                       </li>
@@ -211,12 +237,26 @@ const Dashboard = () => {
                             : "text-slate-600 hover:bg-slate-100"
                         } ${isCollapsed ? "justify-center" : ""}`}
                         >
-                          <img
-                            src={mensajeroIcon}
-                            alt=""
-                            className={`w-5 h-5 ${urlActual === "/dashboard/mis-solicitudes" ? "opacity-100" : "opacity-70"}`}
-                            style={urlActual === "/dashboard/mis-solicitudes" ? { filter: 'invert(21%) sepia(91%) saturate(2363%) hue-rotate(217deg) brightness(90%) contrast(95%)' } : { filter: 'grayscale(100%) brightness(80%)' }}
-                          />
+                          {/* SVG REEMPLAZANDO A LA IMAGEN ANTERIOR */}
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor" /* Permite que el color cambie con el texto de Tailwind */
+                            strokeWidth="1.5"     /* Ajustado un poco para mejor visibilidad, puedes dejar 1 si prefieres */
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={`w-6 h-6 transition-opacity ${
+                              urlActual === "/dashboard/insumos" ? "opacity-100" : "opacity-70"
+                            }`}
+                          >
+                            <path d="M13 5h8" />
+                            <path d="M13 9h5" />
+                            <path d="M13 15h8" />
+                            <path d="M13 19h5" />
+                            <path d="M3 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" />
+                            <path d="M3 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" />
+                          </svg>
                           {!isCollapsed && <span className="ml-3">Estado Solicitudes</span>}
                         </Link>
                       </li>
