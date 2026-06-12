@@ -28,7 +28,7 @@ const Dashboard = () => {
   const [perfilUsuario, setPerfilUsuario] = useState(null);
 
   const claims = getAuthClaims(token);
-  const userRole = claims?.rol || "";
+  const userRole = claims?.rol;
 
   // Estado para el sidebar
   const [isCollapsed, setIsCollapsed] = useState(false); // Recomendado empezar expandido en desktop
@@ -88,6 +88,16 @@ const Dashboard = () => {
       document.head.removeChild(link);
     };
   }, []);
+
+    const bgColorsByRole = {
+        solicitante: "from-blue-50 via-slate-50 to-blue-100",            // Celeste
+        compras: "from-green-50 via-slate-100 to-green-100",              // Verde
+        contabilidad: "from-yellow-50 via-slate-50 to-yellow-100",        // Amarillo
+        maestrodedatos: "from-purple-200 via-slate-100 to-purple-200",   // Morado
+        administrador: "from-zinc-100 via-slate-50 to-zinc-200",         // Gris claro
+        };
+
+    const currentBg = bgColorsByRole[userRole] || bgColorsByRole.user;
 
   return (
     <div className="flex h-screen font-sans flex-col md:flex-row bg-gray-50" style={{ fontFamily: "Gowun Batang, serif" }}>
@@ -263,9 +273,9 @@ const Dashboard = () => {
           </div>
         </div>
       </aside>
-
+      
       {/* CONTENIDO PRINCIPAL */}
-      <main className="flex-1 min-h-screen overflow-y-auto bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
+      <main className={`flex-1 min-h-screen overflow-y-auto bg-gradient-to-br ${currentBg}`}>
         <div className="p-4 md:p-8 min-h-full">
           <Outlet />
         </div>
