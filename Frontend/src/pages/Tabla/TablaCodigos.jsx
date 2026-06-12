@@ -5,56 +5,6 @@ import storeAuth from '../../context/storeAuth';
 import { getAuthClaims } from '../../utils/authClaims';
 
 const ITEMS_PER_PAGE = 5;
-
-const TableRow = ({ item, onEdit }) => (
-  <tr className="bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-    <td className="rounded-[20px] rounded-r-none p-5 font-bold text-slate-900">#{item.id}</td>
-    <td className="p-5">
-      <span className="px-2 py-1 rounded-full text-xs font-semibold uppercase bg-slate-100 text-slate-700">{item.codigo || 'S/N'}</span>
-    </td>
-    <td className="p-5 truncate max-w-[220px] text-slate-700">{item.descripcion}</td>
-    <td className="p-5 truncate max-w-[220px] text-slate-700">{item.detalles}</td>
-    <td className="p-5">
-      <span className="text-sm font-medium capitalize bg-slate-100 px-3 py-1 rounded-full text-slate-700">{item.status}</span>
-    </td>
-    <td className="rounded-[20px] rounded-l-none p-5 text-center">
-      <button
-        onClick={() => onEdit(item.id)}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#3B6EE8] text-white transition hover:bg-[#0f1b35]"
-        title="Editar registro"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-        </svg>
-      </button>
-    </td>
-  </tr>
-);
-
-const Pagination = ({ currentPage, totalPages, onChange }) => {
-  if (totalPages <= 1) return null;
-  return (
-    <div className="flex items-center justify-between p-6 bg-gray-50 border border-gray-200 rounded-lg mt-4">
-      <div className="text-sm text-gray-600">
-        Mostrando <span className="font-semibold">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> a <span className="font-semibold">{Math.min(currentPage * ITEMS_PER_PAGE, totalPages * ITEMS_PER_PAGE)}</span> de <span className="font-semibold">{totalPages * ITEMS_PER_PAGE}</span>
-      </div>
-
-      <div className="flex gap-2">
-        <button onClick={() => onChange((p) => Math.max(p - 1, 1))} disabled={currentPage === 1} className="px-4 py-2 bg-[#17243D] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#1e2d4a] transition-colors">← Anterior</button>
-
-        <div className="flex gap-1">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button key={page} onClick={() => onChange(page)} className={`px-3 py-2 rounded-lg transition-colors ${page === currentPage ? 'bg-[#17243D] text-white font-semibold' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>{page}</button>
-          ))}
-        </div>
-
-        <button onClick={() => onChange((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages} className="px-4 py-2 bg-[#17243D] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#1e2d4a] transition-colors">Siguiente →</button>
-      </div>
-    </div>
-  );
-};
-
 const getStatusByRole = (userRole = '') => {
   const role = userRole.toLowerCase();
   if (role.includes('solicitante')) return 'nuevo';
@@ -103,14 +53,7 @@ const TablaCodigos = () => {
   }, [fetchDataBackend, statusRole]);
 
 
-  const activeColorsByRole = {
-      solicitante: "bg-blue-100 text-blue-800",
-      compras: "bg-green-100 text-green-800",
-      contabilidad: "bg-yellow-100 text-yellow-800",
-      maestrodedatos: "bg-purple-100 text-purple-800",
-      administrador: "bg-zinc-200 text-zinc-800",
-    };
-    const clasesColor = activeColorsByRole[userRole] ;
+ 
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE)), [items.length]);
 
@@ -121,7 +64,66 @@ const TablaCodigos = () => {
 
   const handleEdit = (id) => navigate(`/dashboard/insumos/${id}`);
 
-  
+   const activeColorsByRole = {
+      solicitante: "bg-blue-100 text-blue-800",
+      compras: "bg-green-100 text-green-800",
+      contabilidad: "bg-yellow-100 text-yellow-800",
+      maestrodedatos: "bg-purple-100 text-purple-800",
+      administrador: "bg-zinc-200 text-zinc-800",
+    };
+    const clasesColor = activeColorsByRole[userRole] ;
+
+
+const TableRow = ({ item, onEdit }) => (
+  <tr className="bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+    <td className="rounded-[20px] rounded-r-none p-5 font-bold text-slate-900">#{item.id}</td>
+    <td className="p-5">
+      <span className="px-2 py-1 rounded-full text-xs font-semibold uppercase bg-slate-100 text-slate-700">{item.codigo || 'S/N'}</span>
+    </td>
+    <td className="p-5 truncate max-w-[220px] text-slate-700">{item.descripcion}</td>
+    <td className="p-5 truncate max-w-[220px] text-slate-700">{item.detalles}</td>
+    <td className="p-5">
+      <span className="text-sm font-medium capitalize bg-slate-100 px-3 py-1 rounded-full text-slate-700">{item.status}</span>
+    </td>
+    <td className="rounded-[20px] rounded-l-none p-5 text-center">
+      <button
+        onClick={() => onEdit(item.id)}
+        className={`inline-flex h-10 w-10 items-center justify-center rounded-full ${clasesColor} transition hover:opacity-80`}
+        title="Editar registro"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+      </button>
+    </td>
+  </tr>
+);
+
+const Pagination = ({ currentPage, totalPages, onChange }) => {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-between p-6 bg-gray-50 border border-gray-200 rounded-lg mt-4">
+      <div className="text-sm text-gray-600">
+        Mostrando <span className="font-semibold">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> a <span className="font-semibold">{Math.min(currentPage * ITEMS_PER_PAGE, totalPages * ITEMS_PER_PAGE)}</span> de <span className="font-semibold">{totalPages * ITEMS_PER_PAGE}</span>
+      </div>
+
+      <div className="flex gap-2">
+        <button onClick={() => onChange((p) => Math.max(p - 1, 1))} disabled={currentPage === 1} className="px-4 py-2 bg-[#17243D] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#1e2d4a] transition-colors">← Anterior</button>
+
+        <div className="flex gap-1">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button key={page} onClick={() => onChange(page)} className={`px-3 py-2 rounded-lg transition-colors ${page === currentPage ? 'bg-[#17243D] text-white font-semibold' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>{page}</button>
+          ))}
+        </div>
+
+        <button onClick={() => onChange((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages} className="px-4 py-2 bg-[#17243D] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#1e2d4a] transition-colors">Siguiente →</button>
+      </div>
+    </div>
+  );
+};
+
+
 
   return (
     <div className="py-8 min-h-screen font-sans" style={{ fontFamily: 'Gowun Batang, serif' }}>
