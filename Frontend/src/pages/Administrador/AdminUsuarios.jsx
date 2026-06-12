@@ -4,7 +4,6 @@ import { ToastContainer, toast } from 'react-toastify';
 import useFetch from '../../hooks/useFetch';
 import storeAuth from '../../context/storeAuth';
 import UsuariosList from './UsuariosList';
-import EditarUsuario from './EditarUsuario';
 
 const AdminUsuarios = () => {
   const navigate = useNavigate();
@@ -12,8 +11,6 @@ const AdminUsuarios = () => {
   const { token } = storeAuth();
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [modo, setModo] = useState('list');
-  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('Todos');
 
@@ -66,19 +63,7 @@ const AdminUsuarios = () => {
   };
 
   const handleEditarUsuario = (usuario) => {
-    setUsuarioSeleccionado(usuario);
-    setModo('edit');
-  };
-
-  const handleCancelar = () => {
-    setModo('list');
-    setUsuarioSeleccionado(null);
-  };
-
-  const handleExito = () => {
-    obtenerUsuarios();
-    setModo('list');
-    setUsuarioSeleccionado(null);
+    navigate(`/dashboard/admin/usuarios/editar/${usuario.id}`);
   };
 
   const handleUsuarioEliminado = (id) => {
@@ -156,16 +141,6 @@ const AdminUsuarios = () => {
           </div>
         </div>
 
-        {modo === 'edit' && usuarioSeleccionado && (
-          <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/50 mt-6">
-            <EditarUsuario
-              token={token}
-              usuario={usuarioSeleccionado}
-              onSuccess={handleExito}
-              onCancel={handleCancelar}
-            />
-          </div>
-        )}
       </div>
     </div>
   );
