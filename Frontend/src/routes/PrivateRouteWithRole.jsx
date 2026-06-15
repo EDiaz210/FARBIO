@@ -1,5 +1,5 @@
 import storeAuth from '../context/storeAuth';
-import { Forbidden } from '../pages/Forbidden';
+import Forbidden from '../pages/Forbidden';
 import { Navigate } from 'react-router';
 import { getAuthClaims } from '../utils/authClaims';
 
@@ -13,7 +13,7 @@ export default function PrivateRouteWithRole({ children, allowedRoles = [] }) {
     }
     
     if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
-        return <Navigate to="/forbidden" replace />;
+        return <Forbidden />;
     }
 
     return children;

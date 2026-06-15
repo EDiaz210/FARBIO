@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import PublicRoute from "./routes/PublicRoute";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import PrivateRouteWithRole from "./routes/PrivateRouteWithRole";
 import storeAuth from "./context/storeAuth";
 
 // Layouts
@@ -12,10 +13,14 @@ import Login from "./pages/Autenticación/Login";
 import TablaCodigos from "./pages/Tabla/TablaCodigos"; 
 import AdminUsuarios from "./pages/Administrador/AdminUsuarios";
 import AdminReportes from "./pages/Reportes/AdminReportes";
-import Insumos from "./pages/Articulo/ItemForm";
 import MisSolicitudes from "./pages/Solicitudes/MisSolicitudes";
 import CrearUsuarioPage from "./pages/Administrador/CrearUsuarioPage";
 import EditarUsuario from "./pages/Administrador/EditarUsuario";
+
+// Componentes por Rol
+import SolicitanteCrearCodigo from "./pages/Articulo/SolicitanteCrearCodigo";
+import ComprasEditarCodigo from "./pages/Articulo/ComprasEditarCodigo";
+import ContabilidadEditarCodigo from "./pages/Articulo/ContabilidadEditarCodigo";
 
 function App() {
   const token = storeAuth(state => state.token);
@@ -42,11 +47,37 @@ function App() {
         >
           {/* 🔹 Nueva Ruta para el Menú de Usuario */}
           <Route path="tablas" element={<TablaCodigos />} />
-          {/* RUTA PARA CREAR (Formulario vacío) */}
-          <Route path="insumos" element={<Insumos />} />
+          
+          {/* 🔹 Rutas de Creación/Edición por Rol */}
+          {/* Solicitante: Crear Código */}
+          <Route
+            path="insumos"
+            element={
+              <PrivateRouteWithRole allowedRoles={["solicitante"]}>
+                <SolicitanteCrearCodigo />
+              </PrivateRouteWithRole>
+            }
+          />
 
-          {/* RUTA PARA EDITAR (Formulario con ID) */}
-          <Route path="insumos/:id" element={<Insumos />} />
+          {/* Compras: Editar Código */}
+          <Route
+            path="compras/editar/:id"
+            element={
+              <PrivateRouteWithRole allowedRoles={["compras"]}>
+                <ComprasEditarCodigo />
+              </PrivateRouteWithRole>
+            }
+          />
+
+          {/* Contabilidad: Editar Código */}
+          <Route
+            path="contabilidad/editar/:id"
+            element={
+              <PrivateRouteWithRole allowedRoles={["contabilidad"]}>
+                <ContabilidadEditarCodigo />
+              </PrivateRouteWithRole>
+            }
+          />
 
           <Route path="mis-solicitudes" element={<MisSolicitudes />} />
 

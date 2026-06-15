@@ -62,7 +62,16 @@ const TablaCodigos = () => {
     return items.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [items, currentPage]);
 
-  const handleEdit = (id) => navigate(`/dashboard/insumos/${id}`);
+  const handleEdit = (id) => {
+    const role = userRole.toLowerCase();
+    if (role.includes('compras')) {
+      navigate(`/dashboard/compras/editar/${id}`);
+    } else if (role.includes('contabilidad')) {
+      navigate(`/dashboard/contabilidad/editar/${id}`);
+    } else {
+      navigate(`/dashboard/insumos/${id}`);
+    }
+  };
 
    const activeColorsByRole = {
       solicitante: "bg-blue-100 text-blue-800",
