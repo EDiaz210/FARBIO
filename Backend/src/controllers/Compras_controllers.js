@@ -6,7 +6,8 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 // INSERTAR PARTES DEL  CÓDIGO (Solo COMPRAS)
   const updateComprasCodigo = async (req, res) => {
   const { id } = req.params; 
-  const {  
+  const {
+    unidad_medida,
     lead_time, 
     dias_tolerancia,
     descripcion_sap,
@@ -58,6 +59,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
           descripcion_sap = ?,
           lead_time = ?, 
           dias_tolerancia = ?, 
+          unidad_medida = ?,
           status = ?,
           r_compras = ?, 
           updated_by = ?
@@ -68,10 +70,11 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       descripcion_sap,               // 1. descripcion_sap
       lead_time,                     // 2. lead_time
       dias_tolerancia,               // 3. dias_tolerancia
-      'En Contabilidad',             // 4. status
-      historyEntry,                  // 5. r_compras
-      userId,                        // 6. updated_by
-      id                             // 7. WHERE id = ?
+      unidad_medida,                 // 4. unidad_medida
+      'En Contabilidad',             // 5. status
+      historyEntry,                  // 6. r_compras
+      userId,                        // 7. updated_by
+      id                             // 8. WHERE id = ?
     ]);
 
     await registrarReporteCodigo({
@@ -79,18 +82,20 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       codigo: existe[0].codigo,
       modulo: 'compras',
       accion: 'Actualización de compras',
-      campoAfectado: 'descripcion_sap,lead_time,dias_tolerancia,status',
+      campoAfectado: 'descripcion_sap,lead_time,dias_tolerancia,status,unidad_medida',
       valorAnterior: {
         descripcion_sap: existe[0].descripcion_sap,
         lead_time: existe[0].lead_time,
         dias_tolerancia: existe[0].dias_tolerancia,
-        status: existe[0].status
+        status: existe[0].status,
+        unidad_medida: existe[0].unidad_medida
       },
       valorNuevo: {
         descripcion_sap,
         lead_time,
         dias_tolerancia,
-        status: 'En Contabilidad'
+        status: 'En Contabilidad',
+        unidad_medida
       },
       usuarioId: userId,
       usuarioNombre: userName || 'Compras'

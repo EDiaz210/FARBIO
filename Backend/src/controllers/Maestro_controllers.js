@@ -292,6 +292,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
         descripcion_sap = ?,
         lead_time = ?,
         dias_tolerancia = ?,
+        unidad_medida = ?,
         grupo_articulos = ?,
         tipo_bien = ?,
         indicadorIVACompras = ?,
@@ -314,6 +315,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
       descripcion_sap,
       lead_time,
       dias_tolerancia,
+      unidad_compra,
       grupo_articulos,
       tipo_bien,
       impuesto_compra,
@@ -333,7 +335,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
       codigo,
       modulo: 'maestrodatos',
       accion: 'Sincronización con SAP y actualización maestro de datos',
-      campoAfectado: 'codigo,descripcion,detalles,link_referencia,descripcion_sap,lead_time,dias_tolerancia,grupo_articulos,tipo_bien,indicadorIVACompras,indicadorIVAVentas,inventoryItem,salesItem,purchaseItem,status',
+      campoAfectado: 'codigo,descripcion,detalles,link_referencia,descripcion_sap,lead_time,dias_tolerancia,grupo_articulos,tipo_bien,indicadorIVACompras,indicadorIVAVentas,inventoryItem,salesItem,purchaseItem,status,unidad_medida',
       valorAnterior: {
         codigo: codigoResults[0].codigo,
         descripcion: codigoResults[0].descripcion,
@@ -349,7 +351,8 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
         inventoryItem: codigoResults[0].inventoryItem,
         salesItem: codigoResults[0].salesItem,
         purchaseItem: codigoResults[0].purchaseItem,
-        status: codigoResults[0].status
+        status: codigoResults[0].status,
+        unidad_medida: codigoResults[0].unidad_medida
       },
       valorNuevo: {
         codigo,
@@ -367,7 +370,8 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
         salesItem: venta,
         purchaseItem: compra,
         status: 'Finalizado',
-        sapResponse: sapItemResponse.data
+        sapResponse: sapItemResponse.data,
+        unidad_medida: unidad_compra
       },
       usuarioId: userId,
       usuarioNombre: userName || 'Maestro de Datos'
@@ -385,7 +389,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
         codigoId: id,
         sapItemCode: sapItemResponse.data.ItemCode,
         status: 'Con Maestro de Datos',
-        sapResponse: sapItemResponse.data
+        sapResponse: sapItemResponse.data,
       }
     });
 

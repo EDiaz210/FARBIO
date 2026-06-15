@@ -56,8 +56,6 @@ const logoutFromSap = async (sessionId) => {
       }
     );
 
-    console.log(vatGroupsResponse);
-    console.log('Cantidad disponible:', vatGroupsResponse.data.value?.length || 0);
 
     // 3. Cerrar sesión
     await axios.post(`${process.env.SAP_URL}/Logout`, {}, { 

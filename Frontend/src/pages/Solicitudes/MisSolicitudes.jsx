@@ -141,7 +141,7 @@ const MisSolicitudes = () => {
         <div className="w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60">
           <table className="w-full text-left border-separate border-spacing-y-4">
             <thead>
-              <tr className="bg-[#1E3A8A] text-white">
+              <tr className="bg-[#B2EBF2] text-black">
                 <th className="rounded-tl-[24px] p-5 text-sm font-semibold uppercase tracking-[0.08em]">ID</th>
                 <th className="p-5 text-center text-sm font-semibold uppercase tracking-[0.08em]">SAP Code</th>
                 <th className="p-5 text-sm font-semibold uppercase tracking-[0.08em]">Descripción</th>

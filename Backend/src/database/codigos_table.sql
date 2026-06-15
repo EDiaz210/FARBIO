@@ -20,6 +20,7 @@ CREATE TABLE codigos (
   tipo_bien VARCHAR(50),
   indicadorIVACompras varchar(30),
   indicadorIVAVentas varchar(30),
+  unidad_medida VARCHAR(50),
 
   
   -- Historial de cambios (JSON)

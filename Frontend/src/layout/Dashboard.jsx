@@ -90,19 +90,19 @@ const Dashboard = () => {
   }, []);
 
     const bgColorsByRole = {
-        solicitante: "from-blue-50 via-slate-50 to-blue-100",            // Celeste
+        solicitante: "from-[#B2EBF2] via-slate-100 to-[#B2EBF2]",            // Celeste
         compras: "from-green-50 via-slate-100 to-green-100",              // Verde
         contabilidad: "from-yellow-50 via-slate-50 to-yellow-100",        // Amarillo
-        maestrodedatos: "from-purple-200 via-slate-100 to-purple-200",   // Morado
+        maestrodedatos: "from-blue-300 via-slate-100 to-blue-300",   // Azul
         administrador: "from-zinc-100 via-slate-50 to-zinc-200",         // Gris claro
         };
 
     
     const activeColorsByRole = {
-      solicitante: "bg-blue-100 text-blue-800",
+      solicitante: "bg-[#B2EBF2] text-black",
       compras: "bg-green-100 text-green-800",
       contabilidad: "bg-yellow-100 text-yellow-800",
-      maestrodedatos: "bg-purple-100 text-purple-800",
+      maestrodedatos: "bg-blue-100 text-blue-800",
       administrador: "bg-zinc-200 text-zinc-800",
     };
 
