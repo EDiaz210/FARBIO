@@ -40,6 +40,9 @@ const ContabilidadEditarCodigo = () => {
       RequestorDescription: '',
       Details: '',
       ReferenceLink: '',
+      descripcion_sap: '',
+      unidad_medida: '',
+      requestor_area: '',
     }
   });
 
@@ -84,6 +87,9 @@ const ContabilidadEditarCodigo = () => {
           setValue('RequestorDescription', item.descripcion || '');
           setValue('Details', item.detalles || '');
           setValue('ReferenceLink', item.link_referencia || '');
+          setValue('descripcion_sap', item.descripcion_sap || '');
+          setValue('unidad_medida', item.unidad_medida || '');
+          setValue('requestor_area', item.requestor_area || '');
         } else {
           toast.error('No se pudo cargar el código');
           setTimeout(() => navigate('/dashboard/tablas'), 1500);
@@ -147,6 +153,8 @@ const ContabilidadEditarCodigo = () => {
       const codigoData = {
         grupo_articulos: data.ItemsGroupCode,
         tipo_bien: data.ItemType,
+        userId: userID,
+        userName: claims?.nombre || 'Contabilidad'
       };
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/contabilidad/update/${id}`;
@@ -193,41 +201,42 @@ const ContabilidadEditarCodigo = () => {
             
             <div className="grid gap-6 pt-6 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700">Código</label>
-                <input
-                  type="text"
-                  disabled
-                  className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
-                  {...register('ItemCode')}
-                />
-              </div>
-
-              <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-700">Descripción SAP</label>
                 <input
                   type="text"
                   disabled
                   className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
-                  {...register('ItemName')}
+                  {...register('descripcion_sap')}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700">Nombre Extranjero</label>
+                <label className="block text-sm font-semibold text-slate-700">Unidad de Medida</label>
                 <input
                   type="text"
                   disabled
                   className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
-                  {...register('ForeignName')}
+                  {...register('unidad_medida')}
                 />
               </div>
 
-              <div className="md:col-span-2 space-y-2">
-                <label className="block text-sm font-semibold text-slate-700">Descripción del Solicitante</label>
+              <div className="space-y-2 md:col-span-2">
+                <label className="block text-sm font-semibold text-slate-700">Detalles</label>
                 <textarea
                   disabled
+                  rows={4}
                   className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
-                  {...register('RequestorDescription')}
+                  {...register('Details')}
+                />
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="block text-sm font-semibold text-slate-700">Área Solicitante</label>
+                <input
+                  type="text"
+                  disabled
+                  className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
+                  {...register('requestor_area')}
                 />
               </div>
             </div>
@@ -281,39 +290,9 @@ const ContabilidadEditarCodigo = () => {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-900">
-                  Impuesto Compra
-                </label>
-                <input
-                  type="text"
-                  disabled
-                  className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
-                  {...register('PurchaseTaxCode')}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-900">
-                  Impuesto Venta
-                </label>
-                <input
-                  type="text"
-                  disabled
-                  className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
-                  {...register('SalesTaxCode')}
-                />
-              </div>
+              
             </div>
 
-            <button
-              type="button"
-              onClick={buscarItemEnSAP}
-              disabled={sapLoading}
-              className="mt-6 inline-flex items-center justify-center rounded-lg border border-blue-600 bg-white px-4 py-2 text-sm font-semibold text-blue-600 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {sapLoading ? 'Buscando...' : 'Buscar Item en SAP'}
-            </button>
           </fieldset>
 
           {/* Botones */}
