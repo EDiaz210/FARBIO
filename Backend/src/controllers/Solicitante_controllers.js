@@ -80,8 +80,8 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 
     const insertQuery = `
       INSERT INTO codigos 
-      (status, descripcion, requestor_area, detalles, link_referencia, r_creacion, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      (status, descripcion, requestor_area, detalles, link_referencia, r_creacion, created_by, nombre_solicitante)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [insertResult] = await pool.query(insertQuery, [
@@ -91,7 +91,8 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       detalles,               // 4. detalles
       link_referencia,        // 5. link_referencia
       historyEntry,           // 6. r_creacion (JSON con historial)
-      userId                  // 7. created_by 
+      userId,                 // 7. created_by
+      nombreSolicitante         // 8. nombre_solicitante 
     ]);
 
     await registrarReporteCodigo({
@@ -110,7 +111,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
         nombre_solicitante: nombreSolicitante
       },
       usuarioId: userId,
-      usuarioNombre: userName || 'Solicitante'
+      usuarioNombre: userName 
     });
 
     res.status(201).json({ success: true, message: 'Código creado exitosamente', id: insertResult.insertId });
