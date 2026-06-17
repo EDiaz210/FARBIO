@@ -21,6 +21,7 @@ import EditarUsuario from "./pages/Administrador/EditarUsuario";
 import SolicitanteCrearCodigo from "./pages/Articulo/SolicitanteCrearCodigo";
 import ComprasEditarCodigo from "./pages/Articulo/ComprasEditarCodigo";
 import ContabilidadEditarCodigo from "./pages/Articulo/ContabilidadEditarCodigo";
+import MaestroDatosEditarCodigo from "./pages/Articulo/MaestroDatosEditarCodigo";
 
 function App() {
   const token = storeAuth(state => state.token);
@@ -75,6 +76,16 @@ function App() {
             element={
               <PrivateRouteWithRole allowedRoles={["contabilidad"]}>
                 <ContabilidadEditarCodigo />
+              </PrivateRouteWithRole>
+            }
+          />
+
+          {/* Maestro de Datos: Editar Código */}
+          <Route
+            path="maestro/editar/:id"
+            element={
+              <PrivateRouteWithRole allowedRoles={["maestrodedatos"]}>
+                <MaestroDatosEditarCodigo />
               </PrivateRouteWithRole>
             }
           />

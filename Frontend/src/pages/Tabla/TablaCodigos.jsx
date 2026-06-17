@@ -68,6 +68,8 @@ const TablaCodigos = () => {
       navigate(`/dashboard/compras/editar/${id}`);
     } else if (role.includes('contabilidad')) {
       navigate(`/dashboard/contabilidad/editar/${id}`);
+    } else if (role.includes('maestro')) {
+      navigate(`/dashboard/maestro/editar/${id}`);
     } else {
       navigate(`/dashboard/insumos/${id}`);
     }
