@@ -111,7 +111,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
         nombre_solicitante: nombreSolicitante
       },
       usuarioId: userId,
-      usuarioNombre: userName 
+      usuarioNombre: nombreSolicitante 
     });
 
     res.status(201).json({ success: true, message: 'Código creado exitosamente', id: insertResult.insertId });
