@@ -5,7 +5,8 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 // INSERTAR PARTES DEL  CÓDIGO (Solo CONTABILIDAD)
 const updateContabilidadCodigo = async (req, res) => {
   const { id } = req.params; 
-  const { 
+  const {
+    nombreContabilidad,
     grupo_articulos, 
     tipo_bien, 
     userId,
@@ -84,7 +85,7 @@ const updateContabilidadCodigo = async (req, res) => {
         status: 'Con Maestro de Datos'
       },
       usuarioId: userId,
-      usuarioNombre: userName || 'Contabilidad'
+      usuarioNombre: nombreContabilidad
     });
 
     return res.status(200).json({ 

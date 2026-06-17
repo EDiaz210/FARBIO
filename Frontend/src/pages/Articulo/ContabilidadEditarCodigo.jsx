@@ -18,7 +18,8 @@ const ContabilidadEditarCodigo = () => {
   const [sapLoading, setsapLoading] = useState(false);
   const [itemsGroups, setItemsGroups] = useState([]);
   const [vatGroups, setVatGroups] = useState([]);
-
+  const [cargandoUsuario, setCargandoUsuario] = useState(false);
+  const [perfilUsuario, setPerfilUsuario] = useState(null);
   const claims = getAuthClaims(token);
   const userID = claims?.id || null;
 
@@ -107,6 +108,32 @@ const ContabilidadEditarCodigo = () => {
     }
   }, [id, token, setValue, navigate, fetchDataBackend]);
 
+
+   // Cargar datos del perfil para la UI
+  useEffect(() => {
+    const cargarDatosUsuario = async () => {
+      if (!token) {
+        setPerfilUsuario(null);
+        return;
+      }
+
+      setCargandoUsuario(true);
+      try {
+        const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/mi-perfil`;
+        const response = await fetchDataBackend(url, null, "GET", token, false);
+        if (response?.usuario) {
+          setPerfilUsuario(response.usuario);
+        }
+      } catch (error) {
+        console.error("Error al cargar perfil de usuario:", error);
+      } finally {
+        setCargandoUsuario(false);
+      }
+    };
+
+    cargarDatosUsuario();
+  }, [token, fetchDataBackend]);
+
   // Buscar item en SAP
   const buscarItemEnSAP = async () => {
     const itemCode = getValues('ItemCode')?.trim();
@@ -151,6 +178,7 @@ const ContabilidadEditarCodigo = () => {
       setIsSubmitting(true);
 
       const codigoData = {
+        nombreContabilidad: perfilUsuario?.nombre,
         grupo_articulos: data.ItemsGroupCode,
         tipo_bien: data.ItemType,
         userId: userID,
