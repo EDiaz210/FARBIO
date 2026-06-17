@@ -61,9 +61,39 @@ import pool from '../database.js';
   }
 };
 
-export { obtenerCodigoID, obtenerCodigos };
+// Obtener todos los códigos creados por el usuario actual
+const obtenerMisCodigos = async (req, res) => {
+  const connection = await pool.getConnection();
 
+  try {
+    // Recibe el ID enviado desde el frontend (?created_by=...)
+    const { created_by } = req.query; 
+    console.log("ID recibido para created_by:", created_by); // Depuración
+    // Validación para depurar en consola:
+    if (!created_by) {
+      console.log("Error: created_by no recibido desde el frontend");
+      return res.status(400).json({ msg: "El ID del creador (created_by) es requerido" });
+    }
 
+    // Consulta a la base de datos filtrando por el creador
+    const [codigos] = await connection.query(
+      'SELECT * FROM codigos WHERE created_by = ? ORDER BY id DESC',
+      [created_by]
+    );
+
+    // Devolver array con los códigos encontrados
+    return res.status(200).json({ codigos });
+    console.log(`Códigos obtenidos para created_by=${created_by}:`, codigos);
+
+  } catch (err) {
+    console.error('Error obteniendo códigos por usuario:', err);
+    return res.status(500).json({ msg: 'Error de servidor' });
+  } finally {
+    connection.release();
+  }
+};
+
+export { obtenerCodigoID, obtenerCodigos, obtenerMisCodigos };
 
 
 

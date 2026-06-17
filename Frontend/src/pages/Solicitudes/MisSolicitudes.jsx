@@ -4,20 +4,14 @@ import storeAuth from '../../context/storeAuth';
 import { getAuthClaims } from '../../utils/authClaims';
 
 const ITEMS_PER_PAGE = 5;
-const STATUS_ORDER = ['Nuevo', 'En Contabilidad', 'Con Maestro de Datos', 'Completado'];
-
-const getRoleStatus = (rol = '') => {
-  const normalized = rol.toLowerCase();
-
-  if (normalized.includes('solicitante') || normalized.includes('compras')) return 'nuevo';
-  if (normalized.includes('contabilidad')) return 'En Contabilidad';
-  if (normalized.includes('maestro')) return 'con Maestro de datos';
-  return '';
-};
+// El orden secuencial de los estados para rellenar los círculos del progreso
+  const STATUS_ORDER = ['Nuevo', 'En Contabilidad', 'Con Maestro de Datos', 'Completado'];
 
 const StepIcon = ({ currentStatus, stepName }) => {
   const currentIndex = STATUS_ORDER.indexOf(currentStatus);
   const stepIndex = STATUS_ORDER.indexOf(stepName);
+  
+  // Si el índice actual en la DB es mayor o igual que la columna evaluada, se marca completado
   const isCompleted = currentIndex >= stepIndex && currentIndex !== -1;
 
   return isCompleted ? (
@@ -32,7 +26,8 @@ const StepIcon = ({ currentStatus, stepName }) => {
 };
 
 const SolicitudRow = ({ item }) => {
-  const description = item.descripcionc || item.descripcion || 'Sin descripción';
+  // Ajuste dinámico por si tus campos vienen en mayúsculas o minúsculas desde la consulta SQL
+  const description = item.descripcionc || item.descripcion || item.descripcionSolicitante || 'Sin descripción';
   const code = item.codigo || '---';
   const status = item.status || '';
 
@@ -103,26 +98,27 @@ const MisSolicitudes = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const { fetchDataBackend } = useFetch();
   const { token } = storeAuth();
+  
+  // Extraemos los claims y obtenemos de forma segura el ID del usuario logueado
   const claims = getAuthClaims(token);
-
-  const roleStatus = useMemo(() => getRoleStatus(claims?.rol), [claims?.rol]);
+  const userID = claims?.id || null;
 
   const fetchData = useCallback(async () => {
-    if (!roleStatus) return;
+    if (!userID) return;
 
-    const sanitizedStatus = encodeURIComponent(roleStatus.trim());
-    const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=${sanitizedStatus}`;
+    // Construcción de la URL real usando tu ruta del backend apuntando al controlador 'obtenerMisCodigos'
+    const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/mis-codigos?created_by=${userID}`;
 
     const response = await fetchDataBackend(url, null, 'GET', token, false);
     if (response?.codigos) {
       setSolicitudes(response.codigos);
       setCurrentPage(1);
     }
-  }, [fetchDataBackend, roleStatus, token]);
+  }, [fetchDataBackend, userID, token]);
 
   useEffect(() => {
-    if (claims?.id && roleStatus) fetchData();
-  }, [claims?.id, roleStatus, fetchData]);
+    if (userID) fetchData();
+  }, [userID, fetchData]);
 
   const totalPages = useMemo(() => Math.ceil(solicitudes.length / ITEMS_PER_PAGE), [solicitudes.length]);
   const currentSolicitudes = useMemo(() => {
