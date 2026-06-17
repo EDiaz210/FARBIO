@@ -333,7 +333,7 @@ const MaestroDatosEditarCodigo = () => {
                     disabled={sapLoading}
                     title="Buscar en SAP"
                     aria-label="Buscar en SAP"
-                    className="px-3 py-2 min-w-[44px] bg-blue-500 text-white rounded-lg rounded-l-none font-semibold hover:bg-blue-600 disabled:opacity-50 inline-flex items-center justify-center"
+                    className="px-3 py-2 min-w-[44px] bg-blue-300 text-black rounded-lg rounded-l-none font-semibold hover:bg-blue-400 disabled:opacity-50 inline-flex items-center justify-center"
                   >
                     {sapLoading ? (
                       <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -507,7 +507,7 @@ const MaestroDatosEditarCodigo = () => {
                 <input
                   type="checkbox"
                   id="InventoryItem"
-                  className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  className="h-5 w-5 rounded border-slate-300 text-blue-200 focus:ring-blue-100 cursor-pointer"
                   {...register('InventoryItem')}
                 />
                 <label htmlFor="InventoryItem" className="text-sm font-semibold text-slate-900 cursor-pointer">
@@ -519,7 +519,7 @@ const MaestroDatosEditarCodigo = () => {
                 <input
                   type="checkbox"
                   id="SalesItem"
-                  className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  className="h-5 w-5 rounded border-slate-300 text-blue-200 focus:ring-blue-100 cursor-pointer"
                   {...register('SalesItem')}
                 />
                 <label htmlFor="SalesItem" className="text-sm font-semibold text-slate-900 cursor-pointer">
@@ -531,7 +531,7 @@ const MaestroDatosEditarCodigo = () => {
                 <input
                   type="checkbox"
                   id="PurchaseItem"
-                  className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                  className="h-5 w-5 rounded border-slate-300 text-blue-200 focus:ring-blue-100 cursor-pointer"
                   {...register('PurchaseItem')}
                 />
                 <label htmlFor="PurchaseItem" className="text-sm font-semibold text-slate-900 cursor-pointer">
@@ -558,7 +558,7 @@ const MaestroDatosEditarCodigo = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full inline-flex items-center justify-center rounded-lg bg-green-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full inline-flex items-center justify-center rounded-lg bg-blue-300 px-6 py-3 text-sm font-semibold text-black transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting ? 'Sincronizando con SAP...' : 'Guardar Cambios'}
               </button>

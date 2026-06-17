@@ -5,9 +5,9 @@ import { getAuthClaims } from '../../utils/authClaims';
 
 const ITEMS_PER_PAGE = 5;
 // El orden secuencial de los estados para rellenar los círculos del progreso
-  const STATUS_ORDER = ['Nuevo', 'En Contabilidad', 'Con Maestro de Datos', 'Completado'];
+  const STATUS_ORDER = ['Nuevo', 'En Contabilidad', 'Con Maestro de Datos', 'Finalizado'];
 
-const StepIcon = ({ currentStatus, stepName }) => {
+const StepIcon = ({ currentStatus, stepName, accentColor }) => {
   const currentIndex = STATUS_ORDER.indexOf(currentStatus);
   const stepIndex = STATUS_ORDER.indexOf(stepName);
   
@@ -15,7 +15,7 @@ const StepIcon = ({ currentStatus, stepName }) => {
   const isCompleted = currentIndex >= stepIndex && currentIndex !== -1;
 
   return isCompleted ? (
-    <div className="w-7 h-7 bg-[#3B6EE8] rounded-lg flex items-center justify-center text-white shadow-sm transition-all duration-300">
+    <div className={`w-7 h-7 ${accentColor} rounded-lg flex items-center justify-center text-white shadow-sm transition-all duration-300`}>
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
       </svg>
@@ -31,25 +31,34 @@ const SolicitudRow = ({ item }) => {
   const code = item.codigo || '---';
   const status = item.status || '';
 
-  return (
-    <tr className="bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      <td className="rounded-[20px] rounded-r-none p-5 font-bold text-slate-900">#{item.id}</td>
-      <td className="p-5 text-center font-mono text-sm text-slate-500">{code}</td>
-      <td className="p-5 text-slate-700 font-medium">{description}</td>
-      <td className="p-5 text-center">
-        <div className="flex justify-center"><StepIcon currentStatus={status} stepName="Nuevo" /></div>
-      </td>
-      <td className="p-5 text-center">
-        <div className="flex justify-center"><StepIcon currentStatus={status} stepName="En Contabilidad" /></div>
-      </td>
-      <td className="p-5 text-center">
-        <div className="flex justify-center"><StepIcon currentStatus={status} stepName="Con Maestro de Datos" /></div>
-      </td>
-      <td className="rounded-[20px] rounded-l-none p-5 text-center">
-        <div className="flex justify-center"><StepIcon currentStatus={status} stepName="Completado" /></div>
-      </td>
-    </tr>
-  );
+return (
+  <tr className="bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+    <td className="rounded-[20px] rounded-r-none p-5 font-bold text-slate-900">#{item.id}</td>
+    <td className="p-5 text-center font-mono text-sm text-slate-500">{code}</td>
+    <td className="p-5 text-slate-700 font-medium">{description}</td>
+    
+    <td className="p-5 text-center">
+      <div className="flex justify-center">
+        <StepIcon currentStatus={status} stepName="Nuevo" accentColor="bg-[#B2EBF2] text-slate-800" />
+      </div>
+    </td>
+    <td className="p-5 text-center">
+      <div className="flex justify-center">
+        <StepIcon currentStatus={status} stepName="En Contabilidad" accentColor="bg-[#B2EBF2] text-slate-800" />
+      </div>
+    </td>
+    <td className="p-5 text-center">
+      <div className="flex justify-center">
+        <StepIcon currentStatus={status} stepName="Con Maestro de Datos" accentColor="bg-[#B2EBF2] text-slate-800" />
+      </div>
+    </td>
+    <td className="rounded-[20px] rounded-l-none p-5 text-center">
+      <div className="flex justify-center">
+        <StepIcon currentStatus={status} stepName="Finalizado" accentColor="bg-[#B2EBF2] text-slate-800" />
+      </div>
+    </td>
+  </tr>
+);
 };
 
 const Pagination = ({ currentPage, totalPages, onChangePage }) => {

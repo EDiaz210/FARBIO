@@ -173,7 +173,7 @@ const Dashboard = () => {
                         className={`flex items-center p-2 rounded-lg transition ${
                           urlActual === "/dashboard/tablas"
                             ? `${activeColorsByRole[userRole]} font-bold`
-                            : "text-slate-600 hover:bg-slate-100"
+                            : `hover:${activeColorsByRole[userRole]} bg-transparent`
                         } ${isCollapsed ? "justify-center" : ""}`}
                       >
                         <svg
@@ -203,8 +203,8 @@ const Dashboard = () => {
                           onClick={handleMenuItemClick}
                           className={`flex items-center p-2 rounded-lg transition ${
                             urlActual === "/dashboard/insumos"
-                              ? "bg-blue-100 text-blue-800 font-bold"
-                              : "text-slate-600 hover:bg-slate-100"
+                              ? "bg-[#B2EBF2] text-black font-bold"
+                              : "text-black hover:bg-[#B2EBF2]"
                           } ${isCollapsed ? "justify-center" : ""}`}
                         >
                           {/* SVG REEMPLAZANDO A LA IMAGEN ANTERIOR */}
@@ -233,8 +233,8 @@ const Dashboard = () => {
                           onClick={handleMenuItemClick}
                           className={`flex items-center p-2 rounded-lg transition ${
                           urlActual === "/dashboard/mis-solicitudes"
-                            ? "bg-blue-100 text-blue-800 font-bold"
-                            : "text-slate-600 hover:bg-slate-100"
+                            ? "bg-[#B2EBF2] text-black font-bold"
+                            : "text-black hover:bg-[#B2EBF2]"
                         } ${isCollapsed ? "justify-center" : ""}`}
                         >
                           {/* SVG REEMPLAZANDO A LA IMAGEN ANTERIOR */}

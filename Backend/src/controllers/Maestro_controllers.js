@@ -148,7 +148,6 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
     );
 
     const availableCodes = (vatResp.data.value || []).map(v => String(v.Code).trim());
-    console.log('VATs disponibles en SAP:', availableCodes);
 
     const missingVATs = [];
     if (purchaseVAT && !availableCodes.includes(purchaseVAT)) missingVATs.push(purchaseVAT);

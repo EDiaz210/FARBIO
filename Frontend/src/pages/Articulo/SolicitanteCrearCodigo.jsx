@@ -232,7 +232,7 @@ const SolicitanteCrearCodigo = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 inline-flex items-center justify-center rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 inline-flex items-center justify-center rounded-lg bg-[#B2EBF2] px-6 py-3 text-sm font-semibold text-black transition hover:bg-[#E6FAFC] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? 'Creando...' : 'Crear Código'}
             </button>
