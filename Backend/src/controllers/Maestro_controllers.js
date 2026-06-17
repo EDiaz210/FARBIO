@@ -42,6 +42,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
   const updateMaestroDatos = async (req, res) => {
   const { id } = req.params;
   const {
+    nombreMaestroDatos,
     codigo,
     descripcion,
     detalles,
@@ -374,7 +375,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
         unidad_medida: unidad_compra
       },
       usuarioId: userId,
-      usuarioNombre: userName || 'Maestro de Datos'
+      usuarioNombre: nombreMaestroDatos
     });
 
     console.log(`Base de datos local actualizada - Código ID: ${id}`);
