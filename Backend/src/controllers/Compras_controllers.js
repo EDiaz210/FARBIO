@@ -7,6 +7,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
   const updateComprasCodigo = async (req, res) => {
   const { id } = req.params; 
   const {
+    nombreCompras,
     unidad_medida,
     lead_time, 
     dias_tolerancia,
@@ -98,7 +99,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
         unidad_medida
       },
       usuarioId: userId,
-      usuarioNombre: userName || 'Compras'
+      usuarioNombre: nombreCompras
     });
 
     return res.status(200).json({ 

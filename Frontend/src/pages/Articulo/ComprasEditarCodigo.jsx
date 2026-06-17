@@ -14,9 +14,36 @@ const ComprasEditarCodigo = () => {
   const { fetchDataBackend } = useFetch();
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [cargandoUsuario, setCargandoUsuario] = useState(false);
+  const [perfilUsuario, setPerfilUsuario] = useState(null);
   const claims = getAuthClaims(token);
   const userID = claims?.id || null;
+
+  // Cargar datos del perfil para la UI
+  useEffect(() => {
+    const cargarDatosUsuario = async () => {
+      if (!token) {
+        setPerfilUsuario(null);
+        return;
+      }
+
+      setCargandoUsuario(true);
+      try {
+        const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/mi-perfil`;
+        const response = await fetchDataBackend(url, null, "GET", token, false);
+        if (response?.usuario) {
+          setPerfilUsuario(response.usuario);
+        }
+      } catch (error) {
+        console.error("Error al cargar perfil de usuario:", error);
+      } finally {
+        setCargandoUsuario(false);
+      }
+    };
+
+    cargarDatosUsuario();
+  }, [token, fetchDataBackend]);
+
 
   const {
     register,
@@ -85,6 +112,7 @@ const ComprasEditarCodigo = () => {
       setIsSubmitting(true);
 
       const codigoData = {
+        nombreCompras: perfilUsuario?.nombre,
         descripcion_sap: data.descripcion_sap,
         unidad_medida: data.unidad_medida,
         lead_time: data.LeadTimeInDays,
