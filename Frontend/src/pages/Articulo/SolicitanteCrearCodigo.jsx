@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -48,11 +48,13 @@ const SolicitanteCrearCodigo = () => {
   const navigate = useNavigate();
   const { token } = storeAuth();
   const { fetchDataBackend } = useFetch();
+
+  // Estados
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cargandoUsuario, setCargandoUsuario] = useState(false);
+  const [perfilUsuario, setPerfilUsuario] = useState(null);
 
-  const claims = getAuthClaims(token);
-  const userID = claims?.id || null;
-
+  // Formulario
   const {
     register,
     handleSubmit,
@@ -60,16 +62,48 @@ const SolicitanteCrearCodigo = () => {
     reset,
   } = useForm({ defaultValues });
 
+  // Derivaciones de estado / Claims
+  const claims = getAuthClaims(token);
+  const userID = claims?.id || null;
+  const nombreSolicitante = perfilUsuario?.nombre;
+
+  // Cargar datos del perfil para la UI
+  useEffect(() => {
+    const cargarDatosUsuario = async () => {
+      if (!token) {
+        setPerfilUsuario(null);
+        return;
+      }
+
+      setCargandoUsuario(true);
+      try {
+        const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/mi-perfil`;
+        const response = await fetchDataBackend(url, null, "GET", token, false);
+        if (response?.usuario) {
+          setPerfilUsuario(response.usuario);
+        }
+      } catch (error) {
+        console.error("Error al cargar perfil de usuario:", error);
+      } finally {
+        setCargandoUsuario(false);
+      }
+    };
+
+    cargarDatosUsuario();
+  }, [token, fetchDataBackend]);
+
+  // Manejo de envío
   const createCodigo = async (data) => {
     try {
       setIsSubmitting(true);
 
       const codigoData = {
+        nombreSolicitante,
         descripcionSolicitante: data.RequestorDescription,
         RequestorArea: data.RequestorArea,
         detalles: data.Details,
         link_referencia: data.ReferenceLink,
-        userId: userID
+        userId: userID,
       };
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/solicitante/codigos/create`;

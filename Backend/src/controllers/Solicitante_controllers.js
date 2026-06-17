@@ -6,7 +6,8 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 
   // CREAR CÓDIGO (Solo SOLICITANTE)
   const createCodigo = async (req, res) => {
-  const { 
+  const {
+    nombreSolicitante,
     descripcionSolicitante, 
     detalles, 
     link_referencia,
@@ -14,7 +15,8 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     userId,
     userName
   } = req.body;
-
+  
+  
   const AREA_OPTIONS = [
     'BODEGA MATERIALES',
     'BODEGA PRODUCTO TERMINADO',
@@ -60,8 +62,8 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     }
 
     // Validaciones básicas
-    if (!detalles || !link_referencia || !descripcionSolicitante || !RequestorArea) {
-      return res.status(400).json({ success: false, message: 'Detalles, link de referencia, descripción y área son requeridos' });
+    if (!detalles || !link_referencia || !descripcionSolicitante || !RequestorArea || !nombreSolicitante) {
+      return res.status(400).json({ success: false, message: 'Detalles, link de referencia, descripción, área y nombre del solicitante son requeridos' });
     }
 
     // Validar área
@@ -97,14 +99,15 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       codigo: null,
       modulo: 'creacion',
       accion: 'Creación de código',
-      campoAfectado: 'descripcion,requestor_area,detalles,link_referencia,status',
+      campoAfectado: 'descripcion,requestor_area,detalles,link_referencia,status,nombre_solicitante',
       valorAnterior: null,
       valorNuevo: {
         status: 'Nuevo',
         descripcion: descripcionSolicitante,
         requestor_area: RequestorArea,
         detalles,
-        link_referencia
+        link_referencia,
+        nombre_solicitante: nombreSolicitante
       },
       usuarioId: userId,
       usuarioNombre: userName || 'Solicitante'
@@ -128,7 +131,8 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
   // UPDATE CONTABILIDAD SOLICITANTE
   const updateSolicitante = async (req, res) => {
   const { id } = req.params;
-  const { 
+  const {
+    nombreSolicitante,
     descripcionSolicitante, 
     detalles, 
     link_referencia,
@@ -160,7 +164,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     }
 
     // 3. Validaciones de campos
-    if (!detalles || !link_referencia || !descripcionSolicitante || !RequestorArea) {
+    if (!detalles || !link_referencia || !descripcionSolicitante || !RequestorArea || !nombreSolicitante  ) {
       return res.status(400).json({ success: false, message: 'Faltan campos obligatorios' });
     }
 
@@ -206,12 +210,13 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       codigo: codigoAnterior.codigo,
       modulo: 'creacion',
       accion: 'Actualización de solicitud',
-      campoAfectado: 'descripcion,requestor_area,detalles,link_referencia',
+      campoAfectado: 'descripcion,requestor_area,detalles,link_referencia,nombre_solicitante',
       valorAnterior: {
         descripcion: codigoAnterior.descripcion,
         requestor_area: codigoAnterior.requestor_area,
         detalles: codigoAnterior.detalles,
         link_referencia: codigoAnterior.link_referencia,
+        nombre_solicitante: codigoAnterior.nombre_solicitante,    
         status: codigoAnterior.status
       },
       valorNuevo: {
