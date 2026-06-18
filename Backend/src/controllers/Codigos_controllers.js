@@ -77,7 +77,7 @@ const obtenerMisCodigos = async (req, res) => {
 
     // Consulta a la base de datos filtrando por el creador
     const [codigos] = await connection.query(
-      'SELECT * FROM codigos WHERE created_by = ? ORDER BY id DESC',
+      'SELECT * FROM codigos WHERE created_by = ? ORDER BY id ASC',
       [created_by]
     );
 

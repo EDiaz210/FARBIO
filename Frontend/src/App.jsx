@@ -4,6 +4,7 @@ import PublicRoute from "./routes/PublicRoute";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PrivateRouteWithRole from "./routes/PrivateRouteWithRole";
 import storeAuth from "./context/storeAuth";
+import { getAuthClaims } from "./utils/authClaims";
 
 // Layouts
 import Dashboard from "./layout/Dashboard";
@@ -23,9 +24,22 @@ import ComprasEditarCodigo from "./pages/Articulo/ComprasEditarCodigo";
 import ContabilidadEditarCodigo from "./pages/Articulo/ContabilidadEditarCodigo";
 import MaestroDatosEditarCodigo from "./pages/Articulo/MaestroDatosEditarCodigo";
 
-function App() {
+// 🔹 Componente para manejar el Home inteligente del Dashboard
+const DashboardHomeRedirect = () => {
   const token = storeAuth(state => state.token);
+  const claims = getAuthClaims(token);
+  const userRole = claims?.rol?.toLowerCase() || '';
 
+  // Si es administrador, su principal es la gestión de usuarios
+  if (userRole.includes('administrador')) {
+    return <Navigate to="admin/usuarios" replace />;
+  }
+  
+  // Para los roles operativos (contabilidad, compras, maestrodedatos, solicitante)
+  return <Navigate to="tablas" replace />;
+};
+
+function App() {
   return (
     <BrowserRouter>
       <Routes>
@@ -46,7 +60,10 @@ function App() {
             </ProtectedRoute>
           }
         >
-          {/* 🔹 Nueva Ruta para el Menú de Usuario */}
+          {/* 🔹 Redirección inteligente cuando entren directo a /dashboard */}
+          <Route index element={<DashboardHomeRedirect />} />
+
+          {/* 🔹 Vista común para roles operativos */}
           <Route path="tablas" element={<TablaCodigos />} />
           
           {/* 🔹 Rutas de Creación/Edición por Rol */}
