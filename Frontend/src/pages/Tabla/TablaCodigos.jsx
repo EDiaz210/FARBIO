@@ -111,7 +111,7 @@ const TableRow = ({ item, onEdit }) => (
   </tr>
 );
 
-const Pagination = ({ currentPage, totalPages, onChange }) => {
+const Pagination = ({ currentPage, totalPages, onChange, userRole }) => {
   if (totalPages <= 1) return null;
   return (
     <div className="flex items-center justify-between p-6 bg-gray-50 border border-gray-200 rounded-lg mt-4">
@@ -120,15 +120,15 @@ const Pagination = ({ currentPage, totalPages, onChange }) => {
       </div>
 
       <div className="flex gap-2">
-        <button onClick={() => onChange((p) => Math.max(p - 1, 1))} disabled={currentPage === 1} className="px-4 py-2 bg-[#17243D] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#1e2d4a] transition-colors">← Anterior</button>
+        <button onClick={() => onChange((p) => Math.max(p - 1, 1))} disabled={currentPage === 1} className={`px-4 py-2 ${clasesColor}  rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#1e2d4a] transition-colors`}>← Anterior</button>
 
         <div className="flex gap-1">
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button key={page} onClick={() => onChange(page)} className={`px-3 py-2 rounded-lg transition-colors ${page === currentPage ? 'bg-[#17243D] text-white font-semibold' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>{page}</button>
+            <button key={page} onClick={() => onChange(page)} className={`px-3 py-2 rounded-lg transition-colors ${page === currentPage ? `${clasesColor}  font-semibold` : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>{page}</button>
           ))}
         </div>
 
-        <button onClick={() => onChange((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages} className="px-4 py-2 bg-[#17243D] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#1e2d4a] transition-colors">Siguiente →</button>
+        <button onClick={() => onChange((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages} className={`px-4 py-2 ${clasesColor}  rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#1e2d4a] transition-colors`}>Siguiente →</button>
       </div>
     </div>
   );

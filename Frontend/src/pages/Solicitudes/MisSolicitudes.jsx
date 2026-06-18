@@ -3,7 +3,7 @@ import useFetch from '../../hooks/useFetch';
 import storeAuth from '../../context/storeAuth';
 import { getAuthClaims } from '../../utils/authClaims';
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 6;
 // El orden secuencial de los estados para rellenar los círculos del progreso
   const STATUS_ORDER = ['Nuevo', 'En Contabilidad', 'Con Maestro de Datos', 'Finalizado'];
 
@@ -73,7 +73,7 @@ const Pagination = ({ currentPage, totalPages, onChangePage }) => {
         <button
           onClick={() => onChangePage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
-          className="px-4 py-2 bg-[#3B6EE8] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0f1b35] transition-colors"
+          className="px-4 py-2 bg-[#B2EBF2] text-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0f1b35] transition-colors"
         >
           ← Anterior
         </button>
@@ -83,7 +83,7 @@ const Pagination = ({ currentPage, totalPages, onChangePage }) => {
             onClick={() => onChangePage(page)}
             className={`px-3 py-2 rounded-lg transition-colors ${
               page === currentPage
-                ? 'bg-[#3B6EE8] text-white font-semibold'
+                ? 'bg-[#B2EBF2] text-black font-semibold'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -93,7 +93,7 @@ const Pagination = ({ currentPage, totalPages, onChangePage }) => {
         <button
           onClick={() => onChangePage((prev) => Math.min(prev + 1, totalPages))}
           disabled={currentPage === totalPages}
-          className="px-4 py-2 bg-[#3B6EE8] text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0f1b35] transition-colors"
+          className="px-4 py-2 bg-[#B2EBF2] text-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0f1b35] transition-colors"
         >
           Siguiente →
         </button>
