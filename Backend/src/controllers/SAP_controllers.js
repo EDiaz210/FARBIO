@@ -101,13 +101,21 @@ const logoutFromSap = async (sessionId) => {
     const sessionId = loginResponse.data.SessionId;
     console.log(`Sesión iniciada: ${sessionId}`);
 
+    const codigosPermitidos = [
+      143, 145, 144, 147, 146, 148, 149, 217, 150, 139, 
+      140, 138, 197, 195, 211, 193, 187, 186, 142, 152, 
+      178, 192, 151, 174, 134, 173, 137, 136, 135, 180, 
+      194, 208, 209, 198, 133, 175, 176, 154, 153, 155,
+      184
+    ];
+
+    // 2. Construimos la cadena del filtro: "Number eq 143 or Number eq 145 or ..."
+    const filtroQuery = codigosPermitidos.map(num => `Number eq ${num}`).join(' or ');
+
+    
     // 2. Obtener Items Groups
     const itemsGroupsResponse = await axios.get(
-      `${process.env.SAP_URL}/ItemGroups?$select=Number,GroupName&$filter=Number eq 143 or Number eq 145 or Number eq 144 or Number eq 147 or Number eq 146 or Number eq 148
-      or Number eq 149 or Number eq 217 or Number eq 150 or Number eq 139 or Number eq 138 or Number eq 197 or Number eq 211 or Number eq 193 or Number eq 197 or Number eq 187
-      or Number eq 186 or Number eq 142 or Number eq 152 or Number eq 178 or Number eq 192 or Number eq 151 or Number eq 174 or Number eq 134 or Number eq 173 or Number eq 137 
-      or Number eq 136 or Number eq 135 or Number eq 180 or Number eq 194 or Number eq 208 or Number eq 209 or Number eq 198 or Number eq 133 or Number eq 175 or Number eq 176 
-      or Number eq 154 or Number eq 153 or Number eq 155`,
+      `${process.env.SAP_URL}/ItemGroups?$select=Number,GroupName&$filter=${filtroQuery}`,
       {
         httpsAgent: httpsAgent,
         headers: {
@@ -129,6 +137,7 @@ const logoutFromSap = async (sessionId) => {
     res.status(200).json({
       success: true,
       message: 'Items Groups obtenidos exitosamente',
+      total: itemsGroupsResponse.data.value.length,
       data: itemsGroupsResponse.data.value
     });
 
