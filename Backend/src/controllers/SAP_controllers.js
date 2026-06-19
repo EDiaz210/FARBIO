@@ -103,11 +103,17 @@ const logoutFromSap = async (sessionId) => {
 
     // 2. Obtener Items Groups
     const itemsGroupsResponse = await axios.get(
-      `${process.env.SAP_URL}/ItemGroups`,
+      `${process.env.SAP_URL}/ItemGroups?$select=Number,GroupName&$filter=Number eq 143 or Number eq 145 or Number eq 144 or Number eq 147 or Number eq 146 or Number eq 148
+      or Number eq 149 or Number eq 217 or Number eq 150 or Number eq 139 or Number eq 138 or Number eq 197 or Number eq 211 or Number eq 193 or Number eq 197 or Number eq 187
+      or Number eq 186 or Number eq 142 or Number eq 152 or Number eq 178 or Number eq 192 or Number eq 151 or Number eq 174 or Number eq 134 or Number eq 173 or Number eq 137 
+      or Number eq 136 or Number eq 135 or Number eq 180 or Number eq 194 or Number eq 208 or Number eq 209 or Number eq 198 or Number eq 133 or Number eq 175 or Number eq 176 
+      or Number eq 154 or Number eq 153 or Number eq 155`,
       {
         httpsAgent: httpsAgent,
         headers: {
-          'Cookie': `B1SESSION=${sessionId}`
+          'Cookie': `B1SESSION=${sessionId}`,
+          'Prefer': 'odata.maxpagesize=0',    // Desactiva paginación para traer TODOS
+          'Content-Type': 'application/json'
         }
       }
     );
