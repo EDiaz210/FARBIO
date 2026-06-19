@@ -9,7 +9,7 @@ import pool from '../database.js';
     const { id } = req.params;
 
     const [codigos] = await connection.query(
-      'SELECT id, codigo, status, descripcion, detalles, link_referencia, descripcion_sap, lead_time, dias_tolerancia, grupo_articulos, requestor_area ,tipo_bien, unidad_medida FROM codigos WHERE id = ?',
+      'SELECT id, codigo, status, descripcion, detalles, link_referencia, descripcion_sap, lead_time, dias_tolerancia, grupo_articulos, requestor_area ,tipo_bien, unidad_medida, nombre_solicitante FROM codigos WHERE id = ?',
       [id]
     );
 
