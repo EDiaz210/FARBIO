@@ -245,7 +245,7 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
 
   try {
     const { id } = req.params;
-    const { nombre, email, rol } = req.body;
+    const { nombre, email, rol, password } = req.body;
 
     // Validar que el usuario exista
     const [usuarioExistente] = await connection.query(

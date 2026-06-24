@@ -257,288 +257,272 @@ const MaestroDatosEditarCodigo = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(updateCodigo)} className="">
-          <div className="grid gap-6 md:grid-cols-2 items-stretch">
+        <form onSubmit={handleSubmit(updateCodigo)} className="space-y-6">
+          <div className="space-y-6">
             {/* Info General (Solo lectura) */}
-            <fieldset aria-label="Información Solicitada" className="w-full h-full min-h-[520px] rounded-lg border border-slate-200 bg-slate-50 p-6 shadow-sm flex flex-col">
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-slate-900">Información del Código (Solo lectura)</h2>
+            <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-slate-900">Información del Código</h2>
+              </div>
+              <div className="space-y-5 text-slate-700">
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <p className="text-sm font-semibold text-slate-900">Descripción del Solicitante</p>
+                  <p className="mt-2 text-slate-700 whitespace-pre-wrap">{watch('RequestorDescription') || 'No disponible'}</p>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <p className="text-sm font-semibold text-slate-900">Detalles</p>
+                  <p className="mt-2 text-slate-700 whitespace-pre-wrap">{watch('Details') || 'No disponible'}</p>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <p className="text-sm font-semibold text-slate-900">Link de Referencia</p>
+                  <p className="mt-2 text-slate-700 break-words">{watch('ReferenceLink') || 'No disponible'}</p>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <p className="text-sm font-semibold text-slate-900">Área Solicitante</p>
+                  <p className="mt-2 text-slate-700">{watch('RequestorArea') || 'No disponible'}</p>
+                </div>
+              </div>
+
+              <input type="hidden" {...register('RequestorDescription')} />
+              <input type="hidden" {...register('Details')} />
+              <input type="hidden" {...register('ReferenceLink')} />
+              <input type="hidden" {...register('RequestorArea')} />
             </div>
-
-            <div className="grid gap-6 pt-1 flex-1">
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700">Descripción del Solicitante</label>
-                <textarea
-                  disabled
-                  rows={3}
-                  className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
-                  {...register('RequestorDescription')}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700">Detalles</label>
-                <textarea
-                  disabled
-                  rows={4}
-                  className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
-                  {...register('Details')}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700">Link de Referencia</label>
-                <input
-                  type="text"
-                  disabled
-                  className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
-                  {...register('ReferenceLink')}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700">Área Solicitante</label>
-                <input
-                  type="text"
-                  disabled
-                  className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
-                  {...register('RequestorArea')}
-                />
-              </div>
-            </div>
-            </fieldset>
 
             {/* Datos de Maestro (Editable) */}
-            <fieldset aria-label="Datos Maestro" className="w-full h-full min-h-[520px] rounded-lg border border-slate-200 bg-white p-6 shadow-sm flex flex-col">
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-slate-900">Datos Maestro de Datos *</h2>
-            </div>
+            <fieldset aria-label="Datos Maestro" className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-slate-900">Datos Maestro de Datos *</h2>
+              </div>
 
-            <div className="grid gap-6 pt-1 md:grid-cols-2 flex-1">
-              {/* Código */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-900">Código del Artículo *</label>
-                <div className="flex gap-2 items-stretch">
+              <div className="grid gap-6 pt-1 md:grid-cols-2">
+                {/* Código */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-900">Código del Artículo *</label>
+                  <div className="flex gap-2 items-stretch">
+                    <input
+                      type="text"
+                      placeholder="Ej: ARTICULO001"
+                      className="flex-1 rounded-lg rounded-r-none border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                      {...register('ItemCode', {
+                        required: 'El código es obligatorio'
+                      })}
+                    />
+                    <button
+                      type="button"
+                      onClick={buscarItemEnSAP}
+                      disabled={sapLoading}
+                      title="Buscar en SAP"
+                      aria-label="Buscar en SAP"
+                      className="px-3 py-2 min-w-[44px] bg-blue-300 text-black rounded-lg rounded-l-none font-semibold hover:bg-blue-400 disabled:opacity-50 inline-flex items-center justify-center"
+                    >
+                      {sapLoading ? (
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <circle cx="11" cy="11" r="7"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  {errors.ItemCode && <p className="text-sm text-red-600">{errors.ItemCode.message}</p>}
+                </div>
+
+                {/* Descripción SAP */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-900">Descripción SAP *</label>
                   <input
                     type="text"
-                    placeholder="Ej: ARTICULO001"
-                    className="flex-1 rounded-lg rounded-r-none border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                    {...register('ItemCode', {
-                      required: 'El código es obligatorio'
+                    placeholder="Ej: Jabón S3"
+                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                    {...register('ItemName', {
+                      required: 'La descripción SAP es obligatoria'
                     })}
                   />
-                  <button
-                    type="button"
-                    onClick={buscarItemEnSAP}
-                    disabled={sapLoading}
-                    title="Buscar en SAP"
-                    aria-label="Buscar en SAP"
-                    className="px-3 py-2 min-w-[44px] bg-blue-300 text-black rounded-lg rounded-l-none font-semibold hover:bg-blue-400 disabled:opacity-50 inline-flex items-center justify-center"
-                  >
-                    {sapLoading ? (
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <circle cx="11" cy="11" r="7"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                      </svg>
-                    )}
-                  </button>
+                  {errors.ItemName && <p className="text-sm text-red-600">{errors.ItemName.message}</p>}
                 </div>
-                {errors.ItemCode && <p className="text-sm text-red-600">{errors.ItemCode.message}</p>}
+
+                {/* Nombre Extranjero */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-900">Nombre Extranjero *</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Soap S3"
+                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                    {...register('ForeignName', {
+                      required: 'El nombre extranjero es obligatorio'
+                    })}
+                  />
+                  {errors.ForeignName && <p className="text-sm text-red-600">{errors.ForeignName.message}</p>}
+                </div>
+
+                {/* Unidad de Compra */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-900">Unidad de Medida *</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: CAJA"
+                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                    {...register('unidad_medida', {
+                      required: 'La unidad de medida es obligatoria'
+                    })}
+                  />
+                  {errors.unidad_medida && <p className="text-sm text-red-600">{errors.unidad_medida.message}</p>}
+                </div>
+
+                {/* Lead Time */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-900">Lead Time (días) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Ej: 30"
+                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                    {...register('LeadTime', {
+                      required: 'El lead time es obligatorio',
+                      min: { value: 0, message: 'Debe ser positivo' }
+                    })}
+                  />
+                  {errors.LeadTime && <p className="text-sm text-red-600">{errors.LeadTime.message}</p>}
+                </div>
+
+                {/* Días de Tolerancia */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-900">Días de Tolerancia *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Ej: 5"
+                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                    {...register('ToleranceDays', {
+                      required: 'Los días de tolerancia son obligatorios',
+                      min: { value: 0, message: 'Debe ser positivo' }
+                    })}
+                  />
+                  {errors.ToleranceDays && <p className="text-sm text-red-600">{errors.ToleranceDays.message}</p>}
+                </div>
+
+                {/* Grupo de Artículos */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-900">Grupo de Artículos *</label>
+                  <select
+                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                    {...register('ItemsGroupCode', {
+                      required: 'El grupo de artículos es obligatorio'
+                    })}
+                  >
+                    <option value="">Selecciona un grupo</option>
+                    {itemsGroups.map((group) => (
+                      <option key={group.Code} value={group.Code}>
+                        {group.Name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.ItemsGroupCode && <p className="text-sm text-red-600">{errors.ItemsGroupCode.message}</p>}
+                </div>
+
+                {/* Tipo de Bien */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-900">Tipo de Bien *</label>
+                  <select
+                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                    {...register('ItemType', {
+                      required: 'El tipo de bien es obligatorio'
+                    })}
+                  >
+                    {ITEM_TYPES.map((type) => (
+                      <option key={type.Code} value={type.Code}>
+                        {type.Name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.ItemType && <p className="text-sm text-red-600">{errors.ItemType.message}</p>}
+                </div>
+
+                {/* IVA Compra */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-900">IVA Compra *</label>
+                  <select
+                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                    {...register('PurchaseTaxCode', {
+                      required: 'El IVA de compra es obligatorio'
+                    })}
+                  >
+                    <option value="">Selecciona IVA</option>
+                    {vatGroups.map((vat) => (
+                      <option key={vat.Code} value={vat.Code}>
+                        {vat.Name} ({vat.Code})
+                      </option>
+                    ))}
+                  </select>
+                  {errors.PurchaseTaxCode && <p className="text-sm text-red-600">{errors.PurchaseTaxCode.message}</p>}
+                </div>
+
+                {/* IVA Venta */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-900">IVA Venta *</label>
+                  <select
+                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                    {...register('SalesTaxCode', {
+                      required: 'El IVA de venta es obligatorio'
+                    })}
+                  >
+                    <option value="">Selecciona IVA</option>
+                    {vatGroups.map((vat) => (
+                      <option key={vat.Code} value={vat.Code}>
+                        {vat.Name} ({vat.Code})
+                      </option>
+                    ))}
+                  </select>
+                  {errors.SalesTaxCode && <p className="text-sm text-red-600">{errors.SalesTaxCode.message}</p>}
+                </div>
               </div>
 
-              {/* Descripción SAP */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-900">Descripción SAP *</label>
-                <input
-                  type="text"
-                  placeholder="Ej: Jabón S3"
-                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('ItemName', {
-                    required: 'La descripción SAP es obligatoria'
-                  })}
-                />
-                {errors.ItemName && <p className="text-sm text-red-600">{errors.ItemName.message}</p>}
-              </div>
+              {/* Checkboxes */}
+              <div className="grid gap-6 pt-6 md:grid-cols-3">
+                <div className="flex items-center space-x-3 rounded-lg border border-slate-200 p-4 bg-slate-50">
+                  <input
+                    type="checkbox"
+                    id="InventoryItem"
+                    className="h-5 w-5 rounded border-slate-300 text-blue-200 focus:ring-blue-100 cursor-pointer"
+                    {...register('InventoryItem')}
+                  />
+                  <label htmlFor="InventoryItem" className="text-sm font-semibold text-slate-900 cursor-pointer">
+                    Es Artículo de Inventario
+                  </label>
+                </div>
 
-              {/* Nombre Extranjero */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-900">Nombre Extranjero *</label>
-                <input
-                  type="text"
-                  placeholder="Ej: Soap S3"
-                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('ForeignName', {
-                    required: 'El nombre extranjero es obligatorio'
-                  })}
-                />
-                {errors.ForeignName && <p className="text-sm text-red-600">{errors.ForeignName.message}</p>}
-              </div>
+                <div className="flex items-center space-x-3 rounded-lg border border-slate-200 p-4 bg-slate-50">
+                  <input
+                    type="checkbox"
+                    id="SalesItem"
+                    className="h-5 w-5 rounded border-slate-300 text-blue-200 focus:ring-blue-100 cursor-pointer"
+                    {...register('SalesItem')}
+                  />
+                  <label htmlFor="SalesItem" className="text-sm font-semibold text-slate-900 cursor-pointer">
+                    Se Vende
+                  </label>
+                </div>
 
-              {/* Unidad de Compra */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-900">Unidad de Medida *</label>
-                      <input
-                        type="text"
-                        placeholder="Ej: CAJA"
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                        {...register('unidad_medida', {
-                          required: 'La unidad de medida es obligatoria'
-                        })}
-                      />
-                      {errors.unidad_medida && <p className="text-sm text-red-600">{errors.unidad_medida.message}</p>}
-                    </div>
-
-              {/* Lead Time */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-900">Lead Time (días) *</label>
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="Ej: 30"
-                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('LeadTime', {
-                    required: 'El lead time es obligatorio',
-                    min: { value: 0, message: 'Debe ser positivo' }
-                  })}
-                />
-                {errors.LeadTime && <p className="text-sm text-red-600">{errors.LeadTime.message}</p>}
+                <div className="flex items-center space-x-3 rounded-lg border border-slate-200 p-4 bg-slate-50">
+                  <input
+                    type="checkbox"
+                    id="PurchaseItem"
+                    className="h-5 w-5 rounded border-slate-300 text-blue-200 focus:ring-blue-100 cursor-pointer"
+                    {...register('PurchaseItem')}
+                  />
+                  <label htmlFor="PurchaseItem" className="text-sm font-semibold text-slate-900 cursor-pointer">
+                    Se Compra
+                  </label>
+                </div>
               </div>
-
-              {/* Días de Tolerancia */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-900">Días de Tolerancia *</label>
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="Ej: 5"
-                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('ToleranceDays', {
-                    required: 'Los días de tolerancia son obligatorios',
-                    min: { value: 0, message: 'Debe ser positivo' }
-                  })}
-                />
-                {errors.ToleranceDays && <p className="text-sm text-red-600">{errors.ToleranceDays.message}</p>}
-              </div>
-
-              {/* Grupo de Artículos */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-900">Grupo de Artículos *</label>
-                <select
-                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('ItemsGroupCode', {
-                    required: 'El grupo de artículos es obligatorio'
-                  })}
-                >
-                  <option value="">Selecciona un grupo</option>
-                  {itemsGroups.map((group) => (
-                    <option key={group.Code} value={group.Code}>
-                      {group.Name}
-                    </option>
-                  ))}
-                </select>
-                {errors.ItemsGroupCode && <p className="text-sm text-red-600">{errors.ItemsGroupCode.message}</p>}
-              </div>
-
-              {/* Tipo de Bien */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-900">Tipo de Bien *</label>
-                <select
-                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('ItemType', {
-                    required: 'El tipo de bien es obligatorio'
-                  })}
-                >
-                  {ITEM_TYPES.map((type) => (
-                    <option key={type.Code} value={type.Code}>
-                      {type.Name}
-                    </option>
-                  ))}
-                </select>
-                {errors.ItemType && <p className="text-sm text-red-600">{errors.ItemType.message}</p>}
-              </div>
-
-              {/* IVA Compra */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-900">IVA Compra *</label>
-                <select
-                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('PurchaseTaxCode', {
-                    required: 'El IVA de compra es obligatorio'
-                  })}
-                >
-                  <option value="">Selecciona IVA</option>
-                  {vatGroups.map((vat) => (
-                    <option key={vat.Code} value={vat.Code}>
-                      {vat.Name} ({vat.Code})
-                    </option>
-                  ))}
-                </select>
-                {errors.PurchaseTaxCode && <p className="text-sm text-red-600">{errors.PurchaseTaxCode.message}</p>}
-              </div>
-
-              {/* IVA Venta */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-900">IVA Venta *</label>
-                <select
-                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('SalesTaxCode', {
-                    required: 'El IVA de venta es obligatorio'
-                  })}
-                >
-                  <option value="">Selecciona IVA</option>
-                  {vatGroups.map((vat) => (
-                    <option key={vat.Code} value={vat.Code}>
-                      {vat.Name} ({vat.Code})
-                    </option>
-                  ))}
-                </select>
-                {errors.SalesTaxCode && <p className="text-sm text-red-600">{errors.SalesTaxCode.message}</p>}
-              </div>
-            </div>
-
-            {/* Checkboxes */}
-            <div className="grid gap-6 pt-6 md:grid-cols-3">
-              <div className="flex items-center space-x-3 rounded-lg border border-slate-200 p-4 bg-slate-50">
-                <input
-                  type="checkbox"
-                  id="InventoryItem"
-                  className="h-5 w-5 rounded border-slate-300 text-blue-200 focus:ring-blue-100 cursor-pointer"
-                  {...register('InventoryItem')}
-                />
-                <label htmlFor="InventoryItem" className="text-sm font-semibold text-slate-900 cursor-pointer">
-                  Es Artículo de Inventario
-                </label>
-              </div>
-
-              <div className="flex items-center space-x-3 rounded-lg border border-slate-200 p-4 bg-slate-50">
-                <input
-                  type="checkbox"
-                  id="SalesItem"
-                  className="h-5 w-5 rounded border-slate-300 text-blue-200 focus:ring-blue-100 cursor-pointer"
-                  {...register('SalesItem')}
-                />
-                <label htmlFor="SalesItem" className="text-sm font-semibold text-slate-900 cursor-pointer">
-                  Se Vende
-                </label>
-              </div>
-
-              <div className="flex items-center space-x-3 rounded-lg border border-slate-200 p-4 bg-slate-50">
-                <input
-                  type="checkbox"
-                  id="PurchaseItem"
-                  className="h-5 w-5 rounded border-slate-300 text-blue-200 focus:ring-blue-100 cursor-pointer"
-                  {...register('PurchaseItem')}
-                />
-                <label htmlFor="PurchaseItem" className="text-sm font-semibold text-slate-900 cursor-pointer">
-                  Se Compra
-                </label>
-              </div>
-            </div>
             </fieldset>
           </div>
 

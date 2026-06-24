@@ -20,6 +20,7 @@ import EditarUsuario from "./pages/Administrador/EditarUsuario";
 
 // Componentes por Rol
 import SolicitanteCrearCodigo from "./pages/Articulo/SolicitanteCrearCodigo";
+import SolicitanteEditarCodigo from "./pages/Articulo/SolicitanteEditarCodigo";
 import ComprasEditarCodigo from "./pages/Articulo/ComprasEditarCodigo";
 import ContabilidadEditarCodigo from "./pages/Articulo/ContabilidadEditarCodigo";
 import MaestroDatosEditarCodigo from "./pages/Articulo/MaestroDatosEditarCodigo";
@@ -73,6 +74,16 @@ function App() {
             element={
               <PrivateRouteWithRole allowedRoles={["solicitante"]}>
                 <SolicitanteCrearCodigo />
+              </PrivateRouteWithRole>
+            }
+          />
+
+          {/* Solicitante: Editar Código */}
+          <Route
+            path="insumos/editar/:id"
+            element={
+              <PrivateRouteWithRole allowedRoles={["solicitante"]}>
+                <SolicitanteEditarCodigo />
               </PrivateRouteWithRole>
             }
           />

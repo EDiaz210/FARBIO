@@ -16,6 +16,7 @@ const ComprasEditarCodigo = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cargandoUsuario, setCargandoUsuario] = useState(false);
   const [perfilUsuario, setPerfilUsuario] = useState(null);
+  const [referenceLink, setReferenceLink] = useState('');
   const claims = getAuthClaims(token);
   const userID = claims?.id || null;
 
@@ -86,6 +87,7 @@ const ComprasEditarCodigo = () => {
           setValue('RequestorDescription', item.descripcion || '');
           setValue('Details', item.detalles || '');
           setValue('ReferenceLink', item.link_referencia || '');
+          setReferenceLink(item.link_referencia || '');
           setValue('RequestorArea', item.requestor_area || '');
           setValue('descripcion_sap', item.descripcion_sap || '');
           setValue('unidad_medida', item.unidad_medida || '');
@@ -191,8 +193,14 @@ const ComprasEditarCodigo = () => {
                   <label className="block text-sm font-semibold text-slate-700">Link de Referencia</label>
                   <input
                     type="text"
-                    disabled
-                    className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
+                    readOnly
+                     onClick={() => {
+                      if (!referenceLink) return;
+                      const href = referenceLink.startsWith('http://') || referenceLink.startsWith('https://') ? referenceLink : `https://${referenceLink}`;
+                      window.open(href, '_blank', 'noopener,noreferrer');
+                    }}
+                    title="Abrir enlace en nueva pestaña"
+                    className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-pointer"
                     {...register('ReferenceLink')}
                   />
                 </div>

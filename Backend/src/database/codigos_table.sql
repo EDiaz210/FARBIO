@@ -8,7 +8,7 @@ CREATE TABLE codigos (
   descripcion VARCHAR(100),
   requestor_area VARCHAR(100),
   detalles VARCHAR(100),
-  link_referencia VARCHAR(50),
+  link_referencia VARCHAR(900),
   descripcion_sap VARCHAR(100),
   
   -- Campos numéricos

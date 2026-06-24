@@ -170,18 +170,18 @@ const CrearUsuarioPage = () => {
 
             <div className="flex flex-wrap gap-4 justify-end mt-4">
               <button
-                type="submit"
-                disabled={enviando}
-                className="rounded-[28px] bg-[#17243D] px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50"
-              >
-                {enviando ? 'Creando...' : 'Crear usuario'}
-              </button>
-              <button
                 type="button"
                 onClick={handleExit}
                 className="rounded-[28px] border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
               >
                 Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={enviando}
+                className="rounded-[28px] bg-[#17243D] px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50"
+              >
+                {enviando ? 'Creando...' : 'Crear usuario '}
               </button>
             </div>
           </form>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import useFetch from '../../hooks/useFetch';
 import storeAuth from '../../context/storeAuth';
 import { getAuthClaims } from '../../utils/authClaims';
@@ -44,14 +44,16 @@ const defaultValues = {
   ReferenceLink: '',
 };
 
-const SolicitanteCrearCodigo = () => {
+const SolicitanteEditarCodigo = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const { token } = storeAuth();
   const { fetchDataBackend } = useFetch();
 
   // Estados
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cargandoUsuario, setCargandoUsuario] = useState(false);
+  const [cargandoDatos, setCargandoDatos] = useState(true);
   const [perfilUsuario, setPerfilUsuario] = useState(null);
 
   // Formulario
@@ -60,6 +62,7 @@ const SolicitanteCrearCodigo = () => {
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
   } = useForm({ defaultValues });
 
   // Derivaciones de estado / Claims
@@ -92,8 +95,45 @@ const SolicitanteCrearCodigo = () => {
     cargarDatosUsuario();
   }, [token, fetchDataBackend]);
 
+  // Cargar datos del código a editar
+  useEffect(() => {
+    const cargarDatosCodigo = async () => {
+      if (!id) {
+        setCargandoDatos(false);
+        return;
+      }
+
+      setCargandoDatos(true);
+      try {
+        const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/${id}`;
+        const response = await fetchDataBackend(url, null, 'GET', token, false);
+        
+        if (response?.codigo) {
+          const codigo = response.codigo;
+          reset({
+            RequestorDescription: codigo.descripcion || '',
+            RequestorArea: codigo.requestor_area || '',
+            Details: codigo.detalles || '',
+            ReferenceLink: codigo.link_referencia || '',
+          });
+        } else {
+          toast.error('No se pudo cargar el código');
+          setTimeout(() => navigate('/dashboard/tablas'), 1500);
+        }
+      } catch (error) {
+        console.error('Error al cargar el código:', error);
+        toast.error('Error al cargar el código');
+        setTimeout(() => navigate('/dashboard/tablas'), 1500);
+      } finally {
+        setCargandoDatos(false);
+      }
+    };
+
+    cargarDatosCodigo();
+  }, [id, token, fetchDataBackend, reset, navigate]);
+
   // Manejo de envío
-  const createCodigo = async (data) => {
+  const updateCodigo = async (data) => {
     try {
       setIsSubmitting(true);
 
@@ -104,27 +144,37 @@ const SolicitanteCrearCodigo = () => {
         detalles: data.Details,
         link_referencia: data.ReferenceLink,
         userId: userID,
+        userName: nombreSolicitante,
       };
 
-      const url = `${import.meta.env.VITE_BACKEND_URL}/api/solicitante/codigos/create`;
-      const response = await fetchDataBackend(url, codigoData, 'POST', token);
+      const url = `${import.meta.env.VITE_BACKEND_URL}/api/solicitante/codigos/${id}`;
+      const response = await fetchDataBackend(url, codigoData, 'PUT', token);
 
       if (response?.success) {
-        toast.success('Código creado exitosamente');
-        reset();
+        toast.success('Código actualizado exitosamente');
         setTimeout(() => {
           navigate('/dashboard/tablas');
         }, 1500);
       } else {
-        toast.error(response?.message || 'Error al crear el código');
+        toast.error(response?.message || 'Error al actualizar el código');
       }
     } catch (error) {
-      console.error('Error al crear el código:', error);
-      toast.error('Error al crear el código');
+      console.error('Error al actualizar el código:', error);
+      toast.error('Error al actualizar el código');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (cargandoDatos) {
+    return (
+      <div className="min-h-full py-8 flex items-center justify-center" style={{ fontFamily: 'Gowun Batang, serif' }}>
+        <div className="text-center">
+          <p className="text-slate-600">Cargando datos del código...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full py-8 overflow-auto" style={{ fontFamily: 'Gowun Batang, serif' }}>
@@ -132,11 +182,11 @@ const SolicitanteCrearCodigo = () => {
 
       <div className="w-full max-w-4xl px-6 lg:px-8 mx-auto">
         <div className="mb-4">
-          <h1 className="text-4xl font-bold text-slate-900">Solicitar Nuevo Código</h1>
-          <p className="text-sm text-slate-600 mt-2">Completa los datos del artículo que deseas solicitar</p>
+          <h1 className="text-4xl font-bold text-slate-900">Editar Código #{id}</h1>
+          <p className="text-sm text-slate-600 mt-2">Actualiza los datos de tu solicitud</p>
         </div>
 
-        <form onSubmit={handleSubmit(createCodigo)} className="space-y-6">
+        <form onSubmit={handleSubmit(updateCodigo)} className="space-y-6">
           <fieldset className="w-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <div className="grid gap-6 pt-2">
               {/* Descripción */}
@@ -239,7 +289,7 @@ const SolicitanteCrearCodigo = () => {
               disabled={isSubmitting}
               className="flex-1 inline-flex items-center justify-center rounded-lg bg-[#B2EBF2] px-6 py-3 text-sm font-semibold text-black transition hover:bg-[#E6FAFC] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSubmitting ? 'Creando...' : 'Crear Código'}
+              {isSubmitting ? 'Actualizando...' : 'Guardar Cambios'}
             </button>
           </div>
         </form>
@@ -248,4 +298,4 @@ const SolicitanteCrearCodigo = () => {
   );
 };
 
-export default SolicitanteCrearCodigo;
+export default SolicitanteEditarCodigo;

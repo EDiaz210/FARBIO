@@ -5,6 +5,36 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 
 
   // CREAR CÓDIGO (Solo SOLICITANTE)
+const AREA_OPTIONS = [
+  'BODEGA MATERIALES',
+  'BODEGA PRODUCTO TERMINADO',
+  'CARTERA',
+  'COMERCIAL HUMANA',
+  'COMERCIAL VETERINARIA',
+  'COMPRAS E IMPORTACIONES',
+  'CONTABILIDAD',
+  'CONTROL DE CALIDAD',
+  'DCRAV',
+  'DIRECCION TECNICA',
+  'DISEÑO',
+  'ESTABILIDADES',
+  'FACTURACION',
+  'GERENCIA GENERAL',
+  'GESTION DEL TALENTO',
+  'INVESTIGACION Y DESARROLLO',
+  'MANTENIMIENTO',
+  'MARKETING',
+  'PLANIFICACION',
+  'PRODUCCION BIOLOGICOS',
+  'PRODUCCION EL CARMEN',
+  'PRODUCCION EXTRACTOS',
+  'PRODUCCION HUMANA',
+  'PRODUCCION VETERINARIA',
+  'SEGURIDAD INDUSTRIAL',
+  'SUBGERENCIA GENERAL',
+  'VALIDACIONES',
+];
+
   const createCodigo = async (req, res) => {
   const {
     nombreSolicitante,
@@ -15,37 +45,6 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     userId,
     userName
   } = req.body;
-  
-  
-  const AREA_OPTIONS = [
-    'BODEGA MATERIALES',
-    'BODEGA PRODUCTO TERMINADO',
-    'CARTERA',
-    'COMERCIAL HUMANA',
-    'COMERCIAL VETERINARIA',
-    'COMPRAS E IMPORTACIONES',
-    'CONTABILIDAD',
-    'CONTROL DE CALIDAD',
-    'DCRAV',
-    'DIRECCION TECNICA',
-    'DISEÑO',
-    'ESTABILIDADES',
-    'FACTURACION',
-    'GERENCIA GENERAL',
-    'GESTION DEL TALENTO',
-    'INVESTIGACION Y DESARROLLO',
-    'MANTENIMIENTO',
-    'MARKETING',
-    'PLANIFICACION',
-    'PRODUCCION BIOLOGICOS',
-    'PRODUCCION EL CARMEN',
-    'PRODUCCION EXTRACTOS',
-    'PRODUCCION HUMANA',
-    'PRODUCCION VETERINARIA',
-    'SEGURIDAD INDUSTRIAL',
-    'SUBGERENCIA GENERAL',
-    'VALIDACIONES',
-  ];
 
   try {
     // Validar que sea solicitante
@@ -157,7 +156,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     }
 
     // 2. Validar existencia del registro
-    const queryExistencia = 'SELECT id, codigo, descripcion, detalles, link_referencia, status FROM codigos WHERE id = ?';
+    const queryExistencia = 'SELECT id, codigo, descripcion, detalles, link_referencia, status, requestor_area, nombre_solicitante FROM codigos WHERE id = ?';
     const [existe] = await pool.query(queryExistencia, [id]);
     
     if (existe.length === 0) {

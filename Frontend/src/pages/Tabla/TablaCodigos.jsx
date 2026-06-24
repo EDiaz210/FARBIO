@@ -156,8 +156,8 @@ const TablaCodigos = () => {
       navigate(`/dashboard/contabilidad/editar/${id}`);
     } else if (userRole.includes('maestro')) {
       navigate(`/dashboard/maestro/editar/${id}`);
-    } else {
-      navigate(`/dashboard/insumos/${id}`);
+    } else if (userRole.includes('solicitante')) {
+      navigate(`/dashboard/insumos/editar/${id}`);
     }
   };
 
