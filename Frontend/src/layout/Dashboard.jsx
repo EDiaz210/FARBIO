@@ -94,7 +94,7 @@ const Dashboard = () => {
         compras: "from-green-50 via-slate-100 to-green-100",              // Verde
         contabilidad: "from-yellow-50 via-slate-50 to-yellow-100",        // Amarillo
         maestrodedatos: "from-blue-300 via-slate-100 to-blue-300",   // Azul
-        administrador: "from-zinc-100 via-slate-50 to-zinc-200",         // Gris claro
+        administrador: "from-slate-50 via-slate-50 to-slate-50",         // Gris claro
         };
 
     
