@@ -49,6 +49,7 @@ const MaestroDatosEditarCodigo = () => {
       Details: '',
       ReferenceLink: '',
       RequestorArea: '',
+      nombreSolicitante: '',
       descripcion_sap: '',
       InventoryItem: false,
       SalesItem: false,
@@ -126,6 +127,7 @@ const MaestroDatosEditarCodigo = () => {
           setValue('Details', item.detalles || '');
           setValue('ReferenceLink', item.link_referencia || '');
           setValue('RequestorArea', item.requestor_area || '');
+          setValue('nombreSolicitante', item.nombre_solicitante || '');
           setValue('descripcion_sap', item.descripcion_sap || '');
           // ensure unidad_medida is populated from any available property
           setValue('unidad_medida', item.unidad_compra || item.unidad_medida || item.PurchaseUnit || '');
@@ -259,30 +261,36 @@ const MaestroDatosEditarCodigo = () => {
 
         <form onSubmit={handleSubmit(updateCodigo)} className="space-y-6">
           <div className="space-y-6">
-            {/* Info General (Solo lectura) */}
-            <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="mb-6">
+            {/* Info General (Solo lectura) - ficha compacta */}
+            <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="mb-4">
                 <h2 className="text-lg font-semibold text-slate-900">Información del Código</h2>
               </div>
-              <div className="space-y-5 text-slate-700">
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-sm font-semibold text-slate-900">Descripción del Solicitante</p>
-                  <p className="mt-2 text-slate-700 whitespace-pre-wrap">{watch('RequestorDescription') || 'No disponible'}</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700">
+                <div>
+                  <p className="text-xs font-medium text-slate-500">Nombre del Solicitante</p>
+                  <p className="mt-1 text-sm text-slate-800">{watch('nombreSolicitante') || 'No disponible'}</p>
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-sm font-semibold text-slate-900">Detalles</p>
-                  <p className="mt-2 text-slate-700 whitespace-pre-wrap">{watch('Details') || 'No disponible'}</p>
+                <div>
+                  <p className="text-xs font-medium text-slate-500">Área Solicitante</p>
+                  <p className="mt-1 text-sm text-slate-800">{watch('RequestorArea') || 'No disponible'}</p>
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-sm font-semibold text-slate-900">Link de Referencia</p>
-                  <p className="mt-2 text-slate-700 break-words">{watch('ReferenceLink') || 'No disponible'}</p>
+                <div className="md:col-span-2">
+                  <p className="text-xs font-medium text-slate-500">Descripción del Solicitante</p>
+                  <p className="mt-1 text-sm text-slate-800 whitespace-pre-wrap">{watch('RequestorDescription') || 'No disponible'}</p>
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-sm font-semibold text-slate-900">Área Solicitante</p>
-                  <p className="mt-2 text-slate-700">{watch('RequestorArea') || 'No disponible'}</p>
+                <div className="md:col-span-2">
+                  <p className="text-xs font-medium text-slate-500">Detalles</p>
+                  <p className="mt-1 text-sm text-slate-800 whitespace-pre-wrap">{watch('Details') || 'No disponible'}</p>
+                </div>
+
+                <div className="md:col-span-2">
+                  <p className="text-xs font-medium text-slate-500">Link de Referencia</p>
+                  <p className="mt-1 text-sm text-slate-800 break-words">{watch('ReferenceLink') || 'No disponible'}</p>
                 </div>
               </div>
 
@@ -290,6 +298,7 @@ const MaestroDatosEditarCodigo = () => {
               <input type="hidden" {...register('Details')} />
               <input type="hidden" {...register('ReferenceLink')} />
               <input type="hidden" {...register('RequestorArea')} />
+              <input type="hidden" {...register('nombreSolicitante')} />
             </div>
 
             {/* Datos de Maestro (Editable) */}
