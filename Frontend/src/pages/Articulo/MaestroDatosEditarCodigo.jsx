@@ -199,7 +199,7 @@ const MaestroDatosEditarCodigo = () => {
 
       // Convertir checkboxes a tYES/tNO
       const codigoData = {
-        nombreMaestroDatos: perfilUsuario?.nombre,
+        nombreMaestroDatos: claims?.nombre || 'Maestro',
         codigo: data.ItemCode,
         descripcion: data.RequestorDescription,
         detalles: data.Details,

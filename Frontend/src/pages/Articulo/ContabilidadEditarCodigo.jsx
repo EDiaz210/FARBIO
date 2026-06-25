@@ -15,6 +15,7 @@ const ContabilidadEditarCodigo = () => {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [itemsGroups, setItemsGroups] = useState([]);
+  const [perfilUsuario, setPerfilUsuario] = useState(null);
   const claims = getAuthClaims(token);
   const userID = claims?.id || null;
 
@@ -34,6 +35,29 @@ const ContabilidadEditarCodigo = () => {
       Details: '',
     }
   });
+
+  // Cargar datos del perfil para la UI
+  useEffect(() => {
+    const cargarDatosUsuario = async () => {
+      if (!token) {
+        setPerfilUsuario(null);
+        return;
+      }
+
+      try {
+        const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/mi-perfil`;
+        const response = await fetchDataBackend(url, null, 'GET', token, false);
+
+        if (response?.usuario) {
+          setPerfilUsuario(response.usuario);
+        }
+      } catch (error) {
+        console.error('Error al cargar perfil de usuario:', error);
+      }
+    };
+
+    cargarDatosUsuario();
+  }, [token, fetchDataBackend]);
 
   // Cargar datos del código y opciones maestras
   useEffect(() => {
@@ -95,11 +119,11 @@ const ContabilidadEditarCodigo = () => {
       setIsSubmitting(true);
 
       const codigoData = {
-        nombreContabilidad: claims?.nombre || 'Contabilidad',
+        nombreContabilidad: perfilUsuario?.nombre || claims?.nombre || 'Contabilidad',
         grupo_articulos: data.ItemsGroupCode,
         tipo_bien: data.ItemType,
         userId: userID,
-        userName: claims?.nombre || 'Contabilidad'
+        userName: perfilUsuario?.nombre || claims?.nombre || 'Contabilidad'
       };
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/contabilidad/update/${id}`;
