@@ -10,6 +10,7 @@ CREATE TABLE codigos (
   detalles VARCHAR(100),
   link_referencia VARCHAR(900),
   descripcion_sap VARCHAR(100),
+  nombre_solicitante varchar(50),
   
   -- Campos numéricos
   lead_time INT,
