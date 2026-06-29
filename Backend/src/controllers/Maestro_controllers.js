@@ -37,9 +37,9 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
   }
 };
 
-// UPDATE Y ENVIO A SAP - MAESTRO DE DATOS
 
-  const updateMaestroDatos = async (req, res) => {
+// UPDATE Y ENVIO A SAP - MAESTRO DE DATOS
+const updateMaestroDatos = async (req, res) => {
   const { id } = req.params;
   const {
     nombreMaestroDatos,
@@ -50,6 +50,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
     descripcion_sap,
     nombre_extranjero,
     unidad_compra,
+    cantidad_minima_pedido,
     impuesto_compra,
     impuesto_venta,
     lead_time,
@@ -64,11 +65,10 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
   } = req.body;
 
   console.log(req.body);
-  
 
   try {
     // 1. VALIDAR QUE EL CÓDIGO EXISTA
-    const codigoQuery = 'SELECT id, codigo, descripcion, detalles, link_referencia, descripcion_sap, lead_time, dias_tolerancia, grupo_articulos, tipo_bien, indicadorIVACompras, indicadorIVAVentas, inventoryItem, salesItem, purchaseItem, status FROM codigos WHERE id = ?';
+    const codigoQuery = 'SELECT id, codigo, descripcion, detalles, link_referencia, descripcion_sap, lead_time, dias_tolerancia, cantidad_minima_pedido, grupo_articulos, tipo_bien, indicadorIVACompras, indicadorIVAVentas, inventoryItem, salesItem, purchaseItem, status FROM codigos WHERE id = ?';
     const [codigoResults] = await pool.query(codigoQuery, [id]);
     
     if (codigoResults.length === 0) {
@@ -92,18 +92,17 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
     if (!userRole.includes('maestro') && !userRole.includes('admin')) {
       return res.status(403).json({ 
         success: false, 
-        message: 'Solo maestro de datos puede realizar esta acción' 
+        msg: 'Solo maestro de datos puede realizar esta acción' 
       });
     }
 
     // 3. VALIDACIONES DE CAMPOS REQUERIDOS
-    if (!codigo || !descripcion_sap || !nombre_extranjero || !unidad_compra) {
+    if (!codigo || !descripcion_sap || !nombre_extranjero || !unidad_compra || !grupo_articulos || !tipo_bien || !impuesto_compra || !impuesto_venta || !cantidad_minima_pedido) {
       return res.status(400).json({
         success: false,
-        message: 'Faltan campos obligatorios: codigo, descripcion_sap, nombre_extranjero, unidad_compra'
+        msg: 'Faltan campos obligatorios: codigo, descripcion_sap, nombre_extranjero, unidad_compra, grupo_articulos, tipo_bien, impuesto_compra, impuesto_venta, cantidad_minima_pedido'
       });
     }
-
 
     // 4. INICIAR SESIÓN EN SAP
     console.log('\n1. Iniciando sesión en SAP...');
@@ -132,18 +131,13 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
     const purchaseVAT = (impuesto_compra || '').trim();
     const salesVAT = (impuesto_venta || '').trim();
 
-    console.log('VATs a enviar a SAP:', {
-      purchaseVAT,
-      salesVAT
-    });
+    console.log('VATs a enviar a SAP:', { purchaseVAT, salesVAT });
 
     const vatResp = await axios.get(
       `${process.env.SAP_URL}/SalesTaxAuthorities?$select=Code`,
       {
         httpsAgent: httpsAgent,
-        headers: {
-          'Cookie': `B1SESSION=${sessionId}`
-        }
+        headers: { 'Cookie': `B1SESSION=${sessionId}` }
       }
     );
 
@@ -156,9 +150,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
     if (missingVATs.length) {
       await axios.post(`${process.env.SAP_URL}/Logout`, {}, {
         httpsAgent: httpsAgent,
-        headers: {
-          'Cookie': `B1SESSION=${sessionId}`
-        }
+        headers: { 'Cookie': `B1SESSION=${sessionId}` }
       }).catch(() => {});
 
       return res.status(400).json({
@@ -174,17 +166,13 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
         `${process.env.SAP_URL}/Items('${encodeURIComponent(codigo)}')`,
         {
           httpsAgent: httpsAgent,
-          headers: {
-            'Cookie': `B1SESSION=${sessionId}`
-          }
+          headers: { 'Cookie': `B1SESSION=${sessionId}` }
         }
       );
 
       await axios.post(`${process.env.SAP_URL}/Logout`, {}, {
         httpsAgent: httpsAgent,
-        headers: {
-          'Cookie': `B1SESSION=${sessionId}`
-        }
+        headers: { 'Cookie': `B1SESSION=${sessionId}` }
       }).catch(() => {});
 
       return res.status(409).json({
@@ -199,9 +187,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
       if (statusCode && statusCode !== 404) {
         await axios.post(`${process.env.SAP_URL}/Logout`, {}, {
           httpsAgent: httpsAgent,
-          headers: {
-            'Cookie': `B1SESSION=${sessionId}`
-          }
+          headers: { 'Cookie': `B1SESSION=${sessionId}` }
         }).catch(() => {});
 
         return res.status(statusCode).json({
@@ -212,28 +198,52 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
       }
     }
 
-    // 5. ENVIAR ITEM A SAP
-    console.log('\n2. Enviando item a SAP...');
+    // ==========================================
+    // 5. DINÁMICA DE CAMPOS DE UNIDAD Y LOTES (SAP)
+    // ==========================================
+    const isInventory = inventario === 'tYES';
+    const isSales = venta === 'tYES';
+    const isPurchase = compra === 'tYES';
+
+    const sapItemPayload = {
+      IndirectTax: 'tYES',
+      ItemCode: codigo,
+      ItemName: descripcion_sap,
+      ForeignName: nombre_extranjero,
+      ArTaxCode: purchaseVAT,
+      ApTaxCode: salesVAT,
+      LeadTime: parseInt(lead_time) || 0,
+      ItemsGroupCode: parseInt(grupo_articulos) || 0,
+      U_TIPO_BIEN: tipo_bien,
+      InventoryItem: isInventory ? 'tYES' : 'tNO',
+      SalesItem: isSales ? 'tYES' : 'tNO',
+      PurchaseItem: isPurchase ? 'tYES' : 'tNO',
+      ToleranceDays: parseInt(dias_tolerancia) || 0,
+      MinOrderQuantity: parseFloat(cantidad_minima_pedido) || 0
+    };
+
+    // Asignación condicionada de Unidades de Medida
+    if (isInventory) {
+      sapItemPayload.InventoryUOM = unidad_compra;
+      sapItemPayload.ManageBatchNumbers = 'tYES'; // Forzar control de lotes si es inventariable
+    } else {
+      sapItemPayload.ManageBatchNumbers = 'tNO';
+    }
+
+    if (isSales) {
+      sapItemPayload.SalesUnit = unidad_compra;
+    }
+
+    if (isPurchase) {
+      sapItemPayload.PurchaseUnit = unidad_compra;
+    }
+
+    // ENVIAR ITEM A SAP
+    console.log('\n2. Enviando item a SAP con payload dinámico...');
     
     let sapItemResponse;
     try {
-      sapItemResponse = await axios.post(`${process.env.SAP_URL}/Items`, {
-        IndirectTax:'tYES',
-        ItemCode: codigo,
-        ItemName: descripcion_sap,
-        ForeignName: nombre_extranjero,
-        PurchaseUnit: unidad_compra,
-        ArTaxCode: purchaseVAT,
-        ApTaxCode: salesVAT,
-        LeadTime: parseInt(lead_time),
-        ItemsGroupCode: parseInt(grupo_articulos),
-        U_TIPO_BIEN: tipo_bien,
-        InventoryItem: inventario === 'tYES' ? 'tYES' : 'tNO',
-        SalesItem: venta === 'tYES' ? 'tYES' : 'tNO',
-        PurchaseItem: compra === 'tYES' ? 'tYES' : 'tNO',
-        ToleranceDays: parseInt(dias_tolerancia)
-
-      }, { 
+      sapItemResponse = await axios.post(`${process.env.SAP_URL}/Items`, sapItemPayload, { 
         httpsAgent: httpsAgent,
         headers: {
           'Cookie': `B1SESSION=${sessionId}`
@@ -245,9 +255,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
       // Cerrar sesión antes de retornar error
       await axios.post(`${process.env.SAP_URL}/Logout`, {}, { 
         httpsAgent: httpsAgent,
-        headers: {
-          'Cookie': `B1SESSION=${sessionId}`
-        }
+        headers: { 'Cookie': `B1SESSION=${sessionId}` }
       }).catch(err => console.warn('Error cerrando sesión:', err.message));
       
       return res.status(500).json({
@@ -257,16 +265,12 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
       });
     }
 
-
     // 6. CERRAR SESIÓN EN SAP
     console.log('\n3. Cerrando sesión en SAP...');
-    
     try {
       await axios.post(`${process.env.SAP_URL}/Logout`, {}, { 
         httpsAgent: httpsAgent,
-        headers: {
-          'Cookie': `B1SESSION=${sessionId}`
-        }
+        headers: { 'Cookie': `B1SESSION=${sessionId}` }
       });
       console.log(`Sesión SAP cerrada: ${sessionId}`);
     } catch (error) {
@@ -335,7 +339,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
       codigo,
       modulo: 'maestrodatos',
       accion: 'Sincronización con SAP y actualización maestro de datos',
-      campoAfectado: 'codigo,descripcion,detalles,link_referencia,descripcion_sap,lead_time,dias_tolerancia,grupo_articulos,tipo_bien,indicadorIVACompras,indicadorIVAVentas,inventoryItem,salesItem,purchaseItem,status,unidad_medida',
+      campoAfectado: 'codigo,descripcion,detalles,link_referencia,descripcion_sap,lead_time,dias_tolerancia,cantidad_minima_pedido,grupo_articulos,tipo_bien,indicadorIVACompras,indicadorIVAVentas,inventoryItem,salesItem,purchaseItem,status,unidad_medida',
       valorAnterior: {
         codigo: codigoResults[0].codigo,
         descripcion: codigoResults[0].descripcion,
@@ -344,6 +348,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
         descripcion_sap: codigoResults[0].descripcion_sap,
         lead_time: codigoResults[0].lead_time,
         dias_tolerancia: codigoResults[0].dias_tolerancia,
+        cantidad_minima_pedido: codigoResults[0].cantidad_minima_pedido,
         grupo_articulos: codigoResults[0].grupo_articulos,
         tipo_bien: codigoResults[0].tipo_bien,
         indicadorIVACompras: codigoResults[0].indicadorIVACompras,
@@ -362,6 +367,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
         descripcion_sap,
         lead_time,
         dias_tolerancia,
+        cantidad_minima_pedido,
         grupo_articulos,
         tipo_bien,
         indicadorIVACompras: impuesto_compra,
@@ -402,5 +408,6 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
     });
   }
 };
+
 
 export { updateMaestroDatos, obtenerCodigosFinalizadosMaestro };

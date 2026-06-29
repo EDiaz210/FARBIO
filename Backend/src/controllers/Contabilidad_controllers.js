@@ -103,4 +103,31 @@ const updateContabilidadCodigo = async (req, res) => {
   }
 };
 
-export { updateContabilidadCodigo };
+const retornoCodigosContabilidad = async (req, res) => {
+  try {
+    const { id, comentario } = req.body;
+
+    // 1. Validar que vengan los datos requeridos
+    if (!id || !comentario) {
+      return res.status(400).json({ msg: 'El ID y el comentario son obligatorios' });
+    }
+
+    // 2. Validar la longitud máxima del comentario (200 caracteres)
+    if (comentario.length > 200) {
+      return res.status(400).json({ 
+        msg: `El comentario no puede superar los 200 caracteres (actual: ${comentario.length})` 
+      });
+    }
+
+    // 3. Cambiar el estado a 'nuevo' y reescribir el comentario
+    const query = 'UPDATE codigos SET status = ?, comentario = ? WHERE id = ?';
+    await pool.query(query, ['nuevo', comentario, id]);
+    
+    return res.status(200).json({ msg: 'Estado actualizado a Nuevo y comentario reescrito con éxito' });
+  } catch (error) {
+    console.error('Error en retornoCodigosContabilidad:', error);
+    return res.status(500).json({ msg: 'Error de servidor al retornar el código desde Contabilidad' });
+  }
+};
+
+export { updateContabilidadCodigo, retornoCodigosContabilidad };

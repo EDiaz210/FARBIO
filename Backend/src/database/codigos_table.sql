@@ -11,6 +11,8 @@ CREATE TABLE codigos (
   link_referencia VARCHAR(900),
   descripcion_sap VARCHAR(100),
   nombre_solicitante varchar(50),
+  comentario varchar(200),
+  nombre_extranjero VARCHAR(100),
   
   -- Campos numéricos
   lead_time INT,
@@ -22,6 +24,7 @@ CREATE TABLE codigos (
   indicadorIVACompras varchar(30),
   indicadorIVAVentas varchar(30),
   unidad_medida VARCHAR(50),
+  cantidad_minima_pedido INT,
 
   
   -- Historial de cambios (JSON)

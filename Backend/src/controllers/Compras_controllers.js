@@ -9,9 +9,11 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
   const {
     nombreCompras,
     unidad_medida,
-    lead_time, 
+    lead_time,
+    cantidad_minima_pedido,
     dias_tolerancia,
     descripcion_sap,
+    
     userId,
     userName
   } = req.body;
@@ -31,7 +33,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     }
 
     // 2. VALIDAR EXISTENCIA DEL REGISTRO
-    const queryExistencia = 'SELECT id, codigo, lead_time, dias_tolerancia, status FROM codigos WHERE id = ?';
+    const queryExistencia = 'SELECT id, codigo, lead_time, dias_tolerancia, cantidad_minima_pedido, status FROM codigos WHERE id = ?';
     const [existe] = await pool.query(queryExistencia, [id]);
     
     if (existe.length === 0) {
@@ -43,8 +45,8 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     if (!descripcion_sap) {
       return res.status(400).json({ success: false, message: 'Falta campo requerido: descripcion_sap' });
     }
-    if (!lead_time && !dias_tolerancia) {
-      return res.status(400).json({ success: false, message: 'Faltan campos: lead_time o dias_tolerancia' });
+    if (!lead_time && !dias_tolerancia && !cantidad_minima_pedido) {
+      return res.status(400).json({ success: false, message: 'Faltan campos: Lead Time, Días de Tolerancia o Cantidad Mínima de Pedido' });
     }
 
     // 4. PREPARAR HISTORIAL
@@ -60,6 +62,8 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
           descripcion_sap = ?,
           lead_time = ?, 
           dias_tolerancia = ?, 
+          cantidad_minima_pedido = ?,
+          nombre_extranjero = ?,
           unidad_medida = ?,
           status = ?,
           r_compras = ?, 
@@ -71,11 +75,13 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       descripcion_sap,               // 1. descripcion_sap
       lead_time,                     // 2. lead_time
       dias_tolerancia,               // 3. dias_tolerancia
-      unidad_medida,                 // 4. unidad_medida
-      'En Contabilidad',             // 5. status
-      historyEntry,                  // 6. r_compras
-      userId,                        // 7. updated_by
-      id                             // 8. WHERE id = ?
+      cantidad_minima_pedido,        // 4. cantidad_minima_pedido
+      descripcion_sap,               // 5. nombre_extranjero (usamos descripcion_sap como nombre_extranjero)
+      unidad_medida,                 // 6. unidad_medida
+      'En Contabilidad',             // 7. status
+      historyEntry,                  // 8. r_compras
+      userId,                        // 9. updated_by
+      id                             // 10. WHERE id = ?
     ]);
 
     await registrarReporteCodigo({
@@ -83,20 +89,24 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       codigo: existe[0].codigo,
       modulo: 'compras',
       accion: 'Actualización de compras',
-      campoAfectado: 'descripcion_sap,lead_time,dias_tolerancia,status,unidad_medida',
+      campoAfectado: 'descripcion_sap,lead_time,dias_tolerancia,cantidad_minima_pedido,status,unidad_medida,nombre_extranjero',
       valorAnterior: {
         descripcion_sap: existe[0].descripcion_sap,
         lead_time: existe[0].lead_time,
         dias_tolerancia: existe[0].dias_tolerancia,
+        cantidad_minima_pedido: existe[0].cantidad_minima_pedido,
         status: existe[0].status,
-        unidad_medida: existe[0].unidad_medida
+        unidad_medida: existe[0].unidad_medida,
+        nombre_extranjero: existe[0].nombre_extranjero
       },
       valorNuevo: {
         descripcion_sap,
         lead_time,
         dias_tolerancia,
+        cantidad_minima_pedido,
         status: 'En Contabilidad',
-        unidad_medida
+        unidad_medida,
+        nombre_extranjero: descripcion_sap
       },
       usuarioId: userId,
       usuarioNombre: nombreCompras
@@ -117,4 +127,32 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
   }
 };
 
-export { updateComprasCodigo };
+const retornoCodigosCompras = async (req, res) => {
+  try {
+    const { id, comentario } = req.body;
+
+    // 1. Validar que vengan los datos requeridos
+    if (!id || !comentario) {
+      return res.status(400).json({ msg: 'El ID y el comentario son obligatorios' });
+    }
+
+    // 2. Validar la longitud máxima (200 caracteres)
+    if (comentario.length > 200) {
+      return res.status(400).json({ 
+        msg: `El comentario es demasiado largo. Máximo 200 caracteres (actual: ${comentario.length})` 
+      });
+    }
+
+    // 3. Si todo está bien, actualizamos en la base de datos
+    const query = 'UPDATE codigos SET comentario = ? WHERE id = ?';
+    await pool.query(query, [comentario, id]);
+    
+    return res.status(200).json({ msg: 'Comentario guardado correctamente' });
+  } catch (error) {
+    console.error('Error al insertar el comentario en Compras:', error);
+    return res.status(500).json({ msg: 'Error de servidor al guardar el comentario' });
+  }
+};
+
+
+export { updateComprasCodigo, retornoCodigosCompras };
