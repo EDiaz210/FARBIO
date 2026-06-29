@@ -13,7 +13,6 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     cantidad_minima_pedido,
     dias_tolerancia,
     descripcion_sap,
-    
     userId,
     userName
   } = req.body;
