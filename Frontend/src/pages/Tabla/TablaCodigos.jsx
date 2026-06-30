@@ -1,10 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useFetch from '../../hooks/useFetch';
 import storeAuth from '../../context/storeAuth';
 import { getAuthClaims } from '../../utils/authClaims';
-
-const ITEMS_PER_PAGE = 5;
 
 const getStatusByRole = (userRole = '') => {
   const role = userRole.toLowerCase();
@@ -15,18 +13,75 @@ const getStatusByRole = (userRole = '') => {
   return '';
 };
 
-// Sub-componente: Fila de la Tabla
-const TableRow = ({ item, onEdit, clasesColor }) => (
+// 📱 NUEVO: Sub-componente Tarjeta Móvil (Estilo Acordeón Adaptado)
+const CardMovil = ({ item, onEdit, clasesColor }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className="border-b border-slate-100 last:border-none p-4 bg-white transition-colors">
+      <div 
+        className="flex items-center justify-between cursor-pointer"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center gap-3">
+          <div className={`w-6 h-6 rounded-full ${clasesColor} flex items-center justify-center transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          <div>
+            <span className="text-xs font-bold text-slate-400 block">#{item.id}</span>
+            <span className="font-medium text-slate-800 text-sm line-clamp-1">{item.descripcion}</span>
+          </div>
+        </div>
+        <span className="font-mono text-xs bg-slate-100 px-2 py-1 rounded text-slate-600">
+          {item.codigo || 'S/N'}
+        </span>
+      </div>
+
+      {isOpen && (
+        <div className="mt-4 pt-4 border-t border-dashed border-slate-100 bg-slate-50/50 p-4 rounded-xl space-y-4">
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Detalles:</span>
+            <p className="text-sm text-slate-700">{item.detalles || 'Sin detalles adicionales'}</p>
+          </div>
+          
+          <div className="flex justify-between items-center pt-2">
+            <div>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Status:</span>
+              <span className="text-xs font-medium capitalize bg-white border border-slate-200 px-2.5 py-1 rounded-full text-slate-700 shadow-sm">
+                {item.status}
+              </span>
+            </div>
+            
+            <button
+              onClick={() => onEdit(item.id)}
+              className={`inline-flex h-11 px-4 items-center gap-2 rounded-xl ${clasesColor} transition hover:opacity-90 shadow-sm text-sm font-medium`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Ver registro
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// 💻 Sub-componente: Fila de la Tabla Escritorio (Modificado sin max-w forzados)
+const TableRowEscritorio = ({ item, onEdit, clasesColor }) => (
   <tr className="bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
     <td className="rounded-[20px] rounded-r-none p-5 font-bold text-slate-900">#{item.id}</td>
-    <td className="p-5">
+    <td className="p-5 text-center">
       <span className="px-2 py-1 rounded-full text-xs font-semibold uppercase bg-slate-100 text-slate-700">
         {item.codigo || 'S/N'}
       </span>
     </td>
-    <td className="p-5 truncate max-w-[220px] text-slate-700">{item.descripcion}</td>
-    <td className="p-5 truncate max-w-[220px] text-slate-700">{item.detalles}</td>
-    <td className="p-5">
+    <td className="p-5 text-slate-700 font-medium truncate max-w-0">{item.descripcion}</td>
+    <td className="p-5 text-slate-500 truncate max-w-0">{item.detalles}</td>
+    <td className="p-5 text-center">
       <span className="text-sm font-medium capitalize bg-slate-100 px-3 py-1 rounded-full text-slate-700">
         {item.status}
       </span>
@@ -46,57 +101,12 @@ const TableRow = ({ item, onEdit, clasesColor }) => (
   </tr>
 );
 
-// Sub-componente: Paginación
-const Pagination = ({ currentPage, totalPages, onChange, clasesColor }) => {
-  if (totalPages <= 1) return null;
-  return (
-    <div className="flex items-center justify-between p-6 bg-gray-50 border border-gray-200 rounded-lg mt-4">
-      <div className="text-sm text-gray-600">
-        Mostrando <span className="font-semibold">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> a{' '}
-        <span className="font-semibold">{Math.min(currentPage * ITEMS_PER_PAGE, totalPages * ITEMS_PER_PAGE)}</span> de{' '}
-        <span className="font-semibold">{totalPages * ITEMS_PER_PAGE}</span>
-      </div>
-
-      <div className="flex gap-2">
-        <button
-          onClick={() => onChange((p) => Math.max(p - 1, 1))}
-          disabled={currentPage === 1}
-          className={`px-4 py-2 ${clasesColor} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
-        >
-          ← Anterior
-        </button>
-
-        <div className="flex gap-1">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              onClick={() => onChange(page)}
-              className={`px-3 py-2 rounded-lg transition-colors ${
-                page === currentPage ? `${clasesColor} font-semibold` : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-        </div>
-
-        <button
-          onClick={() => onChange((p) => Math.min(p + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          className={`px-4 py-2 ${clasesColor} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
-        >
-          Siguiente →
-        </button>
-      </div>
-    </div>
-  );
-};
-
 // Componente Principal
 const TablaCodigos = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5); // 🔹 Cambió a estado dinámico adaptativo
 
   const { fetchDataBackend } = useFetch();
   const { token } = storeAuth();
@@ -104,7 +114,6 @@ const TablaCodigos = () => {
 
   const claims = getAuthClaims(token);
   const userRole = claims?.rol?.toLowerCase() || '';
-
   const statusRole = useMemo(() => getStatusByRole(userRole), [userRole]);
 
   // Colores dinámicos por rol operativo
@@ -117,6 +126,28 @@ const TablaCodigos = () => {
   };
   
   const clasesColor = activeColorsByRole[userRole] || "bg-slate-100 text-black";
+
+  // 🔹 CÁLCULO 100% DINÁMICO BASADO EN EL ALTO DE LA PANTALLA REAL (innerHeight)
+  useEffect(() => {
+    const calculateItems = () => {
+      const vh = window.innerHeight;
+      const isMobile = window.innerWidth < 768;
+
+      if (isMobile) {
+        // Altura de tarjeta móvil cerrada es aprox 75px
+        const dynamicCards = Math.floor((vh - 260) / 75);
+        setItemsPerPage(Math.max(3, dynamicCards));
+      } else {
+        // Altura de fila de tabla de control es aprox 85px
+        const dynamicRows = Math.floor((vh - 340) / 85);
+        setItemsPerPage(Math.max(4, dynamicRows));
+      }
+    };
+
+    calculateItems();
+    window.addEventListener('resize', calculateItems);
+    return () => window.removeEventListener('resize', calculateItems);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -142,12 +173,13 @@ const TablaCodigos = () => {
     loadData();
   }, [fetchDataBackend, statusRole]);
 
-  const totalPages = useMemo(() => Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE)), [items.length]);
+  // Se recalculan dinámicamente con el nuevo valor calculado por el hook resize
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(items.length / itemsPerPage)), [items.length, itemsPerPage]);
 
   const currentItems = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return items.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [items, currentPage]);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return items.slice(startIndex, startIndex + itemsPerPage);
+  }, [items, currentPage, itemsPerPage]);
 
   const handleEdit = (id) => {
     if (userRole.includes('compras')) {
@@ -161,7 +193,6 @@ const TablaCodigos = () => {
     }
   };
 
-  // 🔹 Barda de seguridad si el rol es Administrador
   if (userRole.includes('administrador')) {
     return (
       <div className="py-8 min-h-screen flex items-center justify-center font-sans">
@@ -177,40 +208,98 @@ const TablaCodigos = () => {
 
   return (
     <div className="py-8 min-h-screen font-sans" style={{ fontFamily: 'Gowun Batang, serif' }}>
-      <div className="w-full max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-4xl font-semibold text-slate-900">Gestión de Códigos</h1>
-          <p className="text-base text-slate-600 mt-2">Este módulo sirve para mostrar la lista entrante de códigos:</p>
+          <h1 className="text-3xl sm:text-4xl font-semibold text-slate-900">Gestión de Códigos</h1>
+          <p className="text-sm sm:text-base text-slate-600 mt-2">Este módulo sirve para mostrar la lista entrante de códigos:</p>
         </div>
 
-        <div className="w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60">
-          <table className="w-full text-left border-separate border-spacing-y-4">
-            <thead>
-              <tr className={`${clasesColor} border-b border-slate-200`}>
-                <th className="rounded-tl-[24px] p-5 text-sm font-semibold uppercase tracking-[0.08em]">ID</th>
-                <th className="p-5 text-center text-sm font-semibold uppercase tracking-[0.08em]">SAP Code</th>
-                <th className="p-5 text-sm font-semibold uppercase tracking-[0.08em]">Descripción</th>
-                <th className="p-5 text-sm font-semibold uppercase tracking-[0.08em]">Detalles</th>
-                <th className="p-5 text-sm font-semibold uppercase tracking-[0.08em]">Status</th>
-                <th className="rounded-tr-[24px] p-5 text-center text-sm font-semibold uppercase tracking-[0.08em]">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={6} className="p-10 text-center text-slate-500">Cargando registros...</td></tr>
-              ) : currentItems.length === 0 ? (
-                <tr><td colSpan={6} className="p-10 text-center text-slate-500">No hay códigos pendientes para tu rol.</td></tr>
-              ) : (
-                currentItems.map((item) => (
-                  <TableRow key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} />
-                ))
-              )}
-            </tbody>
-          </table>
+        {/* Contenedor principal de la interfaz */}
+        <div className="w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm shadow-slate-200/60">
+          
+          {/* 📱 VERSIÓN MÓVIL (Lista expandible tipo Acordeón) */}
+          <div className="block md:hidden divide-y divide-slate-100">
+            {loading ? (
+              <div className="p-10 text-center text-slate-500 text-sm">Cargando registros...</div>
+            ) : currentItems.length === 0 ? (
+              <div className="p-10 text-center text-slate-500 text-sm">No hay códigos pendientes para tu rol.</div>
+            ) : (
+              currentItems.map((item) => (
+                <CardMovil key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} />
+              ))
+            )}
+          </div>
+
+          {/* 💻 VERSIÓN ESCRITORIO (Diseño fluido sin scrolls innecesarios) */}
+          <div className="hidden md:block w-full p-6 pb-0">
+            <table className="w-full text-left border-separate border-spacing-y-4 layout-fixed">
+              <thead>
+                <tr className={`${clasesColor} border-b border-slate-200`}>
+                  <th className="rounded-tl-[24px] p-5 text-sm font-semibold uppercase tracking-[0.08em] w-[8%]">ID</th>
+                  <th className="p-5 text-center text-sm font-semibold uppercase tracking-[0.08em] w-[15%]">SAP Code</th>
+                  <th className="p-5 text-sm font-semibold uppercase tracking-[0.08em] w-[35%]">Descripción</th>
+                  <th className="p-5 text-sm font-semibold uppercase tracking-[0.08em] w-[22%]">Detalles</th>
+                  <th className="p-5 text-center text-sm font-semibold uppercase tracking-[0.08em] w-[12%]">Status</th>
+                  <th className="rounded-tr-[24px] p-5 text-center text-sm font-semibold uppercase tracking-[0.08em] w-[8%]">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">Cargando registros...</td></tr>
+                ) : currentItems.length === 0 ? (
+                  <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">No hay códigos pendientes para tu rol.</td></tr>
+                ) : (
+                  currentItems.map((item) => (
+                    <TableRowEscritorio key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} />
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          
         </div>
 
-        {!loading && items.length > 0 && (
-          <Pagination currentPage={currentPage} totalPages={totalPages} onChange={setCurrentPage} clasesColor={clasesColor} />
+        {/* Bloque de Paginación Inteligente fuera de las envolturas de datos */}
+        {!loading && items.length > 0 && totalPages > 1 && (
+          <div className="p-4 sm:p-6 bg-slate-50 border border-slate-200 rounded-[24px] mt-4 flex flex-col sm:flex-row gap-4 items-center justify-between shadow-sm">
+            <div className="text-xs sm:text-sm text-slate-600 text-center sm:text-left">
+              Mostrando <span className="font-semibold text-slate-900">{(currentPage - 1) * itemsPerPage + 1}</span> a{' '}
+              <span className="font-semibold text-slate-900">{Math.min(currentPage * itemsPerPage, items.length)}</span> de{' '}
+              <span className="font-semibold text-slate-900">{items.length}</span> registros
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className={`px-3 sm:px-4 py-2 ${clasesColor} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs sm:text-sm flex-1 sm:flex-none text-center`}
+              >
+                ← Anterior
+              </button>
+
+              <div className="hidden sm:flex gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 rounded-lg transition-colors text-sm ${
+                      page === currentPage ? `${clasesColor} font-semibold` : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className={`px-3 sm:px-4 py-2 ${clasesColor} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs sm:text-sm flex-1 sm:flex-none text-center`}
+              >
+                Siguiente →
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>
