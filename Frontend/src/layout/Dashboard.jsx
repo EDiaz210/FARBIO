@@ -113,7 +113,11 @@ const Dashboard = () => {
       
       {/* HEADER MÓVIL */}
       <div className="md:hidden flex items-center justify-between bg-gray-100 border-b border-gray-300 px-4 py-2 flex-shrink-0">
-        <h1 className="text-xl font-bold text-[#17243D]">Farbiopharma</h1>
+        <img 
+          src="/public/logo.png" 
+          alt="Farbiopharma" 
+          className="h-8 w-auto object-contain" 
+        />
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center hover:bg-[#17243D] hover:text-white transition duration-200"

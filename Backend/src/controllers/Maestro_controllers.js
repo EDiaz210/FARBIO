@@ -222,10 +222,9 @@ const updateMaestroDatos = async (req, res) => {
       MinOrderQuantity: parseFloat(cantidad_minima_pedido) || 0
     };
 
-    // Asignación condicionada de Unidades de Medida
     if (isInventory) {
       sapItemPayload.InventoryUOM = unidad_compra;
-      sapItemPayload.ManageBatchNumbers = 'tYES'; // Forzar control de lotes si es inventariable
+      sapItemPayload.ManageBatchNumbers = 'tYES'; 
     } else {
       sapItemPayload.ManageBatchNumbers = 'tNO';
     }
