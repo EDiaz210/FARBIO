@@ -90,20 +90,35 @@ const Dashboard = () => {
   }, []);
 
     const bgColorsByRole = {
-        solicitante: "from-[#B2EBF2] via-slate-100 to-[#B2EBF2]",            // Celeste
-        compras: "from-green-50 via-slate-100 to-green-100",              // Verde
-        contabilidad: "from-yellow-50 via-slate-50 to-yellow-100",        // Amarillo
-        maestrodedatos: "from-blue-300 via-slate-100 to-blue-300",   // Azul
-        administrador: "from-slate-50 via-slate-50 to-slate-50",         // Gris claro
-        };
+      solicitante: "from-white via-white to-white",            // Azul a claro (más marcado)
+      compras: "from-white via-white to-white",              // Blanco 
+      contabilidad: "from-white via-white to-white",        // Amarillo
+      maestrodedatos: "from-blue-300 via-slate-100 to-blue-300",   // Azul
+      administrador: "from-slate-50 via-slate-50 to-slate-50",         // Gris claro
+      };
 
     
-    const activeColorsByRole = {
-      solicitante: "bg-[#B2EBF2] text-black",
-      compras: "bg-green-100 text-green-800",
-      contabilidad: "bg-yellow-100 text-yellow-800",
-      maestrodedatos: "bg-blue-100 text-blue-800",
-      administrador: "bg-zinc-200 text-zinc-800",
+    const menuClassesByRole = {
+      solicitante: {
+        active: "bg-gradient-to-r from-[#274C77] via-[#3b5f85] to-[#1F3F5B] text-white",
+        inactive: "text-slate-800 hover:bg-gradient-to-r hover:from-[#274C77] hover:via-[#3b5f85] hover:to-[#1F3F5B] hover:text-white"
+      },
+      compras: {
+        active: "bg-green-100 text-green-800",
+        inactive: "text-slate-800 hover:bg-green-100"
+      },
+      contabilidad: {
+        active: "bg-yellow-100 text-yellow-800",
+        inactive: "text-slate-800 hover:bg-yellow-100"
+      },
+      maestrodedatos: {
+        active: "bg-blue-100 text-blue-800",
+        inactive: "text-slate-800 hover:bg-blue-100"
+      },
+      administrador: {
+        active: "bg-zinc-200 text-zinc-800",
+        inactive: "text-slate-800 hover:bg-zinc-200"
+      }
     };
 
     const currentBg = bgColorsByRole[userRole] || bgColorsByRole.user;
@@ -176,8 +191,8 @@ const Dashboard = () => {
                         onClick={handleMenuItemClick}
                         className={`flex items-center p-2 rounded-lg transition ${
                           urlActual === "/dashboard/tablas"
-                            ? `${activeColorsByRole[userRole]} font-bold`
-                            : `hover:${activeColorsByRole[userRole]} bg-transparent`
+                            ? `${menuClassesByRole[userRole]?.active || 'bg-slate-100 text-slate-800'} font-bold`
+                            : `${menuClassesByRole[userRole]?.inactive || 'hover:bg-slate-100 text-slate-800'} bg-transparent`
                         } ${isCollapsed ? "justify-center" : ""}`}
                       >
                         <svg
@@ -206,10 +221,10 @@ const Dashboard = () => {
                           to="/dashboard/insumos"
                           onClick={handleMenuItemClick}
                           className={`flex items-center p-2 rounded-lg transition ${
-                            urlActual === "/dashboard/insumos"
-                              ? "bg-[#B2EBF2] text-black font-bold"
-                              : "text-black hover:bg-[#B2EBF2]"
-                          } ${isCollapsed ? "justify-center" : ""}`}
+                              urlActual === "/dashboard/insumos"
+                                ? `${menuClassesByRole[userRole]?.active || 'bg-[#B2EBF2] text-black'} font-bold`
+                                : `${menuClassesByRole[userRole]?.inactive || 'text-black hover:bg-[#B2EBF2]'} `
+                            } ${isCollapsed ? "justify-center" : ""}`}
                         >
                           {/* SVG REEMPLAZANDO A LA IMAGEN ANTERIOR */}
                           <svg
@@ -237,8 +252,8 @@ const Dashboard = () => {
                           onClick={handleMenuItemClick}
                           className={`flex items-center p-2 rounded-lg transition ${
                           urlActual === "/dashboard/mis-solicitudes"
-                            ? "bg-[#B2EBF2] text-black font-bold"
-                            : "text-black hover:bg-[#B2EBF2]"
+                            ? `${menuClassesByRole[userRole]?.active || 'bg-[#B2EBF2] text-black'} font-bold`
+                            : `${menuClassesByRole[userRole]?.inactive || 'text-black hover:bg-[#B2EBF2]'} `
                         } ${isCollapsed ? "justify-center" : ""}`}
                         >
                           {/* SVG REEMPLAZANDO A LA IMAGEN ANTERIOR */}
@@ -320,9 +335,7 @@ const Dashboard = () => {
       
       {/* CONTENIDO PRINCIPAL */}
       <main className={`flex-1 min-h-screen overflow-y-auto bg-gradient-to-br ${currentBg}`}>
-        <div className="p-4 md:p-8 min-h-full">
-          <Outlet />
-        </div>
+        <Outlet />
       </main>
 
       {/* Overlay para móvil */}

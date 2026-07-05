@@ -41,6 +41,7 @@ const MaestroDatosEditarCodigo = () => {
       unidad_medida: '',
       LeadTime: '',
       ToleranceDays: '',
+      CantidadMinimaPedido: '',
       ItemsGroupCode: '',
       ItemType: 'B',
       PurchaseTaxCode: '',
@@ -119,6 +120,7 @@ const MaestroDatosEditarCodigo = () => {
           setValue('unidad_medida', item.unidad_compra || item.unidad_medida || item.PurchaseUnit || '');
           setValue('LeadTime', item.lead_time || '');
           setValue('ToleranceDays', item.dias_tolerancia || '');
+          setValue('CantidadMinimaPedido', item.cantidad_minima_pedido || '');
           setValue('ItemsGroupCode', item.grupo_articulos || '');
           setValue('ItemType', item.tipo_bien || 'B');
           setValue('PurchaseTaxCode', item.impuesto_compra || '');
@@ -213,6 +215,7 @@ const MaestroDatosEditarCodigo = () => {
         dias_tolerancia: data.ToleranceDays,
         grupo_articulos: data.ItemsGroupCode,
         tipo_bien: data.ItemType,
+        cantidad_minima_pedido: data.CantidadMinimaPedido,
         inventario: data.InventoryItem ? 'tYES' : 'tNO',
         venta: data.SalesItem ? 'tYES' : 'tNO',
         compra: data.PurchaseItem ? 'tYES' : 'tNO',
@@ -384,6 +387,23 @@ const MaestroDatosEditarCodigo = () => {
                     })}
                   />
                   {errors.unidad_medida && <p className="text-sm text-red-600">{errors.unidad_medida.message}</p>}
+                </div>
+
+                {/* Cantidad mínima de pedido */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-900">Cantidad mínima de pedido *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="Ej: 10"
+                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                    {...register('CantidadMinimaPedido', {
+                      required: 'La cantidad mínima de pedido es obligatoria',
+                      min: { value: 1, message: 'Debe ser mayor a 0' }
+                    })}
+                  />
+                  {errors.CantidadMinimaPedido && <p className="text-sm text-red-600">{errors.CantidadMinimaPedido.message}</p>}
                 </div>
 
                 {/* Lead Time */}

@@ -5,7 +5,7 @@ CREATE TABLE reportes_codigos (
   codigo VARCHAR(35) NULL,
   modulo ENUM('creacion', 'compras', 'contabilidad', 'maestrodatos', 'sap') NOT NULL,
   accion VARCHAR(150) NOT NULL,
-  campo_afectado VARCHAR(100) NULL,
+  campo_afectado VARCHAR(200) NULL,
   valor_anterior JSON NULL,
   valor_nuevo JSON NULL,
   usuario_id INT NULL,
