@@ -11,13 +11,13 @@ const StepIcon = ({ currentStatus, stepName, accentColor }) => {
   const isCompleted = currentIndex >= stepIndex && currentIndex !== -1;
 
   return isCompleted ? (
-    <div className={`w-7 h-7 ${accentColor} rounded-lg flex items-center justify-center text-white shadow-sm transition-all duration-300`}>
+    <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-sm transition-all duration-300 bg-gradient-to-r from-[#274C77] via-[#2F5D8A] to-[#1F3F5B]">
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
       </svg>
     </div>
   ) : (
-    <div className="w-7 h-7 border-2 border-slate-200 rounded-lg bg-slate-50"></div>
+    <div className="w-7 h-7 rounded-lg border-2 border-slate-200 bg-slate-50"></div>
   );
 };
 
@@ -35,7 +35,7 @@ const SolicitudCardMovil = ({ item }) => {
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-3">
-          <div className={`w-6 h-6 rounded-full bg-[#B2EBF2] text-slate-800 flex items-center justify-center transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+          <div className={`w-6 h-6 rounded-full bg-gradient-to-r from-[#274C77] via-[#2F5D8A] to-[#1F3F5B] text-white flex items-center justify-center transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
             </svg>
@@ -164,13 +164,15 @@ const MisSolicitudes = () => {
   }, [currentPage, solicitudes, itemsPerPage]);
 
   return (
-    <div className="py-8 min-h-screen font-sans" style={{ fontFamily: 'Gowun Batang, serif' }}>
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <header className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-semibold text-slate-900">Mis Solicitudes</h1>
-          <p className="text-sm sm:text-base text-slate-600 mt-2">Seguimiento en tiempo real del proceso de creación</p>
-        </header>
+    <div className="min-h-full overflow-auto" style={{ fontFamily: 'Gowun Batang, serif' }}>
+      <div className="w-full bg-gradient-to-r from-[#274C77] via-[#2F5D8A] to-[#1F3F5B] text-white shadow-sm">
+        <div className="px-6 lg:px-8 py-4 lg:py-5">
+          <h1 className="text-4xl font-bold">Mis Solicitudes</h1>
+          <p className="mt-1 text-sm text-white/90">Seguimiento en tiempo real del proceso de creación</p>
+        </div>
+      </div>
 
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm shadow-slate-200/60">
           
           {/* 📱 VERSIÓN MÓVIL (Lista expandible) */}
@@ -184,7 +186,7 @@ const MisSolicitudes = () => {
           <div className="hidden md:block w-full p-6 pb-0">
             <table className="w-full text-left border-separate border-spacing-y-4 layout-fixed">
               <thead>
-                <tr className="bg-[#B2EBF2] text-black">
+                <tr className="bg-gradient-to-r from-[#274C77] via-[#2F5D8A] to-[#1F3F5B] text-white shadow-sm">
                   <th className="rounded-tl-[24px] p-5 text-sm font-semibold uppercase tracking-[0.08em] w-[8%]">ID</th>
                   <th className="p-5 text-center text-sm font-semibold uppercase tracking-[0.08em] w-[15%]">SAP Code</th>
                   <th className="p-5 text-sm font-semibold uppercase tracking-[0.08em] w-[37%]">Descripción</th>

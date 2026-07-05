@@ -127,15 +127,17 @@ const SolicitanteCrearCodigo = () => {
   };
 
   return (
-    <div className="min-h-full py-8 overflow-auto" style={{ fontFamily: 'Gowun Batang, serif' }}>
+    <div className="min-h-full overflow-auto" style={{ fontFamily: 'Gowun Batang, serif' }}>
       <ToastContainer />
 
-      <div className="w-full max-w-4xl px-6 lg:px-8 mx-auto">
-        <div className="mb-4">
-          <h1 className="text-4xl font-bold text-slate-900">Solicitar Nuevo Código</h1>
-          <p className="text-sm text-slate-600 mt-2">Completa los datos del artículo que deseas solicitar</p>
+      <div className="w-full bg-gradient-to-r from-[#274C77] via-[#2F5D8A] to-[#1F3F5B] text-white shadow-sm">
+        <div className="px-6 lg:px-8 py-4 lg:py-5">
+          <h1 className="text-4xl font-bold">Solicitar Nuevo Código</h1>
+          <p className="mt-1 text-sm text-white/90">Completa los datos del artículo que deseas solicitar</p>
         </div>
+      </div>
 
+      <div className="w-full max-w-4xl px-6 lg:px-8 mx-auto py-8">
         <form onSubmit={handleSubmit(createCodigo)} className="space-y-6">
           <fieldset className="w-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <div className="grid gap-6 pt-2">
@@ -237,7 +239,7 @@ const SolicitanteCrearCodigo = () => {
             <button
               type="submit" 
               disabled={isSubmitting}
-              className="flex-1 inline-flex items-center justify-center rounded-lg bg-[#B2EBF2] px-6 py-3 text-sm font-semibold text-black transition hover:bg-[#E6FAFC] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-[#274C77] via-[#2F5D8A] to-[#1F3F5B] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? 'Creando...' : 'Crear Código'}
             </button>

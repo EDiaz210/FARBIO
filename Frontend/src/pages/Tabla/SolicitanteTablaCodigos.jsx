@@ -31,13 +31,15 @@ const SolicitanteTablaCodigos = () => {
   );
 
   return (
-    <div className="py-8 min-h-screen font-sans" style={{ fontFamily: 'Gowun Batang, serif' }}>
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-6">
-          <h1 className="text-3xl sm:text-4xl font-semibold text-slate-900">Mis Solicitudes de Códigos</h1>
-          <p className="text-sm sm:text-base text-slate-600 mt-2">Gestiona tus códigos de insumos solicitados</p>
+    <div className="min-h-full overflow-auto" style={{ fontFamily: 'Gowun Batang, serif' }}>
+      <div className={`w-full ${colorConfig}`}>
+        <div className="px-6 lg:px-8 py-4 lg:py-5">
+          <h1 className="text-4xl font-bold text-white">Mis Solicitudes de Códigos</h1>
+          <p className="mt-1 text-sm text-white/90">Gestiona tus códigos de insumos solicitados</p>
         </div>
+      </div>
 
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Contenedor principal */}
         <div className="w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm shadow-slate-200/60">
           
