@@ -12,7 +12,6 @@ const ContabilidadEditarCodigo = () => {
   const navigate = useNavigate();
   const { token } = storeAuth();
   const { fetchDataBackend } = useFetch();
-  const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [itemsGroups, setItemsGroups] = useState([]);
   const [perfilUsuario, setPerfilUsuario] = useState(null);
@@ -64,8 +63,6 @@ const ContabilidadEditarCodigo = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        setLoading(true);
-
         // Cargar opciones de SAP
         const [itemsRes, response] = await Promise.all([
           fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`, null, 'GET', token),
@@ -101,8 +98,6 @@ const ContabilidadEditarCodigo = () => {
       } catch (error) {
         console.error('Error cargando datos:', error);
         toast.error('Error al cargar los datos');
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -145,14 +140,6 @@ const ContabilidadEditarCodigo = () => {
       setIsSubmitting(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-full overflow-auto font-sans" style={{ fontFamily: 'Gowun Batang, serif' }}>
