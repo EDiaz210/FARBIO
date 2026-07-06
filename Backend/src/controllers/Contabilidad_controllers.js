@@ -10,6 +10,8 @@ const updateContabilidadCodigo = async (req, res) => {
     grupo_articulos, 
     tipo_bien, 
     userId,
+    impuesto_compra,
+    impuesto_venta,
     userName
   } = req.body;
 
@@ -36,7 +38,7 @@ const updateContabilidadCodigo = async (req, res) => {
     }
 
     // 3. VALIDACIÓN DE CAMPOS
-    if (!grupo_articulos || !tipo_bien) {
+    if (!grupo_articulos || !tipo_bien || !impuesto_compra || !impuesto_venta) {
       return res.status(400).json({ success: false, message: 'Faltan campos obligatorios' });
     }
 
@@ -52,6 +54,8 @@ const updateContabilidadCodigo = async (req, res) => {
       UPDATE codigos 
       SET grupo_articulos = ?, 
           tipo_bien = ?, 
+          impuesto_compra = ?, 
+          impuesto_venta = ?, 
           status = ?,
           r_contabilidad = ?, 
           updated_by = ?
@@ -62,10 +66,12 @@ const updateContabilidadCodigo = async (req, res) => {
     await pool.query(updateQuery, [
       grupo_articulos,                  // 1. grupo_articulos
       tipo_bien,                        // 2. tipo_bien
-      'Con Maestro de Datos',           // 3. status
-      historyEntry,                     // 4. r_contabilidad 
-      userId,                           // 5. updated_by 
-      id                                // 6. WHERE id = ?
+      impuesto_compra,                  // 3. impuesto_compra
+      impuesto_venta,                   // 4. impuesto_venta
+      'Con Maestro de Datos',           // 5. status
+      historyEntry,                     // 6. r_contabilidad 
+      userId,                           // 7. updated_by 
+      id                                // 8. WHERE id = ?
     ]);
 
     await registrarReporteCodigo({
@@ -73,15 +79,19 @@ const updateContabilidadCodigo = async (req, res) => {
       codigo: existe[0].codigo,
       modulo: 'contabilidad',
       accion: 'Actualización de contabilidad',
-      campoAfectado: 'grupo_articulos,tipo_bien,status',
+      campoAfectado: 'grupo_articulos,tipo_bien,impuesto_compra,impuesto_venta,status',
       valorAnterior: {
         grupo_articulos: existe[0].grupo_articulos,
         tipo_bien: existe[0].tipo_bien,
+        impuesto_compra: existe[0].impuesto_compra,
+        impuesto_venta: existe[0].impuesto_venta,
         status: existe[0].status
       },
       valorNuevo: {
         grupo_articulos,
         tipo_bien,
+        impuesto_compra,
+        impuesto_venta,
         status: 'Con Maestro de Datos'
       },
       usuarioId: userId,
