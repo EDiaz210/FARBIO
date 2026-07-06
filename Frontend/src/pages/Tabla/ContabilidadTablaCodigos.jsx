@@ -1,9 +1,14 @@
+import { useState } from 'react';
 import { useTablaCodigos } from '../../hooks/useTablaCodigos';
 import { CardMovil, TableRowEscritorio } from './TablaCodigos_Components';
+import DevolucionContabilidad from '../Devoluciones/DevolucionContabilidad';
 
 const ContabilidadTablaCodigos = () => {
   const colorConfig = "bg-yellow-100 text-black";
   
+  const [isDevolucionOpen, setIsDevolucionOpen] = useState(false);
+  const [codigoSeleccionado, setCodigoSeleccionado] = useState(null);
+
   const {
     loading,
     currentPage,
@@ -11,6 +16,7 @@ const ContabilidadTablaCodigos = () => {
     totalPages,
     currentItems,
     handleEdit,
+    refreshItems,
     clasesColor
   } = useTablaCodigos(
     'contabilidad',
@@ -18,6 +24,20 @@ const ContabilidadTablaCodigos = () => {
     '/dashboard/contabilidad/editar',
     colorConfig
   );
+
+  const handleOpenDevolucion = (id) => {
+    setCodigoSeleccionado(id);
+    setIsDevolucionOpen(true);
+  };
+
+  const handleCloseDevolucion = () => {
+    setIsDevolucionOpen(false);
+    setCodigoSeleccionado(null);
+  };
+
+  const handleDevolucionSuccess = async () => {
+    await refreshItems();
+  };
 
   const renderTableHeader = () => (
     <tr className={`${clasesColor} border-b border-slate-200`}>
@@ -51,7 +71,14 @@ const ContabilidadTablaCodigos = () => {
               <div className="p-10 text-center text-slate-500 text-sm">No hay códigos pendientes para contabilidad.</div>
             ) : (
               currentItems.map((item) => (
-                <CardMovil key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} />
+                <CardMovil
+                  key={item.id}
+                  item={item}
+                  onEdit={handleEdit}
+                  onReturn={handleOpenDevolucion}
+                  showReturnButton
+                  clasesColor={clasesColor}
+                />
               ))
             )}
           </div>
@@ -69,7 +96,14 @@ const ContabilidadTablaCodigos = () => {
                   <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">No hay códigos pendientes para contabilidad.</td></tr>
                 ) : (
                   currentItems.map((item) => (
-                    <TableRowEscritorio key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} />
+                    <TableRowEscritorio
+                      key={item.id}
+                      item={item}
+                      onEdit={handleEdit}
+                      onReturn={handleOpenDevolucion}
+                      showReturnButton
+                      clasesColor={clasesColor}
+                    />
                   ))
                 )}
               </tbody>
@@ -119,6 +153,13 @@ const ContabilidadTablaCodigos = () => {
           </div>
         )}
       </div>
+
+      <DevolucionContabilidad
+        isOpen={isDevolucionOpen}
+        onClose={handleCloseDevolucion}
+        codigoId={codigoSeleccionado}
+        onSuccess={handleDevolucionSuccess}
+      />
     </div>
   );
 };

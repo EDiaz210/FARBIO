@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useFetch from './useFetch';
 import storeAuth from '../context/storeAuth';
@@ -42,30 +42,30 @@ export const useTablaCodigos = (userRole, status, editRoute, colorConfig) => {
     return () => window.removeEventListener('resize', calculateItems);
   }, []);
 
+  const loadData = useCallback(async () => {
+    if (!status) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const sanitizedStatus = encodeURIComponent(status.trim());
+      const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=${sanitizedStatus}`;
+      const response = await fetchDataBackend(url, null, 'GET', null);
+      if (response?.codigos) setItems(response.codigos);
+    } catch (err) {
+      console.error('Error cargando códigos:', err);
+    } finally {
+      setLoading(false);
+      setCurrentPage(1);
+    }
+  }, [fetchDataBackend, status]);
+
   // Cargar datos del backend
   useEffect(() => {
-    const loadData = async () => {
-      if (!status) {
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const sanitizedStatus = encodeURIComponent(status.trim());
-        const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=${sanitizedStatus}`;
-        const response = await fetchDataBackend(url, null, 'GET', null);
-        if (response?.codigos) setItems(response.codigos);
-      } catch (err) {
-        console.error('Error cargando códigos:', err);
-      } finally {
-        setLoading(false);
-        setCurrentPage(1);
-      }
-    };
-
     loadData();
-  }, [fetchDataBackend, status]);
+  }, [loadData]);
 
   // Calcular paginación
   const totalPages = useMemo(
@@ -92,6 +92,7 @@ export const useTablaCodigos = (userRole, status, editRoute, colorConfig) => {
     totalPages,
     currentItems,
     handleEdit,
+    refreshItems: loadData,
     clasesColor: colorConfig
   };
 };
