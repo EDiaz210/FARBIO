@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { ToastContainer } from 'react-toastify';
-import useFetch from '../../hooks/useFetch';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 import storeAuth from '../../context/storeAuth';
 
 const VALID_EMAIL_REGEX = /^[^@]+@(farbiopharma\.com|inpel\.com)$/;
@@ -16,7 +17,6 @@ const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { fetchDataBackend } = useFetch();
   const { setToken } = storeAuth();
 
   const {
@@ -30,13 +30,25 @@ const Login = () => {
 
     try {
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/login`;
-      const response = await fetchDataBackend(url, data, 'POST', null);
+      const response = await axios.post(url, data, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
 
-      if (response?.token) {
-        setToken(response.token);
+      const { token, msg } = response.data || {};
+
+      if (msg) {
+        toast.success(msg);
+      }
+
+      if (token) {
+        setToken(token);
         navigate('/dashboard');
       }
     } catch (error) {
+      const backendMsg = error?.response?.data?.msg || 'No se pudo iniciar sesión';
+      toast.error(backendMsg);
       console.error('Error en login:', error);
     } finally {
       setIsLoading(false);
@@ -55,6 +67,7 @@ const Login = () => {
   }, []);
 
   return (
+    
     <div className="flex flex-col sm:flex-row h-screen bg-black overflow-hidden" style={{ fontFamily: 'Gowun Batang, serif' }}>
       <ToastContainer />
 

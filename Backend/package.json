@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "node --watch src/index.js"
+    "dev": "node --watch src/index.js",
+    "hash:password": "node src/utils/hashPassword.js"
   },
   "keywords": [],
   "author": "Elkin Diaz",

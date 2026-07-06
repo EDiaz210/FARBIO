@@ -143,10 +143,10 @@ const retornoCodigosCompras = async (req, res) => {
     }
 
     // 3. Si todo está bien, actualizamos en la base de datos
-    const query = 'UPDATE codigos SET comentario = ? WHERE id = ?';
-    await pool.query(query, [comentario, id]);
+    const query = 'UPDATE codigos SET status = ?, comentario = ? WHERE id = ?';
+    await pool.query(query, ['RetornoSolicitante', comentario, id]);
     
-    return res.status(200).json({ msg: 'Comentario guardado correctamente' });
+    return res.status(200).json({ msg: 'Envio con exito al solicitante para revisión' });
   } catch (error) {
     console.error('Error al insertar el comentario en Compras:', error);
     return res.status(500).json({ msg: 'Error de servidor al guardar el comentario' });

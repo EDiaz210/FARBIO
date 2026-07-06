@@ -121,9 +121,9 @@ const retornoCodigosContabilidad = async (req, res) => {
 
     // 3. Cambiar el estado a 'nuevo' y reescribir el comentario
     const query = 'UPDATE codigos SET status = ?, comentario = ? WHERE id = ?';
-    await pool.query(query, ['nuevo', comentario, id]);
+    await pool.query(query, ['RetornoCompras', comentario, id]);
     
-    return res.status(200).json({ msg: 'Estado actualizado a Nuevo y comentario reescrito con éxito' });
+    return res.status(200).json({ msg: 'Envio con exito a compras para revisión' });
   } catch (error) {
     console.error('Error en retornoCodigosContabilidad:', error);
     return res.status(500).json({ msg: 'Error de servidor al retornar el código desde Contabilidad' });
