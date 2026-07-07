@@ -14,6 +14,7 @@ const ContabilidadEditarCodigo = () => {
   const { fetchDataBackend } = useFetch();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [itemsGroups, setItemsGroups] = useState([]);
+  const [itemsGroupsLoading, setItemsGroupsLoading] = useState(true);
   const [perfilUsuario, setPerfilUsuario] = useState(null);
   const claims = getAuthClaims(token);
   const userID = claims?.id || null;
@@ -59,15 +60,18 @@ const ContabilidadEditarCodigo = () => {
     cargarDatosUsuario();
   }, [token, fetchDataBackend]);
 
-  // Cargar datos del código y opciones maestras
+  // Cargar solo los grupos de artículos
   useEffect(() => {
-    const fetchAllData = async () => {
+    const cargarGruposArticulos = async () => {
       try {
-        // Cargar opciones de SAP
-        const [itemsRes, response] = await Promise.all([
-          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`, null, 'GET', token),
-          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/codigos/${id}`, null, 'GET', token)
-        ]);
+        setItemsGroupsLoading(true);
+
+        const itemsRes = await fetchDataBackend(
+          `${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`,
+          null,
+          'GET',
+          token
+        );
 
         const itemsData = itemsRes?.data || itemsRes?.value || itemsRes || [];
 
@@ -79,6 +83,29 @@ const ContabilidadEditarCodigo = () => {
           : [];
 
         setItemsGroups(mappedItemsGroups);
+      } catch (error) {
+        console.error('Error cargando grupos:', error);
+        toast.error('Error al cargar los grupos de artículos');
+      } finally {
+        setItemsGroupsLoading(false);
+      }
+    };
+
+    if (token) {
+      cargarGruposArticulos();
+    }
+  }, [token, fetchDataBackend]);
+
+  // Cargar solo los datos del código
+  useEffect(() => {
+    const cargarCodigo = async () => {
+      try {
+        const response = await fetchDataBackend(
+          `${import.meta.env.VITE_BACKEND_URL}/api/codigos/${id}`,
+          null,
+          'GET',
+          token
+        );
 
         if (response?.codigo) {
           const item = response.codigo;
@@ -96,15 +123,15 @@ const ContabilidadEditarCodigo = () => {
           setTimeout(() => navigate('/dashboard/tablas'), 1500);
         }
       } catch (error) {
-        console.error('Error cargando datos:', error);
+        console.error('Error cargando datos del código:', error);
         toast.error('Error al cargar los datos');
       }
     };
 
     if (id && token) {
-      fetchAllData();
+      cargarCodigo();
     }
-  }, [id, token, navigate, fetchDataBackend]);
+  }, [id, token, navigate, fetchDataBackend, reset]);
 
 
  
@@ -260,17 +287,24 @@ const ContabilidadEditarCodigo = () => {
                   Grupo de Artículos *
                 </label>
                 <select
+                  disabled={itemsGroupsLoading}
                   className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100"
                   {...register('ItemsGroupCode', {
                     required: 'El grupo de artículos es obligatorio'
                   })}
                 >
-                  <option value="">Selecciona un grupo</option>
-                  {itemsGroups.map((group) => (
-                    <option key={group.Code} value={group.Code}>
-                      {group.Name}
-                    </option>
-                  ))}
+                  {itemsGroupsLoading ? (
+                    <option value="">Cargando grupos...</option>
+                  ) : (
+                    <>
+                      <option value="">Selecciona un grupo</option>
+                      {itemsGroups.map((group) => (
+                        <option key={group.Code} value={group.Code}>
+                          {group.Name}
+                        </option>
+                      ))}
+                    </>
+                  )}
                 </select>
                 {errors.ItemsGroupCode && (
                   <p className="text-sm text-red-600">{errors.ItemsGroupCode.message}</p>
