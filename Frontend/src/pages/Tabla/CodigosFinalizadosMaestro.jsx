@@ -38,7 +38,7 @@ const getFecha = (entry) => {
 const getCreador = (entry) => {
 	if (!entry) return '';
 	if (typeof entry === 'string') return entry;
-	if (typeof entry === 'object') return entry.usuario || '';
+	if (typeof entry === 'object') return entry.creador || '';
 	return String(entry);
 };
 

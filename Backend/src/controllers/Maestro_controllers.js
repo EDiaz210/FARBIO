@@ -30,6 +30,8 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
           const fecha =  registro.fecha  || '';
           const creador = registro.usuario  || '';
 
+          console.log('Registro descomprimido:', fecha, creador);
+
           return {
             fecha,
             creador,
