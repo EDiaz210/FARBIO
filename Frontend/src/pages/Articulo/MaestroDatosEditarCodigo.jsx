@@ -16,7 +16,9 @@ const MaestroDatosEditarCodigo = () => {
   const navigate = useNavigate();
   const { token } = storeAuth();
   const { fetchDataBackend } = useFetch();
-  const [loading, setLoading] = useState(true);
+  
+  // Estados de carga optimizados
+  const [loadingOptions, setLoadingOptions] = useState(true); 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sapLoading, setSapLoading] = useState(false);
   const [itemsGroups, setItemsGroups] = useState([]);
@@ -87,7 +89,7 @@ const MaestroDatosEditarCodigo = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        setLoading(true);
+        setLoadingOptions(true);
 
         // Cargar opciones de SAP
         const [vatRes, itemsRes] = await Promise.all([
@@ -131,9 +133,6 @@ const MaestroDatosEditarCodigo = () => {
           setValue('RequestorArea', item.requestor_area || '');
           setValue('nombreSolicitante', item.nombre_solicitante || '');
           setValue('descripcion_sap', item.descripcion_sap || '');
-          // ensure unidad_medida is populated from any available property
-          setValue('unidad_medida', item.unidad_compra || item.unidad_medida || item.PurchaseUnit || '');
-          // Checkboxes - convertir tYES/tNO a boolean
           setValue('InventoryItem', item.inventoryItem === 'tYES');
           setValue('SalesItem', item.salesItem === 'tYES');
           setValue('PurchaseItem', item.purchaseItem === 'tYES');
@@ -145,7 +144,7 @@ const MaestroDatosEditarCodigo = () => {
         console.error('Error cargando datos:', error);
         toast.error('Error al cargar los datos');
       } finally {
-        setLoading(false);
+        setLoadingOptions(false);
       }
     };
 
@@ -199,7 +198,6 @@ const MaestroDatosEditarCodigo = () => {
     try {
       setIsSubmitting(true);
 
-      // Convertir checkboxes a tYES/tNO
       const codigoData = {
         nombreMaestroDatos: claims?.nombre || 'Maestro',
         codigo: data.ItemCode,
@@ -241,14 +239,6 @@ const MaestroDatosEditarCodigo = () => {
       setIsSubmitting(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-full py-8 overflow-auto" style={{ fontFamily: 'Gowun Batang, serif' }}>
@@ -319,9 +309,7 @@ const MaestroDatosEditarCodigo = () => {
                       type="text"
                       placeholder="Ej: ARTICULO001"
                       className="flex-1 rounded-lg rounded-r-none border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                      {...register('ItemCode', {
-                        required: 'El código es obligatorio'
-                      })}
+                      {...register('ItemCode', { required: 'El código es obligatorio' })}
                     />
                     <button
                       type="button"
@@ -354,9 +342,7 @@ const MaestroDatosEditarCodigo = () => {
                     type="text"
                     placeholder="Ej: Jabón S3"
                     className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                    {...register('ItemName', {
-                      required: 'La descripción SAP es obligatoria'
-                    })}
+                    {...register('ItemName', { required: 'La descripción SAP es obligatoria' })}
                   />
                   {errors.ItemName && <p className="text-sm text-red-600">{errors.ItemName.message}</p>}
                 </div>
@@ -368,23 +354,19 @@ const MaestroDatosEditarCodigo = () => {
                     type="text"
                     placeholder="Ej: Soap S3"
                     className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                    {...register('ForeignName', {
-                      required: 'El nombre extranjero es obligatorio'
-                    })}
+                    {...register('ForeignName', { required: 'El nombre extranjero es obligatorio' })}
                   />
                   {errors.ForeignName && <p className="text-sm text-red-600">{errors.ForeignName.message}</p>}
                 </div>
 
-                {/* Unidad de Compra */}
+                {/* Unidad de Medida */}
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-slate-900">Unidad de Medida *</label>
                   <input
                     type="text"
                     placeholder="Ej: CAJA"
                     className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                    {...register('unidad_medida', {
-                      required: 'La unidad de medida es obligatoria'
-                    })}
+                    {...register('unidad_medida', { required: 'La unidad de medida es obligatoria' })}
                   />
                   {errors.unidad_medida && <p className="text-sm text-red-600">{errors.unidad_medida.message}</p>}
                 </div>
@@ -442,17 +424,22 @@ const MaestroDatosEditarCodigo = () => {
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-slate-900">Grupo de Artículos *</label>
                   <select
-                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                    {...register('ItemsGroupCode', {
-                      required: 'El grupo de artículos es obligatorio'
-                    })}
+                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50 disabled:bg-white disabled:text-slate-900 cursor-wait"
+                    disabled={loadingOptions}
+                    {...register('ItemsGroupCode', { required: 'El grupo de artículos es obligatorio' })}
                   >
-                    <option value="">Selecciona un grupo</option>
-                    {itemsGroups.map((group) => (
-                      <option key={group.Code} value={group.Code}>
-                        {group.Name}
-                      </option>
-                    ))}
+                    {loadingOptions ? (
+                      <option value="">Cargando grupos...</option>
+                    ) : (
+                      <>
+                        <option value="">Selecciona un grupo</option>
+                        {itemsGroups.map((group) => (
+                          <option key={group.Code} value={group.Code}>
+                            {group.Name}
+                          </option>
+                        ))}
+                      </>
+                    )}
                   </select>
                   {errors.ItemsGroupCode && <p className="text-sm text-red-600">{errors.ItemsGroupCode.message}</p>}
                 </div>
@@ -462,9 +449,7 @@ const MaestroDatosEditarCodigo = () => {
                   <label className="block text-sm font-semibold text-slate-900">Tipo de Bien *</label>
                   <select
                     className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                    {...register('ItemType', {
-                      required: 'El tipo de bien es obligatorio'
-                    })}
+                    {...register('ItemType', { required: 'El tipo de bien es obligatorio' })}
                   >
                     {ITEM_TYPES.map((type) => (
                       <option key={type.Code} value={type.Code}>
@@ -479,17 +464,22 @@ const MaestroDatosEditarCodigo = () => {
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-slate-900">IVA Compra *</label>
                   <select
-                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                    {...register('PurchaseTaxCode', {
-                      required: 'El IVA de compra es obligatorio'
-                    })}
+                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50 disabled:bg-white disabled:text-slate-900 cursor-wait"
+                    disabled={loadingOptions}
+                    {...register('PurchaseTaxCode', { required: 'El IVA de compra es obligatorio' })}
                   >
-                    <option value="">Selecciona IVA</option>
-                    {vatGroups.map((vat) => (
-                      <option key={vat.Code} value={vat.Code}>
-                        {vat.Name} ({vat.Code})
-                      </option>
-                    ))}
+                    {loadingOptions ? (
+                      <option value="">Cargando impuestos...</option>
+                    ) : (
+                      <>
+                        <option value="">Selecciona IVA</option>
+                        {vatGroups.map((vat) => (
+                          <option key={vat.Code} value={vat.Code}>
+                            {vat.Name} ({vat.Code})
+                          </option>
+                        ))}
+                      </>
+                    )}
                   </select>
                   {errors.PurchaseTaxCode && <p className="text-sm text-red-600">{errors.PurchaseTaxCode.message}</p>}
                 </div>
@@ -498,17 +488,22 @@ const MaestroDatosEditarCodigo = () => {
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-slate-900">IVA Venta *</label>
                   <select
-                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                    {...register('SalesTaxCode', {
-                      required: 'El IVA de venta es obligatorio'
-                    })}
+                    className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50 disabled:bg-white disabled:text-slate-900 cursor-wait"
+                    disabled={loadingOptions}
+                    {...register('SalesTaxCode', { required: 'El IVA de venta es obligatorio' })}
                   >
-                    <option value="">Selecciona IVA</option>
-                    {vatGroups.map((vat) => (
-                      <option key={vat.Code} value={vat.Code}>
-                        {vat.Name} ({vat.Code})
-                      </option>
-                    ))}
+                    {loadingOptions ? (
+                      <option value="">Cargando impuestos...</option>
+                    ) : (
+                      <>
+                        <option value="">Selecciona IVA</option>
+                        {vatGroups.map((vat) => (
+                          <option key={vat.Code} value={vat.Code}>
+                            {vat.Name} ({vat.Code})
+                          </option>
+                        ))}
+                      </>
+                    )}
                   </select>
                   {errors.SalesTaxCode && <p className="text-sm text-red-600">{errors.SalesTaxCode.message}</p>}
                 </div>

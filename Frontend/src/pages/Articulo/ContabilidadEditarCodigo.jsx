@@ -12,10 +12,14 @@ const ContabilidadEditarCodigo = () => {
   const navigate = useNavigate();
   const { token } = storeAuth();
   const { fetchDataBackend } = useFetch();
+  
+  // Estados de carga y datos de SAP
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingOptions, setLoadingOptions] = useState(true);
   const [itemsGroups, setItemsGroups] = useState([]);
-  const [itemsGroupsLoading, setItemsGroupsLoading] = useState(true);
+  const [vatGroups, setVatGroups] = useState([]);
   const [perfilUsuario, setPerfilUsuario] = useState(null);
+  
   const claims = getAuthClaims(token);
   const userID = claims?.id || null;
 
@@ -29,6 +33,8 @@ const ContabilidadEditarCodigo = () => {
     defaultValues: {
       ItemsGroupCode: '',
       ItemType: 'B',
+      PurchaseTaxCode: '',
+      SalesTaxCode: '',
       nombre_solicitante: '',
       requestor_area: '',
       descripcion_sap: '',
@@ -60,20 +66,20 @@ const ContabilidadEditarCodigo = () => {
     cargarDatosUsuario();
   }, [token, fetchDataBackend]);
 
-  // Cargar solo los grupos de artículos
+  // Cargar Grupos de Artículos, IVA de SAP y Datos del Código en un solo bloque optimizado
   useEffect(() => {
-    const cargarGruposArticulos = async () => {
+    const cargarTodoElFormulario = async () => {
       try {
-        setItemsGroupsLoading(true);
+        setLoadingOptions(true);
 
-        const itemsRes = await fetchDataBackend(
-          `${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`,
-          null,
-          'GET',
-          token
-        );
+        // 1. Cargar catálogos desde SAP de forma simultánea
+        const [itemsRes, vatRes] = await Promise.all([
+          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`, null, 'GET', token),
+          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/vat-groups`, null, 'GET', token)
+        ]);
 
         const itemsData = itemsRes?.data || itemsRes?.value || itemsRes || [];
+        const vatData = vatRes?.data || vatRes?.value || vatRes || [];
 
         const mappedItemsGroups = Array.isArray(itemsData)
           ? itemsData.map(item => ({
@@ -83,23 +89,9 @@ const ContabilidadEditarCodigo = () => {
           : [];
 
         setItemsGroups(mappedItemsGroups);
-      } catch (error) {
-        console.error('Error cargando grupos:', error);
-        toast.error('Error al cargar los grupos de artículos');
-      } finally {
-        setItemsGroupsLoading(false);
-      }
-    };
+        setVatGroups(Array.isArray(vatData) ? vatData : []);
 
-    if (token) {
-      cargarGruposArticulos();
-    }
-  }, [token, fetchDataBackend]);
-
-  // Cargar solo los datos del código
-  useEffect(() => {
-    const cargarCodigo = async () => {
-      try {
+        // 2. Cargar los datos específicos del código a editar
         const response = await fetchDataBackend(
           `${import.meta.env.VITE_BACKEND_URL}/api/codigos/${id}`,
           null,
@@ -112,6 +104,8 @@ const ContabilidadEditarCodigo = () => {
           reset({
             ItemsGroupCode: item.grupo_articulos || '',
             ItemType: item.tipo_bien || 'B',
+            PurchaseTaxCode: item.impuesto_compra || '',
+            SalesTaxCode: item.impuesto_venta || '',
             nombre_solicitante: item.nombre_solicitante || '',
             requestor_area: item.requestor_area || '',
             descripcion_sap: item.descripcion_sap || '',
@@ -123,18 +117,17 @@ const ContabilidadEditarCodigo = () => {
           setTimeout(() => navigate('/dashboard/tablas'), 1500);
         }
       } catch (error) {
-        console.error('Error cargando datos del código:', error);
-        toast.error('Error al cargar los datos');
+        console.error('Error cargando catálogos o código:', error);
+        toast.error('Error al inicializar los datos del formulario');
+      } finally {
+        setLoadingOptions(false);
       }
     };
 
     if (id && token) {
-      cargarCodigo();
+      cargarTodoElFormulario();
     }
   }, [id, token, navigate, fetchDataBackend, reset]);
-
-
- 
 
   // Actualizar código con datos de contabilidad
   const updateCodigo = async (data) => {
@@ -145,6 +138,8 @@ const ContabilidadEditarCodigo = () => {
         nombreContabilidad: perfilUsuario?.nombre || claims?.nombre || 'Contabilidad',
         grupo_articulos: data.ItemsGroupCode,
         tipo_bien: data.ItemType,
+        impuesto_compra: data.PurchaseTaxCode,
+        impuesto_venta: data.SalesTaxCode,
         userId: userID,
         userName: perfilUsuario?.nombre || claims?.nombre || 'Contabilidad'
       };
@@ -195,7 +190,6 @@ const ContabilidadEditarCodigo = () => {
             <div className="mt-6 grid gap-6 md:grid-cols-2">
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 text-yellow-700">
-                  {/* User icon */}
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                     <path d="M12 12a4 4 0 100-8 4 4 0 000 8z" />
                     <path d="M4 20a8 8 0 0116 0v1H4v-1z" />
@@ -209,7 +203,6 @@ const ContabilidadEditarCodigo = () => {
 
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 text-yellow-700">
-                  {/* Office/building icon */}
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                     <path d="M3 21h18v-2H3v2zM6 7h2v2H6V7zm0 4h2v2H6v-2zM10 7h2v2h-2V7zm0 4h2v2h-2v-2zM14 7h2v2h-2V7zm0 4h2v2h-2v-2z" />
                     <path d="M19 3H5v14h14V3z" opacity=".3" />
@@ -223,7 +216,6 @@ const ContabilidadEditarCodigo = () => {
 
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 text-yellow-700">
-                  {/* Document icon for SAP description */}
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM14 3.5L18.5 8H14a1 1 0 01-1-1V3.5z" />
                     <path d="M8 12h8v2H8v-2zm0-4h8v2H8V8z" />
@@ -237,7 +229,6 @@ const ContabilidadEditarCodigo = () => {
 
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 text-yellow-700">
-                  {/* Ruler icon for unit of measure */}
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                     <path d="M4.22 19.78a1 1 0 001.41 0l14-14a1 1 0 000-1.41l-2.59-2.59a1 1 0 00-1.41 0l-14 14a1 1 0 000 1.41L4.22 19.78zM5.64 6.34l1.42-1.42 2.12 2.12-1.42 1.42-2.12-2.12zm3.54 3.54l1.42-1.42 2.12 2.12-1.42 1.42-2.12-2.12zm3.54 3.54l1.42-1.42 2.12 2.12-1.42 1.42-2.12-2.12z" />
                   </svg>
@@ -253,7 +244,6 @@ const ContabilidadEditarCodigo = () => {
 
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 text-yellow-700">
-                {/* List icon for details */}
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                   <path d="M4 6.5C4 5.67 4.67 5 5.5 5S7 5.67 7 6.5 6.33 8 5.5 8 4 7.33 4 6.5zM4 12.5C4 11.67 4.67 11 5.5 11S7 11.67 7 12.5 6.33 14 5.5 14 4 13.33 4 12.5zM4 18.5C4 17.67 4.67 17 5.5 17S7 17.67 7 18.5 6.33 20 5.5 20 4 19.33 4 18.5zM9 6h11v2H9V6zm0 6h11v2H9v-2zm0 6h11v2H9v-2z" />
                 </svg>
@@ -282,18 +272,19 @@ const ContabilidadEditarCodigo = () => {
             </div>
 
             <div className="grid gap-6 px-6 py-6 md:grid-cols-2">
+              {/* Grupo de Artículos */}
               <div className="space-y-3">
                 <label className="block text-sm font-semibold text-slate-900">
                   Grupo de Artículos *
                 </label>
                 <select
-                  disabled={itemsGroupsLoading}
-                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100"
+                  disabled={loadingOptions}
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 cursor-wait"
                   {...register('ItemsGroupCode', {
                     required: 'El grupo de artículos es obligatorio'
                   })}
                 >
-                  {itemsGroupsLoading ? (
+                  {loadingOptions ? (
                     <option value="">Cargando grupos...</option>
                   ) : (
                     <>
@@ -311,12 +302,13 @@ const ContabilidadEditarCodigo = () => {
                 )}
               </div>
 
+              {/* Tipo de Bien */}
               <div className="space-y-3">
                 <label className="block text-sm font-semibold text-slate-900">
                   Tipo de Bien *
                 </label>
                 <select
-                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100"
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100"
                   {...register('ItemType', {
                     required: 'El tipo de bien es obligatorio'
                   })}
@@ -329,6 +321,66 @@ const ContabilidadEditarCodigo = () => {
                 </select>
                 {errors.ItemType && (
                   <p className="text-sm text-red-600">{errors.ItemType.message}</p>
+                )}
+              </div>
+
+              {/* IVA Compra */}
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-slate-900">
+                  IVA Compra *
+                </label>
+                <select
+                  disabled={loadingOptions}
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 cursor-wait"
+                  {...register('PurchaseTaxCode', {
+                    required: 'El IVA de compra es obligatorio'
+                  })}
+                >
+                  {loadingOptions ? (
+                    <option value="">Cargando impuestos...</option>
+                  ) : (
+                    <>
+                      <option value="">Selecciona IVA</option>
+                      {vatGroups.map((vat) => (
+                        <option key={vat.Code} value={vat.Code}>
+                          {vat.Name} ({vat.Code})
+                        </option>
+                      ))}
+                    </>
+                  )}
+                </select>
+                {errors.PurchaseTaxCode && (
+                  <p className="text-sm text-red-600">{errors.PurchaseTaxCode.message}</p>
+                )}
+              </div>
+
+              {/* IVA Venta */}
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-slate-900">
+                  IVA Venta *
+                </label>
+                <select
+                  disabled={loadingOptions}
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 cursor-wait"
+                  {...register('SalesTaxCode', {
+                    required: 'El IVA de venta es obligatorio'
+                  })}
+                >
+                  {loadingOptions ? (
+                    <option value="">Cargando impuestos...</option>
+                  ) : (
+                    <>
+                      <option value="">Selecciona IVA</option>
+                      {vatGroups.map((vat) => (
+                        <option key={vat.Code} value={vat.Code}>
+                          {vat.Name} ({vat.Code})
+                        </option>
+                      ))}
+                    </>
+                  )}
+                </select>
+                {errors.SalesTaxCode && (
+                  <p className="text-sm text-red-600">{errors.SalesTaxCode.message}</p>
                 )}
               </div>
             </div>
