@@ -12,6 +12,9 @@ import Dashboard from "./layout/Dashboard";
 // Pages
 import Login from "./pages/Autenticación/Login";
 import TablaCodigos from "./pages/Tabla/TablaCodigos"; 
+import CodigosRechazadosCompras from "./pages/Tabla/CodigosRechazadosCompras";
+import CodigosRechazadosSolicitante from "./pages/Tabla/CodigosRechazadosSolicitante";
+import CodigosFinalizadosMaestro from "./pages/Tabla/CodigosFinalizadosMaestro";
 import AdminUsuarios from "./pages/Administrador/AdminUsuarios";
 import AdminReportes from "./pages/Reportes/AdminReportes";
 import MisSolicitudes from "./pages/Solicitudes/MisSolicitudes";
@@ -66,6 +69,33 @@ function App() {
 
           {/* 🔹 Vista común para roles operativos */}
           <Route path="tablas" element={<TablaCodigos />} />
+
+          <Route
+            path="compras/rechazados"
+            element={
+              <PrivateRouteWithRole allowedRoles={["compras"]}>
+                <CodigosRechazadosCompras />
+              </PrivateRouteWithRole>
+            }
+          />
+
+          <Route
+            path="solicitante/rechazados"
+            element={
+              <PrivateRouteWithRole allowedRoles={["solicitante"]}>
+                <CodigosRechazadosSolicitante />
+              </PrivateRouteWithRole>
+            }
+          />
+
+          <Route
+            path="maestro/finalizados"
+            element={
+              <PrivateRouteWithRole allowedRoles={["maestrodedatos"]}>
+                <CodigosFinalizadosMaestro />
+              </PrivateRouteWithRole>
+            }
+          />
           
           {/* 🔹 Rutas de Creación/Edición por Rol */}
           {/* Solicitante: Crear Código */}

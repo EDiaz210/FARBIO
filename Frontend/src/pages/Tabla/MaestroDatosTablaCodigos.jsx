@@ -31,13 +31,15 @@ const MaestroDatosTablaCodigos = () => {
   );
 
   return (
-    <div className="py-8 min-h-screen font-sans" style={{ fontFamily: 'Gowun Batang, serif' }}>
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-6">
-          <h1 className="text-3xl sm:text-4xl font-semibold text-slate-900">Bandeja Maestro de Datos</h1>
-          <p className="text-sm sm:text-base text-slate-600 mt-2">Códigos pendientes para completar datos maestros</p>
+    <div className="min-h-screen overflow-auto bg-white" style={{ fontFamily: 'Gowun Batang, serif' }}>
+      <div className="w-full bg-blue-300 text-black shadow-sm">
+        <div className="px-6 lg:px-8 py-4 lg:py-5">
+          <h1 className="text-4xl font-bold text-black">Bandeja Maestro de Datos</h1>
+          <p className="mt-1 text-sm text-black/70">Códigos pendientes para completar datos maestros</p>
         </div>
+      </div>
 
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Contenedor principal */}
         <div className="w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm shadow-slate-200/60">
           

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useFetch from './useFetch';
 import storeAuth from '../context/storeAuth';
-import { getAuthClaims } from '../utils/authClaims';
 
 /**
  * Hook personalizado para gestionar la lógica de tablas de códigos por rol
@@ -12,14 +11,13 @@ import { getAuthClaims } from '../utils/authClaims';
  * @param {object} colorConfig - Configuración de colores del rol
  * @returns {object} Lógica completa de la tabla
  */
-export const useTablaCodigos = (userRole, status, editRoute, colorConfig) => {
+export const useTablaCodigos = (userRole, status, editRoute, colorConfig, options = {}) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
   const { fetchDataBackend } = useFetch();
-  const { token } = storeAuth();
   const navigate = useNavigate();
 
   // Calcular items por página dinámicamente basado en altura de pantalla
@@ -43,15 +41,15 @@ export const useTablaCodigos = (userRole, status, editRoute, colorConfig) => {
   }, []);
 
   const loadData = useCallback(async () => {
-    if (!status) {
+    if (!status && !options.endpoint) {
       setLoading(false);
       return;
     }
 
     setLoading(true);
     try {
-      const sanitizedStatus = encodeURIComponent(status.trim());
-      const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=${sanitizedStatus}`;
+      const sanitizedStatus = encodeURIComponent((status || '').trim());
+      const url = options.endpoint || `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=${sanitizedStatus}`;
       const response = await fetchDataBackend(url, null, 'GET', null);
       if (response?.codigos) setItems(response.codigos);
     } catch (err) {
@@ -60,7 +58,7 @@ export const useTablaCodigos = (userRole, status, editRoute, colorConfig) => {
       setLoading(false);
       setCurrentPage(1);
     }
-  }, [fetchDataBackend, status]);
+  }, [fetchDataBackend, options.endpoint, status]);
 
   // Cargar datos del backend
   useEffect(() => {

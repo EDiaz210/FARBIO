@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 
 // 📱 Componente Tarjeta Móvil (Estilo Acordeón)
-export const CardMovil = ({ item, onEdit, clasesColor, onReturn, showReturnButton = false }) => {
+export const CardMovil = ({ 
+  item, 
+  onEdit, 
+  clasesColor, 
+  onReturn, 
+  showReturnButton = false, 
+  onComment, 
+  showCommentButton = false,
+  actionButtonClass = 'bg-slate-100 text-slate-700 hover:bg-slate-200' // Prop con fallback por si acaso
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="border-b border-slate-100 last:border-none p-4 bg-white transition-colors">
@@ -41,6 +50,20 @@ export const CardMovil = ({ item, onEdit, clasesColor, onReturn, showReturnButto
             </div>
             
             <div className="flex items-center gap-2">
+              {showCommentButton && onComment && (
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onComment(item);
+                  }}
+                  className={`inline-flex h-11 w-11 items-center justify-center rounded-xl transition shadow-sm ${actionButtonClass}`}
+                  title="Ver comentario"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+              )}
               {showReturnButton && onReturn && (
                 <button
                   onClick={(event) => {
@@ -75,7 +98,16 @@ export const CardMovil = ({ item, onEdit, clasesColor, onReturn, showReturnButto
 };
 
 // 💻 Componente Fila de Tabla Escritorio
-export const TableRowEscritorio = ({ item, onEdit, clasesColor, onReturn, showReturnButton = false }) => (
+export const TableRowEscritorio = ({ 
+  item, 
+  onEdit, 
+  clasesColor, 
+  onReturn, 
+  showReturnButton = false, 
+  onComment, 
+  showCommentButton = false,
+  actionButtonClass = 'bg-slate-100 text-slate-700 hover:bg-slate-200' // Prop con fallback por si acaso
+}) => (
   <tr className="bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
     <td className="rounded-[20px] rounded-r-none p-5 font-bold text-slate-900">#{item.id}</td>
     <td className="p-5 text-center">
@@ -92,6 +124,17 @@ export const TableRowEscritorio = ({ item, onEdit, clasesColor, onReturn, showRe
     </td>
     <td className="rounded-[20px] rounded-l-none p-5 text-center">
       <div className="flex items-center justify-center gap-2">
+        {showCommentButton && onComment && (
+          <button
+            onClick={() => onComment(item)}
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-full transition ${actionButtonClass}`}
+            title="Ver comentario"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+        )}
         {showReturnButton && onReturn && (
           <button
             onClick={() => onReturn(item.id)}

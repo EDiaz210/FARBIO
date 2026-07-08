@@ -28,14 +28,16 @@ const Dashboard = () => {
   const [perfilUsuario, setPerfilUsuario] = useState(null);
 
   const claims = getAuthClaims(token);
-  const userRole = claims?.rol;
+  const userRole = claims?.rol?.toLowerCase() || "";
 
   // Estado para el sidebar
   const [isCollapsed, setIsCollapsed] = useState(false); // Recomendado empezar expandido en desktop
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const esAdministrador = userRole === "administrador";
-  const esSolicitante = userRole.toLowerCase().includes("solicitante");
+  const esSolicitante = userRole.includes("solicitante");
+  const esCompras = userRole.includes("compras");
+  const esMaestro = userRole.includes("maestro");
 
   // Cargar datos del perfil solo para mostrar nombre/avatar en la UI
   useEffect(() => {
@@ -277,6 +279,104 @@ const Dashboard = () => {
                             <path d="M3 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" />
                           </svg>
                           {!isCollapsed && <span className="ml-3">Estado Solicitudes</span>}
+                        </Link>
+                      </li>
+
+                      <li>
+                        <Link
+                          to="/dashboard/solicitante/rechazados"
+                          onClick={handleMenuItemClick}
+                          className={`flex items-center p-2 rounded-lg transition ${
+                            urlActual === "/dashboard/solicitante/rechazados"
+                              ? `${menuClassesByRole[userRole]?.active || 'bg-[#B2EBF2] text-black'} font-bold`
+                              : `${menuClassesByRole[userRole]?.inactive || 'text-black hover:bg-[#B2EBF2]'} `
+                          } ${isCollapsed ? "justify-center" : ""}`}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={`w-6 h-6 transition-opacity ${
+                              urlActual === "/dashboard/solicitante/rechazados" ? "opacity-100" : "opacity-70"
+                            }`}
+                          >
+                            <path d="M12 9v4" />
+                            <path d="M12 17h.01" />
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.72 3h17.92a2 2 0 0 0 1.72-3L14.71 3.86a2 2 0 0 0-3.42 0z" />
+                          </svg>
+                          {!isCollapsed && <span className="ml-3">Códigos rechazados</span>}
+                        </Link>
+                      </li>
+                    </>
+                  )}
+
+                  {esCompras && (
+                    <>
+                      <li>
+                        <Link
+                          to="/dashboard/compras/rechazados"
+                          onClick={handleMenuItemClick}
+                          className={`flex items-center p-2 rounded-lg transition ${
+                            urlActual === "/dashboard/compras/rechazados"
+                              ? `${menuClassesByRole[userRole]?.active || 'bg-green-100 text-green-800'} font-bold`
+                              : `${menuClassesByRole[userRole]?.inactive || 'text-slate-800 hover:bg-green-100'} `
+                          } ${isCollapsed ? "justify-center" : ""}`}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={`w-6 h-6 transition-opacity ${
+                              urlActual === "/dashboard/compras/rechazados" ? "opacity-100" : "opacity-70"
+                            }`}
+                          >
+                            <path d="M12 9v4" />
+                            <path d="M12 17h.01" />
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.72 3h17.92a2 2 0 0 0 1.72-3L14.71 3.86a2 2 0 0 0-3.42 0z" />
+                          </svg>
+                          {!isCollapsed && <span className="ml-3">Códigos rechazados</span>}
+                        </Link>
+                      </li>
+                    </>
+                  )}
+
+                  {esMaestro && (
+                    <>
+                      <li>
+                        <Link
+                          to="/dashboard/maestro/finalizados"
+                          onClick={handleMenuItemClick}
+                          className={`flex items-center p-2 rounded-lg transition ${
+                            urlActual === "/dashboard/maestro/finalizados"
+                              ? `${menuClassesByRole[userRole]?.active || 'bg-blue-100 text-blue-800'} font-bold`
+                              : `${menuClassesByRole[userRole]?.inactive || 'text-slate-800 hover:bg-blue-100'} `
+                          } ${isCollapsed ? "justify-center" : ""}`}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={`w-6 h-6 transition-opacity ${
+                              urlActual === "/dashboard/maestro/finalizados" ? "opacity-100" : "opacity-70"
+                            }`}
+                          >
+                            <path d="M9 12l2 2 4-4" />
+                            <path d="M12 2a10 10 0 1 0 10 10" />
+                            <path d="M20 2v6h-6" />
+                          </svg>
+                          {!isCollapsed && <span className="ml-3">Códigos finalizados</span>}
                         </Link>
                       </li>
                     </>

@@ -11,19 +11,71 @@ const httpsAgent = new https.Agent({
 const obtenerCodigosFinalizadosMaestro = async (req, res) => {
   const connection = await pool.getConnection();
 
+  const descomprimirRSap = (valor) => {
+    if (!valor) return [];
+
+    let historial = valor;
+
+    if (typeof valor === 'string') {
+      try {
+        historial = JSON.parse(valor);
+      } catch {
+        return [valor];
+      }
+    }
+
+    if (Array.isArray(historial)) {
+      return historial.map((registro) => {
+        if (registro && typeof registro === 'object') {
+          const fecha =  registro.fecha  || '';
+          const creador = registro.usuario  || '';
+
+          return {
+            fecha,
+            creador,
+            raw: registro,
+          };
+        }
+
+        return {
+          fecha: '',
+          creador: String(registro),
+          raw: registro,
+        };
+      });
+    }
+
+    if (typeof historial === 'object') {
+      const fecha = historial.fecha  || '';
+      const creador = historial.usuario  || '';
+
+      return [{ fecha, creador, raw: historial }];
+    }
+
+    return [{ fecha: '', creador: String(historial), raw: historial }];
+  };
+
   try {
     const [codigos] = await connection.query(
-      `SELECT *
+      `SELECT id, codigo, status, descripcion_sap, r_sap
        FROM codigos
        WHERE status = ?
        ORDER BY updated_at DESC, created_at DESC`,
       ['Finalizado']
     );
 
+    const codigosFinalizados = codigos.map((codigo) => ({
+      id: codigo.id,
+      codigo: codigo.codigo,
+      status: codigo.status,
+      descripcion_sap: codigo.descripcion_sap,
+      r_sap_descomprimido: descomprimirRSap(codigo.r_sap)
+    }));
+
     return res.status(200).json({
       success: true,
       message: 'Códigos finalizados obtenidos exitosamente',
-      codigos
+      codigos: codigosFinalizados
     });
   } catch (error) {
     console.error('Error obteniendo códigos finalizados para maestro:', error);
