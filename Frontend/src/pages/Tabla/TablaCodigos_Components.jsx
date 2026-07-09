@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-// 📱 Componente Tarjeta Móvil (Estilo Acordeón)
+//  Componente Tarjeta Móvil (Estilo Acordeón)
 export const CardMovil = ({ 
   item, 
   onEdit, 
@@ -97,7 +97,7 @@ export const CardMovil = ({
   );
 };
 
-// 💻 Componente Fila de Tabla Escritorio
+// Componente Fila de Tabla Escritorio
 export const TableRowEscritorio = ({ 
   item, 
   onEdit, 
