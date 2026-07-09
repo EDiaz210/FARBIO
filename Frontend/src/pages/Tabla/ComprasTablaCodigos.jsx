@@ -20,7 +20,7 @@ const ComprasTablaCodigos = () => {
   );
 
   const renderTableHeader = () => (
-    <tr className={`${clasesColor} border-b border-slate-200`}>
+    <tr className={`${clasesColor} border-4 border-slate-200`}>
       <th className="rounded-tl-[24px] p-5 text-sm font-semibold uppercase tracking-[0.08em] w-[8%]">ID</th>
       <th className="p-5 text-center text-sm font-semibold uppercase tracking-[0.08em] w-[15%]">SAP Code</th>
       <th className="p-5 text-sm font-semibold uppercase tracking-[0.08em] w-[35%]">Descripción</th>
@@ -31,7 +31,7 @@ const ComprasTablaCodigos = () => {
   );
 
   return (
-    <div className="min-h-full overflow-auto" style={{ fontFamily: 'Gowun Batang, serif' }}>
+    <div className="min-h-full overflow-y-auto" style={{ fontFamily: 'Gowun Batang, serif' }}>
       {/* Banner Superior */}
       <div className="w-full bg-green-100">
         <div className="px-6 lg:px-8 py-4 lg:py-5">
@@ -41,12 +41,12 @@ const ComprasTablaCodigos = () => {
       </div>
 
       {/* Contenido Principal */}
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="p-6">
 
-        {/* Contenedor principal */}
-        <div className="w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm shadow-slate-200/60">
+        {/* Tarjeta Blanca Contenedora */}
+        <div className="w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm shadow-slate-200/60 ">
           
-          {/* 📱 VERSIÓN MÓVIL */}
+          {/* VERSIÓN MÓVIL */}
           <div className="block md:hidden divide-y divide-slate-100">
             {loading ? (
               <div className="p-10 text-center text-slate-500 text-sm">Cargando registros...</div>
@@ -58,10 +58,11 @@ const ComprasTablaCodigos = () => {
               ))
             )}
           </div>
+        
 
-          {/* 💻 VERSIÓN ESCRITORIO */}
-          <div className="hidden md:block w-full p-6 pb-0">
-            <table className="w-full text-left border-separate border-spacing-y-4 layout-fixed">
+          {/* VERSIÓN ESCRITORIO (Ajuste definitivo para encajar al 100%) */}
+          <div className="hidden md:block w-full  p-7" >
+            <table className="w-full  text-left border-separate border-spacing-y-2">
               <thead>
                 {renderTableHeader()}
               </thead>

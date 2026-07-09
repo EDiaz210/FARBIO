@@ -151,7 +151,7 @@ const CodigosEstadoPage = ({
                   clasesColor={clasesColor}
                   onComment={handleOpenComment}
                   showCommentButton={showCommentButton}
-                  actionButtonClass={computedActionButtonClass} // <-- Pasado al hijo móvil
+                  actionButtonClass={computedActionButtonClass} 
                 />
               ))
             )}

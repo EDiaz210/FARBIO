@@ -136,7 +136,7 @@ const CodigosFinalizadosMaestro = () => {
 				</div>
 			</div>
 
-			<div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+			<div className="p-6">
 				<div className="w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm shadow-slate-200/60">
 					<div className="block md:hidden divide-y divide-slate-100">
 						{loading ? (

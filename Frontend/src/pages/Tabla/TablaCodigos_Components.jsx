@@ -9,7 +9,7 @@ export const CardMovil = ({
   showReturnButton = false, 
   onComment, 
   showCommentButton = false,
-  actionButtonClass = 'bg-slate-100 text-slate-700 hover:bg-slate-200' // Prop con fallback por si acaso
+  actionButtonClass = 'bg-slate-100 text-slate-700 hover:bg-slate-200' 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
@@ -35,7 +35,7 @@ export const CardMovil = ({
       </div>
 
       {isOpen && (
-        <div className="mt-4 pt-4 border-t border-dashed border-slate-100 bg-slate-50/50 p-4 rounded-xl space-y-4">
+        <div className="mt-4 pt-4 border-t  border-slate-100  p-4 rounded-xl space-y-4">
           <div className="flex flex-col gap-1">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Detalles:</span>
             <p className="text-sm text-slate-700">{item.detalles || 'Sin detalles adicionales'}</p>
@@ -106,23 +106,34 @@ export const TableRowEscritorio = ({
   showReturnButton = false, 
   onComment, 
   showCommentButton = false,
-  actionButtonClass = 'bg-slate-100 text-slate-700 hover:bg-slate-200' // Prop con fallback por si acaso
+  actionButtonClass = 'bg-slate-100 text-slate-700 hover:bg-slate-200' 
 }) => (
-  <tr className="bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-    <td className="rounded-[20px] rounded-r-none p-5 font-bold text-slate-900">#{item.id}</td>
-    <td className="p-5 text-center">
+  <tr className="transition-all duration-200 hover:-translate-y-0.5 group">
+    <td className="rounded-l-[20px] bg-white shadow-sm group-hover:shadow-md p-5 font-bold text-slate-900 transition-all">
+      #{item.id}
+    </td>
+    
+    <td className="bg-white shadow-sm group-hover:shadow-md p-5 text-center transition-all">
       <span className="px-2 py-1 rounded-full text-xs font-semibold uppercase bg-slate-100 text-slate-700">
         {item.codigo || 'S/N'}
       </span>
     </td>
-    <td className="p-5 text-slate-700 font-medium truncate max-w-0">{item.descripcion}</td>
-    <td className="p-5 text-slate-500 truncate max-w-0">{item.detalles}</td>
-    <td className="p-5 text-center">
+    
+    <td className="bg-white shadow-sm group-hover:shadow-md p-5 text-slate-700 font-medium truncate max-w-0 transition-all">
+      {item.descripcion}
+    </td>
+    
+    <td className="bg-white shadow-sm group-hover:shadow-md p-5 text-slate-500 truncate max-w-0 transition-all">
+      {item.detalles}
+    </td>
+    
+    <td className="bg-white shadow-sm group-hover:shadow-md p-5 text-center transition-all">
       <span className="text-sm font-medium capitalize bg-slate-100 px-3 py-1 rounded-full text-slate-700">
         {item.status}
       </span>
     </td>
-    <td className="rounded-[20px] rounded-l-none p-5 text-center">
+    
+    <td className="rounded-r-[20px] bg-white shadow-sm group-hover:shadow-md p-5 text-center transition-all">
       <div className="flex items-center justify-center gap-2">
         {showCommentButton && onComment && (
           <button

@@ -39,11 +39,11 @@ const SolicitanteTablaCodigos = () => {
         </div>
       </div>
 
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="p-6">
         {/* Contenedor principal */}
         <div className="w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm shadow-slate-200/60">
           
-          {/* 📱 VERSIÓN MÓVIL */}
+          {/* VERSIÓN MÓVIL */}
           <div className="block md:hidden divide-y divide-slate-100">
             {loading ? (
               <div className="p-10 text-center text-slate-500 text-sm">Cargando registros...</div>
@@ -56,9 +56,9 @@ const SolicitanteTablaCodigos = () => {
             )}
           </div>
 
-          {/* 💻 VERSIÓN ESCRITORIO */}
-          <div className="hidden md:block w-full p-6 pb-0">
-            <table className="w-full text-left border-separate border-spacing-y-4 layout-fixed">
+          {/* VERSIÓN ESCRITORIO */}
+          <div className="hidden md:block w-full p-6 ">
+            <table className="w-full text-left  border-spacing-y-4 layout-fixed">
               <thead>
                 {renderTableHeader()}
               </thead>
