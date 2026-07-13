@@ -191,6 +191,7 @@ const AREA_OPTIONS = [
         detalles = ?, 
         link_referencia = ?, 
         r_creacion = ?, 
+        status = ?,
         updated_by = ?
       WHERE id = ?
     `;
@@ -201,6 +202,7 @@ const AREA_OPTIONS = [
       detalles, 
       link_referencia, 
       historyEntry, 
+      'Nuevo',
       userId, 
       id 
     ]);
@@ -210,13 +212,13 @@ const AREA_OPTIONS = [
       codigo: codigoAnterior.codigo,
       modulo: 'creacion',
       accion: 'Actualización de solicitud',
-      campoAfectado: 'descripcion,requestor_area,detalles,link_referencia,nombre_solicitante',
+      campoAfectado: 'descripcion,requestor_area,detalles,link_referencia,status,nombre_solicitante',
       valorAnterior: {
         descripcion: codigoAnterior.descripcion,
         requestor_area: codigoAnterior.requestor_area,
         detalles: codigoAnterior.detalles,
         link_referencia: codigoAnterior.link_referencia,
-        nombre_solicitante: codigoAnterior.nombre_solicitante,    
+        nombre_solicitante: codigoAnterior.nombre_solicitante,
         status: codigoAnterior.status
       },
       valorNuevo: {
@@ -224,7 +226,7 @@ const AREA_OPTIONS = [
         requestor_area: RequestorArea,
         detalles,
         link_referencia,
-        status: codigoAnterior.status
+        status: 'Nuevo'
       },
       usuarioId: userId,
       usuarioNombre: userName || 'Solicitante'
