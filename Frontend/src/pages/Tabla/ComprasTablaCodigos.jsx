@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useTablaCodigos } from '../../hooks/useTablaCodigos';
 import { CardMovil, TableRowEscritorio } from './TablaCodigos_Components';
+import DevolucionCompras from '../Devoluciones/DevolucionCompras';
 
 const ComprasTablaCodigos = () => {
   const colorConfig = "bg-green-100 text-black";
@@ -11,13 +13,31 @@ const ComprasTablaCodigos = () => {
     totalPages,
     currentItems,
     handleEdit,
-    clasesColor
+    clasesColor,
+    refreshItems
   } = useTablaCodigos(
     'compras',
     'nuevo',
     '/dashboard/compras/editar',
     colorConfig
   );
+
+  const [isDevolucionOpen, setIsDevolucionOpen] = useState(false);
+  const [codigoSeleccionado, setCodigoSeleccionado] = useState(null);
+
+  const handleOpenReturn = (id) => {
+    setCodigoSeleccionado(id);
+    setIsDevolucionOpen(true);
+  };
+
+  const handleCloseReturn = () => {
+    setIsDevolucionOpen(false);
+    setCodigoSeleccionado(null);
+  };
+
+  const handleAfterSuccessReturn = async () => {
+    await refreshItems();
+  };
 
   const renderTableHeader = () => (
     <tr className={`${clasesColor} border-4 border-slate-200`}>
@@ -54,7 +74,7 @@ const ComprasTablaCodigos = () => {
               <div className="p-10 text-center text-slate-500 text-sm">No hay códigos pendientes para compras.</div>
             ) : (
               currentItems.map((item) => (
-                <CardMovil key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} />
+                <CardMovil key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} onReturn={handleOpenReturn} showReturnButton={true} />
               ))
             )}
           </div>
@@ -73,13 +93,20 @@ const ComprasTablaCodigos = () => {
                   <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">No hay códigos pendientes para compras.</td></tr>
                 ) : (
                   currentItems.map((item) => (
-                    <TableRowEscritorio key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} />
+                    <TableRowEscritorio key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} onReturn={handleOpenReturn} showReturnButton={true} />
                   ))
                 )}
               </tbody>
             </table>
           </div>
         </div>
+
+        <DevolucionCompras
+          isOpen={isDevolucionOpen}
+          onClose={handleCloseReturn}
+          codigoId={codigoSeleccionado}
+          onSuccess={handleAfterSuccessReturn}
+        />
 
         {/* Paginación */}
         {!loading && currentItems.length > 0 && totalPages > 1 && (
