@@ -5,7 +5,7 @@ const CodigosRechazadosCompras = () => (
     title="Códigos Rechazados"
     subtitle="Registros devueltos desde Contabilidad para revisión de Compras"
     status="RetornoCompras"
-    editRoute="/dashboard/compras/editar"
+    editRoute="/dashboard/compras/reenviar"
     colorConfig="bg-green-100 text-black shadow-sm"
     headerTitleClass="text-black"
     headerSubtitleClass="text-black/70"
