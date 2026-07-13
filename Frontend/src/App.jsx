@@ -27,6 +27,8 @@ import SolicitanteEditarCodigo from "./pages/Articulo/SolicitanteEditarCodigo";
 import ComprasEditarCodigo from "./pages/Articulo/ComprasEditarCodigo";
 import ContabilidadEditarCodigo from "./pages/Articulo/ContabilidadEditarCodigo";
 import MaestroDatosEditarCodigo from "./pages/Articulo/MaestroDatosEditarCodigo";
+import ReenviarCompras from "./pages/Devoluciones/ReenviarCompras";
+import ReenviarSolicitante from "./pages/Devoluciones/ReenviarSolicitante";
 
 // 🔹 Componente para manejar el Home inteligente del Dashboard
 const DashboardHomeRedirect = () => {
@@ -118,12 +120,32 @@ function App() {
             }
           />
 
+          {/* Solicitante: Reenviar desde Rechazados */}
+          <Route
+            path="solicitante/reenviar/:id"
+            element={
+              <PrivateRouteWithRole allowedRoles={["solicitante"]}>
+                <ReenviarSolicitante />
+              </PrivateRouteWithRole>
+            }
+          />
+
           {/* Compras: Editar Código */}
           <Route
             path="compras/editar/:id"
             element={
               <PrivateRouteWithRole allowedRoles={["compras"]}>
                 <ComprasEditarCodigo />
+              </PrivateRouteWithRole>
+            }
+          />
+
+          {/* Compras: Reenviar desde Rechazados */}
+          <Route
+            path="compras/reenviar/:id"
+            element={
+              <PrivateRouteWithRole allowedRoles={["compras"]}>
+                <ReenviarCompras />
               </PrivateRouteWithRole>
             }
           />
