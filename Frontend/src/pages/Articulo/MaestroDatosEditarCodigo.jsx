@@ -241,17 +241,19 @@ const MaestroDatosEditarCodigo = () => {
   };
 
   return (
-    <div className="min-h-full py-8 overflow-auto" style={{ fontFamily: 'Gowun Batang, serif' }}>
+    <div className="min-h-full overflow-auto" style={{ fontFamily: 'Gowun Batang, serif' }}>
       <ToastContainer />
 
-      <div className="w-full max-w-7xl px-6 lg:px-8 mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900">Maestro de Datos - Código #{id}</h1>
-          <p className="text-sm text-slate-600 mt-2">
+      <div className="w-full bg-blue-300 text-black shadow-sm">
+        <div className="px-6 lg:px-8 py-4 lg:py-5">
+          <h1 className="text-4xl font-bold text-black">Maestro de Datos - Código #{id}</h1>
+          <p className="text-sm text-black/80 mt-2">
             Completa todos los datos del artículo. Al guardar, se sincronizará con SAP automáticamente.
           </p>
         </div>
+      </div>
 
+      <div className="w-full max-w-7xl px-6 lg:px-8 mx-auto py-8">
         <form onSubmit={handleSubmit(updateCodigo)} className="space-y-6">
           <div className="space-y-6">
             {/* Info General (Solo lectura) - ficha compacta */}
