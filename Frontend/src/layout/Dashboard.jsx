@@ -33,6 +33,7 @@ const Dashboard = () => {
   // Estado para el sidebar
   const [isCollapsed, setIsCollapsed] = useState(false); // Recomendado empezar expandido en desktop
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [rejectedCount, setRejectedCount] = useState(0);
 
   const esAdministrador = userRole === "administrador";
   const esSolicitante = userRole.includes("solicitante");
@@ -62,6 +63,43 @@ const Dashboard = () => {
     };
     cargarDatosUsuario();
   }, [token, fetchDataBackend]);
+
+  // Contador de códigos rechazados según rol
+  useEffect(() => {
+    const fetchRejectedCount = async () => {
+      try {
+        if (!token) return setRejectedCount(0);
+
+        // Solicitante: contamos los códigos devueltos que pertenezcan al usuario
+        if (esSolicitante) {
+          if (!perfilUsuario?.id) return setRejectedCount(0);
+          const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/mis-codigos?created_by=${perfilUsuario.id}`;
+          const res = await fetchDataBackend(url, null, 'GET', token, false);
+          const rows = res?.data || res?.codigos || [];
+          const count = Array.isArray(rows) ? rows.filter(r => r.status === 'RetornoSolicitante').length : 0;
+          setRejectedCount(count);
+          return;
+        }
+
+        // Compras: contamos registros con status RetornoCompras
+        if (esCompras) {
+          const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=RetornoCompras`;
+          const res = await fetchDataBackend(url, null, 'GET', token, false);
+          const codigos = res?.codigos || [];
+          setRejectedCount(Array.isArray(codigos) ? codigos.length : 0);
+          return;
+        }
+
+        // Otros roles no muestran conteo por ahora
+        setRejectedCount(0);
+      } catch (error) {
+        console.error('Error fetching rejected count:', error);
+        setRejectedCount(0);
+      }
+    };
+
+    fetchRejectedCount();
+  }, [esSolicitante, esCompras, perfilUsuario, token, fetchDataBackend]);
 
   // Manejo de Logout
   const handleLogout = () => {
@@ -95,7 +133,7 @@ const Dashboard = () => {
       solicitante: "from-white via-white to-white",            // Azul a claro (más marcado)
       compras: "from-white via-white to-white",              // Blanco 
       contabilidad: "from-white via-white to-white",        // Amarillo
-      maestrodedatos: "from-blue-300 via-slate-100 to-blue-300",   // Azul
+      maestrodedatos: "from-white via-white to-white",   // Azul
       administrador: "from-slate-50 via-slate-50 to-slate-50",         // Gris claro
       };
 
@@ -309,6 +347,11 @@ const Dashboard = () => {
                             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.72 3h17.92a2 2 0 0 0 1.72-3L14.71 3.86a2 2 0 0 0-3.42 0z" />
                           </svg>
                           {!isCollapsed && <span className="ml-3">Códigos rechazados</span>}
+                          {!isCollapsed && (
+                            <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#274C77] text-white">
+                              {rejectedCount}
+                            </span>
+                          )}
                         </Link>
                       </li>
                     </>
@@ -343,6 +386,11 @@ const Dashboard = () => {
                             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.72 3h17.92a2 2 0 0 0 1.72-3L14.71 3.86a2 2 0 0 0-3.42 0z" />
                           </svg>
                           {!isCollapsed && <span className="ml-3">Códigos rechazados</span>}
+                            {!isCollapsed && (
+                              <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-600 text-white">
+                                {rejectedCount}
+                              </span>
+                            )}
                         </Link>
                       </li>
                     </>
