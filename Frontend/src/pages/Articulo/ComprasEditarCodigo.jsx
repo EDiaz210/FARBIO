@@ -66,6 +66,7 @@ const ComprasEditarCodigo = () => {
       RequestorArea: '',
       descripcion_sap: '',
       unidad_medida: '',
+      gravaIva: 'SI',
     }
   });
 
@@ -93,6 +94,7 @@ const ComprasEditarCodigo = () => {
           setValue('RequestorArea', item.requestor_area || '');
           setValue('descripcion_sap', item.descripcion_sap || '');
           setValue('unidad_medida', item.unidad_medida || '');
+          setValue('gravaIva', item.grava_iva || 'SI');
         } else {
           toast.error('No se pudo cargar el código');
           setTimeout(() => navigate('/dashboard/tablas'), 1500);
@@ -119,6 +121,7 @@ const ComprasEditarCodigo = () => {
         nombreCompras: perfilUsuario?.nombre,
         descripcion_sap: data.descripcion_sap,
         unidad_medida: data.unidad_medida,
+        grava_iva: data.gravaIva,
         lead_time: data.LeadTimeInDays,
         dias_tolerancia: data.ToleranceDays,
         cantidad_minima_pedido: data.CantidadMinimaPedido,
@@ -322,6 +325,20 @@ const ComprasEditarCodigo = () => {
                       })}
                     />
                     {errors.unidad_medida && <p className="text-sm text-red-600">{errors.unidad_medida.message}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-900">Grava o no grava IVA *</label>
+                    <select
+                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                      {...register('gravaIva', {
+                        required: 'Seleccione si grava IVA'
+                      })}
+                    >
+                      <option value="SI">SI</option>
+                      <option value="NO">NO</option>
+                    </select>
+                    {errors.gravaIva && <p className="text-sm text-red-600">{errors.gravaIva.message}</p>}
                   </div>
                 </div>
               </fieldset>
