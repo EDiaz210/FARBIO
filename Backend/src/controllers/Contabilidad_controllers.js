@@ -9,6 +9,7 @@ const updateContabilidadCodigo = async (req, res) => {
     nombreContabilidad,
     grupo_articulos, 
     tipo_bien, 
+    grava_iva,
     userId,
     impuesto_compra,
     impuesto_venta,
@@ -38,8 +39,12 @@ const updateContabilidadCodigo = async (req, res) => {
     }
 
     // 3. VALIDACIÓN DE CAMPOS
-    if (!grupo_articulos || !tipo_bien || !impuesto_compra || !impuesto_venta) {
+    if (!grupo_articulos || !tipo_bien) {
       return res.status(400).json({ success: false, message: 'Faltan campos obligatorios' });
+    }
+
+    if (grava_iva === 'SI' && (!impuesto_compra || !impuesto_venta)) {
+      return res.status(400).json({ success: false, message: 'Faltan campos obligatorios de IVA' });
     }
 
     // 4. PREPARAR HISTORIAL
@@ -56,6 +61,7 @@ const updateContabilidadCodigo = async (req, res) => {
           tipo_bien = ?, 
           impuesto_compra = ?, 
           impuesto_venta = ?, 
+          grava_iva = ?,
           status = ?,
           r_contabilidad = ?, 
           updated_by = ?
@@ -66,12 +72,13 @@ const updateContabilidadCodigo = async (req, res) => {
     await pool.query(updateQuery, [
       grupo_articulos,                  // 1. grupo_articulos
       tipo_bien,                        // 2. tipo_bien
-      impuesto_compra,                  // 3. impuesto_compra
-      impuesto_venta,                   // 4. impuesto_venta
-      'Con Maestro de Datos',           // 5. status
-      historyEntry,                     // 6. r_contabilidad 
-      userId,                           // 7. updated_by 
-      id                                // 8. WHERE id = ?
+      grava_iva === 'SI' ? impuesto_compra : '', // 3. impuesto_compra
+      grava_iva === 'SI' ? impuesto_venta : '',  // 4. impuesto_venta
+      grava_iva || 'SI',                // 5. grava_iva
+      'Con Maestro de Datos',           // 6. status
+      historyEntry,                     // 7. r_contabilidad 
+      userId,                           // 8. updated_by 
+      id                                // 9. WHERE id = ?
     ]);
 
     await registrarReporteCodigo({
