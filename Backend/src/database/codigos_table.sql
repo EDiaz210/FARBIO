@@ -12,6 +12,7 @@ CREATE TABLE codigos (
   descripcion_sap VARCHAR(100),
   nombre_solicitante varchar(50),
   comentario varchar(200),
+  grava_iva VARCHAR(2) DEFAULT 'SI',
   nombre_extranjero VARCHAR(100),
   
   -- Campos numéricos
