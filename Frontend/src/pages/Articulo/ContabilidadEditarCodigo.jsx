@@ -27,12 +27,14 @@ const ContabilidadEditarCodigo = () => {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
     reset,
   } = useForm({
     defaultValues: {
       ItemsGroupCode: '',
       ItemType: 'B',
+      gravaIva: 'SI',
       PurchaseTaxCode: '',
       SalesTaxCode: '',
       nombre_solicitante: '',
@@ -104,6 +106,7 @@ const ContabilidadEditarCodigo = () => {
           reset({
             ItemsGroupCode: item.grupo_articulos || '',
             ItemType: item.tipo_bien || 'B',
+            gravaIva: item.grava_iva || 'SI',
             PurchaseTaxCode: item.impuesto_compra || '',
             SalesTaxCode: item.impuesto_venta || '',
             nombre_solicitante: item.nombre_solicitante || '',
@@ -129,6 +132,15 @@ const ContabilidadEditarCodigo = () => {
     }
   }, [id, token, navigate, fetchDataBackend, reset]);
 
+  const gravaIva = watch('gravaIva');
+
+  useEffect(() => {
+    if (gravaIva === 'NO') {
+      setValue('PurchaseTaxCode', '');
+      setValue('SalesTaxCode', '');
+    }
+  }, [gravaIva, setValue]);
+
   // Actualizar código con datos de contabilidad
   const updateCodigo = async (data) => {
     try {
@@ -138,8 +150,9 @@ const ContabilidadEditarCodigo = () => {
         nombreContabilidad: perfilUsuario?.nombre || claims?.nombre || 'Contabilidad',
         grupo_articulos: data.ItemsGroupCode,
         tipo_bien: data.ItemType,
-        impuesto_compra: data.PurchaseTaxCode,
-        impuesto_venta: data.SalesTaxCode,
+        grava_iva: data.gravaIva,
+        impuesto_compra: data.gravaIva === 'SI' ? data.PurchaseTaxCode : '',
+        impuesto_venta: data.gravaIva === 'SI' ? data.SalesTaxCode : '',
         userId: userID,
         userName: perfilUsuario?.nombre || claims?.nombre || 'Contabilidad'
       };
@@ -324,65 +337,88 @@ const ContabilidadEditarCodigo = () => {
                 )}
               </div>
 
-              {/* IVA Compra */}
-              <div className="space-y-3">
+              {/* Grava o no grava IVA */}
+              <div className="space-y-3 md:col-span-2">
                 <label className="block text-sm font-semibold text-slate-900">
-                  IVA Compra *
+                  Grava o no grava IVA *
                 </label>
                 <select
-                  disabled={loadingOptions}
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 cursor-wait"
-                  {...register('PurchaseTaxCode', {
-                    required: 'El IVA de compra es obligatorio'
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100"
+                  {...register('gravaIva', {
+                    required: 'Seleccione si grava IVA'
                   })}
                 >
-                  {loadingOptions ? (
-                    <option value="">Cargando impuestos...</option>
-                  ) : (
-                    <>
-                      <option value="">Selecciona IVA</option>
-                      {vatGroups.map((vat) => (
-                        <option key={vat.Code} value={vat.Code}>
-                          {vat.Name} ({vat.Code})
-                        </option>
-                      ))}
-                    </>
-                  )}
+                  <option value="SI">SI</option>
+                  <option value="NO">NO</option>
                 </select>
-                {errors.PurchaseTaxCode && (
-                  <p className="text-sm text-red-600">{errors.PurchaseTaxCode.message}</p>
+                {errors.gravaIva && (
+                  <p className="text-sm text-red-600">{errors.gravaIva.message}</p>
                 )}
               </div>
 
-              {/* IVA Venta */}
-              <div className="space-y-3">
-                <label className="block text-sm font-semibold text-slate-900">
-                  IVA Venta *
-                </label>
-                <select
-                  disabled={loadingOptions}
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 cursor-wait"
-                  {...register('SalesTaxCode', {
-                    required: 'El IVA de venta es obligatorio'
-                  })}
-                >
-                  {loadingOptions ? (
-                    <option value="">Cargando impuestos...</option>
-                  ) : (
-                    <>
-                      <option value="">Selecciona IVA</option>
-                      {vatGroups.map((vat) => (
-                        <option key={vat.Code} value={vat.Code}>
-                          {vat.Name} ({vat.Code})
-                        </option>
-                      ))}
-                    </>
-                  )}
-                </select>
-                {errors.SalesTaxCode && (
-                  <p className="text-sm text-red-600">{errors.SalesTaxCode.message}</p>
-                )}
-              </div>
+              {gravaIva === 'SI' && (
+                <>
+                  {/* IVA Compra */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-slate-900">
+                      IVA Compra *
+                    </label>
+                    <select
+                      disabled={loadingOptions}
+                      className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 cursor-wait"
+                      {...register('PurchaseTaxCode', {
+                        required: gravaIva === 'SI' ? 'El IVA de compra es obligatorio' : false
+                      })}
+                    >
+                      {loadingOptions ? (
+                        <option value="">Cargando impuestos...</option>
+                      ) : (
+                        <>
+                          <option value="">Selecciona IVA</option>
+                          {vatGroups.map((vat) => (
+                            <option key={vat.Code} value={vat.Code}>
+                              {vat.Name} ({vat.Code})
+                            </option>
+                          ))}
+                        </>
+                      )}
+                    </select>
+                    {errors.PurchaseTaxCode && (
+                      <p className="text-sm text-red-600">{errors.PurchaseTaxCode.message}</p>
+                    )}
+                  </div>
+
+                  {/* IVA Venta */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-slate-900">
+                      IVA Venta *
+                    </label>
+                    <select
+                      disabled={loadingOptions}
+                      className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 cursor-wait"
+                      {...register('SalesTaxCode', {
+                        required: gravaIva === 'SI' ? 'El IVA de venta es obligatorio' : false
+                      })}
+                    >
+                      {loadingOptions ? (
+                        <option value="">Cargando impuestos...</option>
+                      ) : (
+                        <>
+                          <option value="">Selecciona IVA</option>
+                          {vatGroups.map((vat) => (
+                            <option key={vat.Code} value={vat.Code}>
+                              {vat.Name} ({vat.Code})
+                            </option>
+                          ))}
+                        </>
+                      )}
+                    </select>
+                    {errors.SalesTaxCode && (
+                      <p className="text-sm text-red-600">{errors.SalesTaxCode.message}</p>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </section>
 
