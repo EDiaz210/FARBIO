@@ -13,6 +13,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
     cantidad_minima_pedido,
     dias_tolerancia,
     descripcion_sap,
+    grava_iva,
     userId,
     userName
   } = req.body;
@@ -64,6 +65,7 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
           cantidad_minima_pedido = ?,
           nombre_extranjero = ?,
           unidad_medida = ?,
+          grava_iva = ?,
           status = ?,
           r_compras = ?, 
           updated_by = ?
@@ -77,10 +79,11 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       cantidad_minima_pedido,        // 4. cantidad_minima_pedido
       descripcion_sap,               // 5. nombre_extranjero (usamos descripcion_sap como nombre_extranjero)
       unidad_medida,                 // 6. unidad_medida
-      'En Contabilidad',             // 7. status
-      historyEntry,                  // 8. r_compras
-      userId,                        // 9. updated_by
-      id                             // 10. WHERE id = ?
+      grava_iva || 'SI',             // 7. grava_iva
+      'En Contabilidad',             // 8. status
+      historyEntry,                  // 9. r_compras
+      userId,                        // 10. updated_by
+      id                             // 11. WHERE id = ?
     ]);
 
     await registrarReporteCodigo({
