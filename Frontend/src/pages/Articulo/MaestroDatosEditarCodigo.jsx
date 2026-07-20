@@ -33,6 +33,7 @@ const MaestroDatosEditarCodigo = () => {
     handleSubmit,
     formState: { errors },
     setValue,
+    reset,
     getValues,
     watch,
   } = useForm({
@@ -116,26 +117,28 @@ const MaestroDatosEditarCodigo = () => {
 
         if (response?.codigo) {
           const item = response.codigo;
-          setValue('ItemCode', item.codigo || '');
-          setValue('ItemName', item.descripcion_sap || '');
-          setValue('ForeignName', item.nombre_extranjero || '');
-          setValue('unidad_medida', item.unidad_compra || item.unidad_medida || item.PurchaseUnit || '');
-          setValue('LeadTime', item.lead_time || '');
-          setValue('ToleranceDays', item.dias_tolerancia || '');
-          setValue('CantidadMinimaPedido', item.cantidad_minima_pedido || '');
-          setValue('ItemsGroupCode', item.grupo_articulos || '');
-          setValue('ItemType', item.tipo_bien || 'B');
-          setValue('PurchaseTaxCode', item.impuesto_compra || '');
-          setValue('SalesTaxCode', item.impuesto_venta || '');
-          setValue('RequestorDescription', item.descripcion || '');
-          setValue('Details', item.detalles || '');
-          setValue('ReferenceLink', item.link_referencia || '');
-          setValue('RequestorArea', item.requestor_area || '');
-          setValue('nombreSolicitante', item.nombre_solicitante || '');
-          setValue('descripcion_sap', item.descripcion_sap || '');
-          setValue('InventoryItem', item.inventoryItem === 'tYES');
-          setValue('SalesItem', item.salesItem === 'tYES');
-          setValue('PurchaseItem', item.purchaseItem === 'tYES');
+          reset({
+            ItemCode: item.codigo || '',
+            ItemName: item.descripcion_sap || '',
+            ForeignName: item.nombre_extranjero || item.descripcion_sap || '',
+            unidad_medida: item.unidad_compra || item.unidad_medida || item.PurchaseUnit || '',
+            LeadTime: item.lead_time || '',
+            ToleranceDays: item.dias_tolerancia || '',
+            CantidadMinimaPedido: item.cantidad_minima_pedido || '',
+            ItemsGroupCode: item.grupo_articulos || '',
+            ItemType: item.tipo_bien || 'B',
+            PurchaseTaxCode: item.impuesto_compra || item.indicadorIVACompras || '',
+            SalesTaxCode: item.impuesto_venta || item.indicadorIVAVentas || '',
+            RequestorDescription: item.descripcion || '',
+            Details: item.detalles || '',
+            ReferenceLink: item.link_referencia || '',
+            RequestorArea: item.requestor_area || '',
+            nombreSolicitante: item.nombre_solicitante || '',
+            descripcion_sap: item.descripcion_sap || '',
+            InventoryItem: item.inventoryItem === 'tYES',
+            SalesItem: item.salesItem === 'tYES',
+            PurchaseItem: item.purchaseItem === 'tYES',
+          });
         } else {
           toast.error('No se pudo cargar el código');
           setTimeout(() => navigate('/dashboard/tablas'), 1500);

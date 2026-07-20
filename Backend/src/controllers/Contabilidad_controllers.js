@@ -54,7 +54,7 @@ const updateContabilidadCodigo = async (req, res) => {
       accion: "Aprobado por Contabilidad"
     });
 
-    // 5. EJECUTAR EL UPDATE (6 parámetros para SET + 1 para WHERE)
+    // 5. EJECUTAR EL UPDATE (9 parámetros para SET + 1 para WHERE)
     const updateQuery = `
       UPDATE codigos 
       SET grupo_articulos = ?, 
@@ -62,6 +62,8 @@ const updateContabilidadCodigo = async (req, res) => {
           impuesto_compra = ?, 
           impuesto_venta = ?, 
           grava_iva = ?,
+          indicadorIVACompras = ?,
+          indicadorIVAVentas = ?,
           status = ?,
           r_contabilidad = ?, 
           updated_by = ?
@@ -70,15 +72,17 @@ const updateContabilidadCodigo = async (req, res) => {
 
     
     await pool.query(updateQuery, [
-      grupo_articulos,                  // 1. grupo_articulos
-      tipo_bien,                        // 2. tipo_bien
-      grava_iva === 'SI' ? impuesto_compra : '', // 3. impuesto_compra
-      grava_iva === 'SI' ? impuesto_venta : '',  // 4. impuesto_venta
-      grava_iva || 'SI',                // 5. grava_iva
-      'Con Maestro de Datos',           // 6. status
-      historyEntry,                     // 7. r_contabilidad 
-      userId,                           // 8. updated_by 
-      id                                // 9. WHERE id = ?
+      grupo_articulos,                                  // 1. grupo_articulos
+      tipo_bien,                                        // 2. tipo_bien
+      grava_iva === 'SI' ? impuesto_compra : '',       // 3. impuesto_compra
+      grava_iva === 'SI' ? impuesto_venta : '',        // 4. impuesto_venta
+      grava_iva || 'SI',                               // 5. grava_iva
+      grava_iva === 'SI' ? impuesto_compra : '',       // 6. indicadorIVACompras
+      grava_iva === 'SI' ? impuesto_venta : '',        // 7. indicadorIVAVentas
+      'Con Maestro de Datos',                          // 8. status
+      historyEntry,                                    // 9. r_contabilidad 
+      userId,                                          // 10. updated_by 
+      id                                               // 11. WHERE id = ?
     ]);
 
     await registrarReporteCodigo({

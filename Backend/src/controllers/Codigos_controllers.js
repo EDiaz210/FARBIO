@@ -9,7 +9,7 @@ import pool from '../database.js';
     const { id } = req.params;
 
     const [codigos] = await connection.query(
-      'SELECT id, codigo, status, descripcion, detalles, link_referencia, descripcion_sap, lead_time, dias_tolerancia, cantidad_minima_pedido, unidad_compra, grupo_articulos, requestor_area ,tipo_bien, unidad_medida, nombre_solicitante, grava_iva FROM codigos WHERE id = ?',
+      'SELECT id, codigo, status, descripcion, detalles, link_referencia, descripcion_sap, nombre_extranjero, lead_time, dias_tolerancia, cantidad_minima_pedido, unidad_compra, grupo_articulos, requestor_area, tipo_bien, unidad_medida, nombre_solicitante, grava_iva, impuesto_compra, impuesto_venta, indicadorIVACompras, indicadorIVAVentas FROM codigos WHERE id = ?',
       [id]
     );
 
