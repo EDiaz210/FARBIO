@@ -463,4 +463,48 @@ const updateMaestroDatos = async (req, res) => {
 };
 
 
+const retornoCodigosMaestroDatos = async (req, res) => {
+  try {
+    const { id, comentario, userId } = req.body;
+
+    const updateQuery = 'Select * from usuarios where id = ?';
+    const [userResults] = await pool.query(updateQuery, [userId]);
+
+    if (!userResults || userResults.length === 0) {
+      return res.status(401).json({ success: false, message: 'Usuario no validado' });
+    }
+
+    const userRole = userResults[0].rol;
+    if (userRole != 'maestro de datos') {
+      return res.status(403).json({
+        success: false,
+        msg: 'Solo maestro de datos puede realizar esta acción'
+      });
+    }
+    
+
+    if (!id || !comentario) {
+      return res.status(400).json({ msg: 'El ID y el comentario son obligatorios' });
+    }
+
+    if (comentario.length > 200) {
+      return res.status(400).json({ 
+        msg: `El comentario no puede superar los 200 caracteres (actual: ${comentario.length})` 
+      });
+    }
+
+  
+    const query = 'UPDATE codigos SET status = ?, comentario = ? WHERE id = ?';
+    await pool.query(query, ['RetornoSolicitante', comentario, id]);
+    
+    return res.status(200).json({ msg: 'Envio con exito a compras para revisión' });
+  } catch (error) {
+    console.error('Error en retornoCodigosContabilidad:', error);
+    return res.status(500).json({ msg: 'Error de servidor al retornar el código desde Contabilidad' });
+  }
+};
+
+
+
+
 export { updateMaestroDatos, obtenerCodigosFinalizadosMaestro };

@@ -94,8 +94,50 @@ const obtenerMisCodigos = async (req, res) => {
 };
 
 
+const eliminarCodigo = async (req, res) => {
+  const { id } = req.params;
+  const { userId, userName } = req.body;
+  
+  try {
+    // Validar que el usuario sea solicitante
+    const userQuery = 'SELECT rol FROM usuarios WHERE id = ?';
+    const [userResults] = await pool.query(userQuery, [userId]);
 
-export { obtenerCodigoID, obtenerCodigos, obtenerMisCodigos };
+    if (!userResults.length) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+
+    const userRole = userResults[0].rol;
+    if (userRole !== 'solicitante' && userRole !== 'maestrodedatos') {
+      return res.status(403).json({ success: false, message: 'Rol no autorizado' });
+    }
+
+    // Eliminar el código
+    const deleteQuery = 'DELETE FROM codigos WHERE id = ?';
+    const [deleteResults] = await pool.query(deleteQuery, [id]);
+
+    if (deleteResults.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Código no encontrado' });
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Código eliminado exitosamente' 
+    });
+
+  } catch (error) {
+    console.error('Error en eliminarCodigo:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error interno al eliminar', 
+      error: error.message 
+    });
+  }
+};
+
+
+
+export { obtenerCodigoID, obtenerCodigos, obtenerMisCodigos, eliminarCodigo };
 
 
 
