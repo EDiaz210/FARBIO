@@ -1,6 +1,7 @@
 import pool from '../database.js';
 import axios from 'axios';
 import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
+import { notificarResumenPorEstado } from '../telegram/telegramService.js'; 
 
 
 
@@ -113,8 +114,15 @@ const AREA_OPTIONS = [
       usuarioNombre: nombreSolicitante 
     });
 
+    try {
+      await notificarResumenPorEstado('Nuevo', descripcionSolicitante, 'Nueva solicitud de código creada');    
+    } catch (telegramError) {
+      console.error('Error enviando notificación de Telegram:', telegramError);
+    }
+    
     res.status(201).json({ success: true, message: 'Código creado exitosamente', id: insertResult.insertId });
     console.log('Código creado exitosamente');
+
     
   } catch (error) {
     console.error('Error detallado:', error);
@@ -229,8 +237,10 @@ const AREA_OPTIONS = [
         status: 'Nuevo'
       },
       usuarioId: userId,
-      usuarioNombre: userName || 'Solicitante'
+      usuarioNombre: userName 
     });
+
+    
 
     console.log(`Código ${id} actualizado exitosamente por ${userName}`);
     

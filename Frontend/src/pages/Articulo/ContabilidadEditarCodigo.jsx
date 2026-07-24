@@ -13,9 +13,11 @@ const ContabilidadEditarCodigo = () => {
   const { token } = storeAuth();
   const { fetchDataBackend } = useFetch();
   
-  // Estados de carga y datos de SAP
+  // Estados de carga separados
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loadingOptions, setLoadingOptions] = useState(true);
+  const [loadingCodigo, setLoadingCodigo] = useState(true);
+  const [loadingSap, setLoadingSap] = useState(true);
+  
   const [itemsGroups, setItemsGroups] = useState([]);
   const [vatGroups, setVatGroups] = useState([]);
   const [perfilUsuario, setPerfilUsuario] = useState(null);
@@ -68,32 +70,11 @@ const ContabilidadEditarCodigo = () => {
     cargarDatosUsuario();
   }, [token, fetchDataBackend]);
 
-  // Cargar Grupos de Artículos, IVA de SAP y Datos del Código en un solo bloque optimizado
+  // Cargar los datos específicos del código a editar de forma independiente
   useEffect(() => {
-    const cargarTodoElFormulario = async () => {
+    const cargarCodigo = async () => {
       try {
-        setLoadingOptions(true);
-
-        // 1. Cargar catálogos desde SAP de forma simultánea
-        const [itemsRes, vatRes] = await Promise.all([
-          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`, null, 'GET', token),
-          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/vat-groups`, null, 'GET', token)
-        ]);
-
-        const itemsData = itemsRes?.data || itemsRes?.value || itemsRes || [];
-        const vatData = vatRes?.data || vatRes?.value || vatRes || [];
-
-        const mappedItemsGroups = Array.isArray(itemsData)
-          ? itemsData.map(item => ({
-              Code: item.Number,
-              Name: item.GroupName
-            }))
-          : [];
-
-        setItemsGroups(mappedItemsGroups);
-        setVatGroups(Array.isArray(vatData) ? vatData : []);
-
-        // 2. Cargar los datos específicos del código a editar
+        setLoadingCodigo(true);
         const response = await fetchDataBackend(
           `${import.meta.env.VITE_BACKEND_URL}/api/codigos/${id}`,
           null,
@@ -120,17 +101,52 @@ const ContabilidadEditarCodigo = () => {
           setTimeout(() => navigate('/dashboard/tablas'), 1500);
         }
       } catch (error) {
-        console.error('Error cargando catálogos o código:', error);
+        console.error('Error cargando el código:', error);
         toast.error('Error al inicializar los datos del formulario');
       } finally {
-        setLoadingOptions(false);
+        setLoadingCodigo(false);
       }
     };
 
     if (id && token) {
-      cargarTodoElFormulario();
+      cargarCodigo();
     }
   }, [id, token, navigate, fetchDataBackend, reset]);
+
+  // Cargar Grupos de Artículos e IVA de SAP de forma independiente
+  useEffect(() => {
+    const cargarCatalogosSap = async () => {
+      try {
+        setLoadingSap(true);
+        const [itemsRes, vatRes] = await Promise.all([
+          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`, null, 'GET', token),
+          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/vat-groups`, null, 'GET', token)
+        ]);
+
+        const itemsData = itemsRes?.data || itemsRes?.value || itemsRes || [];
+        const vatData = vatRes?.data || vatRes?.value || vatRes || [];
+
+        const mappedItemsGroups = Array.isArray(itemsData)
+          ? itemsData.map(item => ({
+              Code: item.Number,
+              Name: item.GroupName
+            }))
+          : [];
+
+        setItemsGroups(mappedItemsGroups);
+        setVatGroups(Array.isArray(vatData) ? vatData : []);
+      } catch (error) {
+        console.error('Error cargando catálogos de SAP:', error);
+        toast.error('Error al cargar opciones de SAP');
+      } finally {
+        setLoadingSap(false);
+      }
+    };
+
+    if (token) {
+      cargarCatalogosSap();
+    }
+  }, [token, fetchDataBackend]);
 
   const gravaIva = watch('gravaIva');
 
@@ -210,7 +226,7 @@ const ContabilidadEditarCodigo = () => {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Nombre del Solicitante</p>
-                  <p className="mt-1 text-sm text-slate-700">{watch('nombre_solicitante') || 'Sin datos'}</p>
+                  <p className="mt-1 text-sm text-slate-700">{loadingCodigo ? 'Cargando...' : (watch('nombre_solicitante') || 'Sin datos')}</p>
                 </div>
               </div>
 
@@ -223,7 +239,7 @@ const ContabilidadEditarCodigo = () => {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Área Solicitante</p>
-                  <p className="mt-1 text-sm text-slate-700">{watch('requestor_area') || 'Sin datos'}</p>
+                  <p className="mt-1 text-sm text-slate-700">{loadingCodigo ? 'Cargando...' : (watch('requestor_area') || 'Sin datos')}</p>
                 </div>
               </div>
 
@@ -236,7 +252,7 @@ const ContabilidadEditarCodigo = () => {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Descripción SAP</p>
-                  <p className="mt-1 text-sm text-slate-700">{watch('descripcion_sap') || 'Sin datos'}</p>
+                  <p className="mt-1 text-sm text-slate-700">{loadingCodigo ? 'Cargando...' : (watch('descripcion_sap') || 'Sin datos')}</p>
                 </div>
               </div>
 
@@ -248,7 +264,7 @@ const ContabilidadEditarCodigo = () => {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Unidad de Medida</p>
-                  <p className="mt-1 text-sm text-slate-700">{watch('unidad_medida') || 'Sin datos'}</p>
+                  <p className="mt-1 text-sm text-slate-700">{loadingCodigo ? 'Cargando...' : (watch('unidad_medida') || 'Sin datos')}</p>
                 </div>
               </div>
             </div>
@@ -263,7 +279,7 @@ const ContabilidadEditarCodigo = () => {
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-900">Detalles</p>
-                <p className="mt-1 text-sm text-slate-700 leading-7">{watch('Details') || 'Sin datos'}</p>
+                <p className="mt-1 text-sm text-slate-700 leading-7">{loadingCodigo ? 'Cargando...' : (watch('Details') || 'Sin datos')}</p>
               </div>
             </div>
           </section>
@@ -291,13 +307,13 @@ const ContabilidadEditarCodigo = () => {
                   Grupo de Artículos *
                 </label>
                 <select
-                  disabled={loadingOptions}
+                  disabled={loadingSap}
                   className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 cursor-wait"
                   {...register('ItemsGroupCode', {
                     required: 'El grupo de artículos es obligatorio'
                   })}
                 >
-                  {loadingOptions ? (
+                  {loadingSap ? (
                     <option value="">Cargando grupos...</option>
                   ) : (
                     <>
@@ -364,13 +380,13 @@ const ContabilidadEditarCodigo = () => {
                       IVA Compra *
                     </label>
                     <select
-                      disabled={loadingOptions}
+                      disabled={loadingSap}
                       className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 cursor-wait"
                       {...register('PurchaseTaxCode', {
                         required: gravaIva === 'SI' ? 'El IVA de compra es obligatorio' : false
                       })}
                     >
-                      {loadingOptions ? (
+                      {loadingSap ? (
                         <option value="">Cargando impuestos...</option>
                       ) : (
                         <>
@@ -394,13 +410,13 @@ const ContabilidadEditarCodigo = () => {
                       IVA Venta *
                     </label>
                     <select
-                      disabled={loadingOptions}
+                      disabled={loadingSap}
                       className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 cursor-wait"
                       {...register('SalesTaxCode', {
                         required: gravaIva === 'SI' ? 'El IVA de venta es obligatorio' : false
                       })}
                     >
-                      {loadingOptions ? (
+                      {loadingSap ? (
                         <option value="">Cargando impuestos...</option>
                       ) : (
                         <>

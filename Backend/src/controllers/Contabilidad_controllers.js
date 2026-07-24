@@ -1,6 +1,7 @@
 import pool from '../database.js';
 import axios from 'axios';
 import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
+import { notificarResumenPorEstado } from '../telegram/telegramService.js';
 
 // INSERTAR PARTES DEL  CÓDIGO (Solo CONTABILIDAD)
 const updateContabilidadCodigo = async (req, res) => {
@@ -54,13 +55,11 @@ const updateContabilidadCodigo = async (req, res) => {
       accion: "Aprobado por Contabilidad"
     });
 
-    // 5. EJECUTAR EL UPDATE (9 parámetros para SET + 1 para WHERE)
+    // 5. EJECUTAR EL UPDATE (8 campos en SET + 1 en WHERE = 9 parámetros en total)
     const updateQuery = `
       UPDATE codigos 
       SET grupo_articulos = ?, 
           tipo_bien = ?, 
-          impuesto_compra = ?, 
-          impuesto_venta = ?, 
           grava_iva = ?,
           indicadorIVACompras = ?,
           indicadorIVAVentas = ?,
@@ -70,19 +69,20 @@ const updateContabilidadCodigo = async (req, res) => {
       WHERE id = ?
     `;
 
-    
+    // Asignación limpia de impuestos según si grava IVA o no
+    const iIvaCompras = grava_iva === 'SI' ? impuesto_compra : null;
+    const iIvaVentas = grava_iva === 'SI' ? impuesto_venta : null;
+
     await pool.query(updateQuery, [
-      grupo_articulos,                                  // 1. grupo_articulos
-      tipo_bien,                                        // 2. tipo_bien
-      grava_iva === 'SI' ? impuesto_compra : '',       // 3. impuesto_compra
-      grava_iva === 'SI' ? impuesto_venta : '',        // 4. impuesto_venta
-      grava_iva || 'SI',                               // 5. grava_iva
-      grava_iva === 'SI' ? impuesto_compra : '',       // 6. indicadorIVACompras
-      grava_iva === 'SI' ? impuesto_venta : '',        // 7. indicadorIVAVentas
-      'Con Maestro de Datos',                          // 8. status
-      historyEntry,                                    // 9. r_contabilidad 
-      userId,                                          // 10. updated_by 
-      id                                               // 11. WHERE id = ?
+      grupo_articulos,        // 1. grupo_articulos
+      tipo_bien,              // 2. tipo_bien
+      grava_iva,              // 3. grava_iva ('SI' / 'NO')
+      iIvaCompras,            // 4. indicadorIVACompras
+      iIvaVentas,             // 5. indicadorIVAVentas
+      'Con Maestro de Datos', // 6. status
+      historyEntry,           // 7. r_contabilidad 
+      userId,                 // 8. updated_by 
+      id                      // 9. WHERE id = ?
     ]);
 
     await registrarReporteCodigo({
@@ -90,24 +90,34 @@ const updateContabilidadCodigo = async (req, res) => {
       codigo: existe[0].codigo,
       modulo: 'contabilidad',
       accion: 'Actualización de contabilidad',
-      campoAfectado: 'grupo_articulos,tipo_bien,impuesto_compra,impuesto_venta,status',
+      campoAfectado: 'grupo_articulos,tipo_bien,indicadorIVACompras,indicadorIVAVentas,status',
       valorAnterior: {
         grupo_articulos: existe[0].grupo_articulos,
         tipo_bien: existe[0].tipo_bien,
-        impuesto_compra: existe[0].impuesto_compra,
-        impuesto_venta: existe[0].impuesto_venta,
+        impuesto_compra: existe[0].indicadorIVACompras,
+        impuesto_venta: existe[0].indicadorIVAVentas,
         status: existe[0].status
       },
       valorNuevo: {
         grupo_articulos,
         tipo_bien,
-        impuesto_compra,
-        impuesto_venta,
+        impuesto_compra: iIvaCompras,
+        impuesto_venta: iIvaVentas,
         status: 'Con Maestro de Datos'
       },
       usuarioId: userId,
       usuarioNombre: nombreContabilidad
     });
+
+    try {
+      await notificarResumenPorEstado(
+        'Con Maestro de Datos', 
+        `Código ${existe[0].codigo} actualizado por Contabilidad`, 
+        'Código actualizado por Contabilidad'
+      );
+    } catch (telegramError) {
+      console.error('Error enviando notificación de Telegram:', telegramError);
+    }
 
     return res.status(200).json({ 
       success: true, 
@@ -139,10 +149,17 @@ const retornoCodigosContabilidad = async (req, res) => {
         msg: `El comentario no puede superar los 200 caracteres (actual: ${comentario.length})` 
       });
     }
+  
 
     // 3. Cambiar el estado a 'nuevo' y reescribir el comentario
     const query = 'UPDATE codigos SET status = ?, comentario = ? WHERE id = ?';
     await pool.query(query, ['RetornoCompras', comentario, id]);
+    try{
+      await notificarResumenPorEstado('Nuevo', comentario, 'Código rechazado por Contabilidad');
+    } catch (telegramError) {
+      console.error('Error enviando notificación de Telegram:', telegramError);
+      // No lanzamos el error para que la petición responda 200/201 aunque falle Telegram
+    }
     
     return res.status(200).json({ msg: 'Envio con exito a compras para revisión' });
   } catch (error) {

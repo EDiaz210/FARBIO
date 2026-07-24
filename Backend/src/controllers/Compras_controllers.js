@@ -1,6 +1,7 @@
 import pool from '../database.js';
 import axios from 'axios';
 import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
+import { notificarResumenPorEstado } from '../telegram/telegramService.js';
 
 
 // INSERTAR PARTES DEL  CÓDIGO (Solo COMPRAS)
@@ -114,6 +115,14 @@ import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
       usuarioNombre: nombreCompras
     });
 
+    try {
+    await notificarResumenPorEstado('En Contabilidad', descripcion_sap, 'Código actualizado por Compras');
+    } catch (telegramError) {
+      console.error('Error enviando notificación de Telegram:', telegramError);
+      // No lanzamos el error para que la petición responda 200/201 aunque falle Telegram
+    }
+    
+
     return res.status(200).json({ 
       success: true, 
       message: 'Código actualizado exitosamente por Compras' 
@@ -148,6 +157,14 @@ const retornoCodigosCompras = async (req, res) => {
     // 3. Si todo está bien, actualizamos en la base de datos
     const query = 'UPDATE codigos SET status = ?, comentario = ? WHERE id = ?';
     await pool.query(query, ['RetornoSolicitante', comentario, id]);
+
+
+    try {
+    await notificarResumenPorEstado('Solicitante', comentario, 'Código rechazado por Compras');
+    } catch (telegramError) {
+      console.error('Error enviando notificación de Telegram:', telegramError);
+      // No lanzamos el error para que la petición responda 200/201 aunque falle Telegram
+    }
     
     return res.status(200).json({ msg: 'Envio con exito al solicitante para revisión' });
   } catch (error) {

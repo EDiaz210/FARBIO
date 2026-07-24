@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { toast, ToastContainer } from 'react-toastify';
@@ -17,14 +17,18 @@ const MaestroDatosEditarCodigo = () => {
   const { token } = storeAuth();
   const { fetchDataBackend } = useFetch();
   
-  // Estados de carga optimizados
-  const [loadingOptions, setLoadingOptions] = useState(true); 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sapLoading, setSapLoading] = useState(false);
+  
+  // Estados de carga independientes para mostrar "Cargando..." en los selects
+  const [loadingItemsGroups, setLoadingItemsGroups] = useState(true);
+  const [loadingVatGroups, setLoadingVatGroups] = useState(true);
+
   const [itemsGroups, setItemsGroups] = useState([]);
   const [vatGroups, setVatGroups] = useState([]);
-  const [cargandoUsuario, setCargandoUsuario] = useState(false);
-  const [perfilUsuario, setPerfilUsuario] = useState(null);
+  
+  const rawDataRef = useRef(null);
+  
   const claims = getAuthClaims(token);
   const userID = claims?.id || null;
 
@@ -61,63 +65,16 @@ const MaestroDatosEditarCodigo = () => {
     }
   });
 
-  // Cargar datos del perfil para la UI
+  // 1. CARGA INMEDIATA: Pinta los datos locales al instante
   useEffect(() => {
-    const cargarDatosUsuario = async () => {
-      if (!token) {
-        setPerfilUsuario(null);
-        return;
-      }
-
-      setCargandoUsuario(true);
+    const fetchCodigoData = async () => {
       try {
-        const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/mi-perfil`;
-        const response = await fetchDataBackend(url, null, "GET", token, false);
-        if (response?.usuario) {
-          setPerfilUsuario(response.usuario);
-        }
-      } catch (error) {
-        console.error("Error al cargar perfil de usuario:", error);
-      } finally {
-        setCargandoUsuario(false);
-      }
-    };
-
-    cargarDatosUsuario();
-  }, [token, fetchDataBackend]);
-
-  // Cargar datos del código y opciones maestras
-  useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        setLoadingOptions(true);
-
-        // Cargar opciones de SAP
-        const [vatRes, itemsRes] = await Promise.all([
-          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/vat-groups`, null, 'GET', token),
-          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`, null, 'GET', token)
-        ]);
-
-        const vatData = vatRes?.data || vatRes?.value || vatRes || [];
-        const itemsData = itemsRes?.data || itemsRes?.value || itemsRes || [];
-
-        const mappedItemsGroups = Array.isArray(itemsData)
-          ? itemsData.map(item => ({
-              Code: item.Number,
-              Name: item.GroupName
-            }))
-          : [];
-
-        setVatGroups(Array.isArray(vatData) ? vatData : []);
-        setItemsGroups(mappedItemsGroups);
-
-        // Cargar datos del código
         const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/${id}`;
         const response = await fetchDataBackend(url, null, 'GET', token);
 
         if (response?.codigo) {
           const item = response.codigo;
-          reset({
+          const formattedData = {
             ItemCode: item.codigo || '',
             ItemName: item.descripcion_sap || '',
             ForeignName: item.nombre_extranjero || item.descripcion_sap || '',
@@ -138,23 +95,69 @@ const MaestroDatosEditarCodigo = () => {
             InventoryItem: item.inventoryItem === 'tYES',
             SalesItem: item.salesItem === 'tYES',
             PurchaseItem: item.purchaseItem === 'tYES',
-          });
+          };
+
+          rawDataRef.current = formattedData;
+          reset(formattedData);
         } else {
           toast.error('No se pudo cargar el código');
           setTimeout(() => navigate('/dashboard/tablas'), 1500);
         }
       } catch (error) {
-        console.error('Error cargando datos:', error);
-        toast.error('Error al cargar los datos');
-      } finally {
-        setLoadingOptions(false);
+        console.error('Error cargando datos del código:', error);
+        toast.error('Error al cargar los datos del código');
       }
     };
 
     if (id && token) {
-      fetchAllData();
+      fetchCodigoData();
     }
-  }, [id, token, setValue, navigate, fetchDataBackend]);
+  }, [id, token, navigate, fetchDataBackend, reset]);
+
+  // 2. CARGA EN SEGUNDO PLANO: Listas de SAP independientes con indicador de carga
+  useEffect(() => {
+    const fetchSapOptions = async () => {
+      try {
+        // Solicitamos en paralelo pero manejamos estados separados si se desea, 
+        // o indicadores globales de carga para los selects.
+        const [vatRes, itemsRes] = await Promise.all([
+          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/vat-groups`, null, 'GET', token),
+          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`, null, 'GET', token)
+        ]);
+
+        const vatData = vatRes?.data || vatRes?.value || vatRes || [];
+        const itemsData = itemsRes?.data || itemsRes?.value || itemsRes || [];
+
+        const mappedItemsGroups = Array.isArray(itemsData)
+          ? itemsData.map(item => ({
+              Code: item.Number,
+              Name: item.GroupName
+            }))
+          : [];
+
+        setVatGroups(Array.isArray(vatData) ? vatData : []);
+        setItemsGroups(mappedItemsGroups);
+
+        // Activamos los estados como listos para quitar el texto "Cargando..."
+        setLoadingItemsGroups(false);
+        setLoadingVatGroups(false);
+
+        // Re-aplicamos el reset para autocompletar los selects con los valores previos
+        if (rawDataRef.current) {
+          reset(rawDataRef.current);
+        }
+
+      } catch (error) {
+        console.error('Error cargando opciones de SAP en segundo plano:', error);
+        setLoadingItemsGroups(false);
+        setLoadingVatGroups(false);
+      }
+    };
+
+    if (token) {
+      fetchSapOptions();
+    }
+  }, [token, fetchDataBackend, reset]);
 
   // Buscar item en SAP
   const buscarItemEnSAP = async () => {
@@ -259,7 +262,7 @@ const MaestroDatosEditarCodigo = () => {
       <div className="w-full max-w-7xl px-6 lg:px-8 mx-auto py-8">
         <form onSubmit={handleSubmit(updateCodigo)} className="space-y-6">
           <div className="space-y-6">
-            {/* Info General (Solo lectura) - ficha compacta */}
+            {/* Info General (Solo lectura) */}
             <section className="w-full rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                 <div>
@@ -343,7 +346,7 @@ const MaestroDatosEditarCodigo = () => {
               <input type="hidden" {...register('nombreSolicitante')} />
             </section>
 
-            {/* Datos de Maestro (Editable) */}
+            {/* Datos de Maestro (Editable al instante) */}
             <section aria-label="Datos Maestro" className="w-full overflow-hidden rounded-[28px] border border-slate-200 border-l-4 border-l-blue-300 bg-white shadow-[0_25px_50px_-30px_rgba(15,23,42,0.2)]">
               <div className="flex items-center justify-between px-6 py-5 shadow-sm">
                 <div className="flex items-center gap-4">
@@ -519,26 +522,24 @@ const MaestroDatosEditarCodigo = () => {
                       {errors.ToleranceDays && <p className="text-sm text-red-600">{errors.ToleranceDays.message}</p>}
                     </div>
 
-                    {/* Grupo de Artículos */}
+                    {/* Grupo de Artículos (Con indicador visual dinámico) */}
                     <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-900">Grupo de Artículos *</label>
+                      <div className="flex justify-between items-center">
+                        <label className="block text-sm font-semibold text-slate-900">Grupo de Artículos *</label>
+                        {loadingItemsGroups && (
+                          <span className="text-xs text-blue-600 animate-pulse font-medium">Cargando datos...</span>
+                        )}
+                      </div>
                       <select
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50 disabled:bg-white disabled:text-slate-900 cursor-wait"
-                        disabled={loadingOptions}
+                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
                         {...register('ItemsGroupCode', { required: 'El grupo de artículos es obligatorio' })}
                       >
-                        {loadingOptions ? (
-                          <option value="">Cargando grupos...</option>
-                        ) : (
-                          <>
-                            <option value="">Selecciona un grupo</option>
-                            {itemsGroups.map((group) => (
-                              <option key={group.Code} value={group.Code}>
-                                {group.Name}
-                              </option>
-                            ))}
-                          </>
-                        )}
+                        <option value="">{loadingItemsGroups ? 'Cargando grupos desde SAP...' : 'Selecciona un grupo'}</option>
+                        {itemsGroups.map((group) => (
+                          <option key={group.Code} value={group.Code}>
+                            {group.Name}
+                          </option>
+                        ))}
                       </select>
                       {errors.ItemsGroupCode && <p className="text-sm text-red-600">{errors.ItemsGroupCode.message}</p>}
                     </div>
@@ -559,50 +560,46 @@ const MaestroDatosEditarCodigo = () => {
                       {errors.ItemType && <p className="text-sm text-red-600">{errors.ItemType.message}</p>}
                     </div>
 
-                    {/* IVA Compra */}
+                    {/* IVA Compra (Con indicador visual dinámico) */}
                     <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-900">IVA Compra *</label>
+                      <div className="flex justify-between items-center">
+                        <label className="block text-sm font-semibold text-slate-900">IVA Compra *</label>
+                        {loadingVatGroups && (
+                          <span className="text-xs text-blue-600 animate-pulse font-medium">Cargando datos...</span>
+                        )}
+                      </div>
                       <select
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50 disabled:bg-white disabled:text-slate-900 cursor-wait"
-                        disabled={loadingOptions}
+                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
                         {...register('PurchaseTaxCode', { required: 'El IVA de compra es obligatorio' })}
                       >
-                        {loadingOptions ? (
-                          <option value="">Cargando impuestos...</option>
-                        ) : (
-                          <>
-                            <option value="">Selecciona IVA</option>
-                            {vatGroups.map((vat) => (
-                              <option key={vat.Code} value={vat.Code}>
-                                {vat.Name} ({vat.Code})
-                              </option>
-                            ))}
-                          </>
-                        )}
+                        <option value="">{loadingVatGroups ? 'Cargando impuestos desde SAP...' : 'Selecciona IVA'}</option>
+                        {vatGroups.map((vat) => (
+                          <option key={vat.Code} value={vat.Code}>
+                            {vat.Name} ({vat.Code})
+                          </option>
+                        ))}
                       </select>
                       {errors.PurchaseTaxCode && <p className="text-sm text-red-600">{errors.PurchaseTaxCode.message}</p>}
                     </div>
 
-                    {/* IVA Venta */}
+                    {/* IVA Venta (Con indicador visual dinámico) */}
                     <div className="space-y-2">
-                      <label className="block text-sm font-semibold text-slate-900">IVA Venta *</label>
+                      <div className="flex justify-between items-center">
+                        <label className="block text-sm font-semibold text-slate-900">IVA Venta *</label>
+                        {loadingVatGroups && (
+                          <span className="text-xs text-blue-600 animate-pulse font-medium">Cargando datos...</span>
+                        )}
+                      </div>
                       <select
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50 disabled:bg-white disabled:text-slate-900 cursor-wait"
-                        disabled={loadingOptions}
+                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
                         {...register('SalesTaxCode', { required: 'El IVA de venta es obligatorio' })}
                       >
-                        {loadingOptions ? (
-                          <option value="">Cargando impuestos...</option>
-                        ) : (
-                          <>
-                            <option value="">Selecciona IVA</option>
-                            {vatGroups.map((vat) => (
-                              <option key={vat.Code} value={vat.Code}>
-                                {vat.Name} ({vat.Code})
-                              </option>
-                            ))}
-                          </>
-                        )}
+                        <option value="">{loadingVatGroups ? 'Cargando impuestos desde SAP...' : 'Selecciona IVA'}</option>
+                        {vatGroups.map((vat) => (
+                          <option key={vat.Code} value={vat.Code}>
+                            {vat.Name} ({vat.Code})
+                          </option>
+                        ))}
                       </select>
                       {errors.SalesTaxCode && <p className="text-sm text-red-600">{errors.SalesTaxCode.message}</p>}
                     </div>
@@ -612,7 +609,7 @@ const MaestroDatosEditarCodigo = () => {
             </section>
           </div>
 
-          {/* Botones alineados con columnas */}
+          {/* Botones */}
           <div className="grid gap-6 md:grid-cols-2 mt-8">
             <div>
               <button

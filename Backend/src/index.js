@@ -1,5 +1,7 @@
 import dotenv from 'dotenv';
 import './database.js'; // Conectar a la base de datos al iniciar
+import * as telegramService from './telegram/telegramService.js';
+
 
 dotenv.config();
 
