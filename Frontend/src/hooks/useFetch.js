@@ -21,7 +21,7 @@ function useFetch() {
         headers: requestHeaders,
       };
 
-      if (data && method !== "DELETE") {
+      if (data && method !== "GET") {
         options.data = data;
       }
 

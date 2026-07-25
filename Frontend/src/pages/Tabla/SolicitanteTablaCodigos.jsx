@@ -1,8 +1,12 @@
+import { useState } from 'react';
 import { useTablaCodigos } from '../../hooks/useTablaCodigos';
 import { CardMovil, TableRowEscritorio } from './TablaCodigos_Components';
+import SolicitanteEliminacion from '../eliminacion/SolicitanteEliminación';
 
 const SolicitanteTablaCodigos = () => {
   const colorConfig = "bg-gradient-to-r from-[#274C77] via-[#2F5D8A] to-[#1F3F5B] text-white shadow-sm";
+  const [codigoToDelete, setCodigoToDelete] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
   const {
     loading,
@@ -11,6 +15,7 @@ const SolicitanteTablaCodigos = () => {
     totalPages,
     currentItems,
     handleEdit,
+    refreshItems,
     clasesColor
   } = useTablaCodigos(
     'solicitante',
@@ -29,6 +34,21 @@ const SolicitanteTablaCodigos = () => {
       <th className="rounded-tr-[24px] p-5 text-center text-sm font-semibold uppercase tracking-[0.08em] w-[8%]">Acciones</th>
     </tr>
   );
+
+  const openDeleteModal = (item) => {
+    setCodigoToDelete(item);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setCodigoToDelete(null);
+  };
+
+  const handleDeleted = () => {
+    refreshItems();
+    closeDeleteModal();
+  };
 
   return (
     <div className="min-h-full overflow-auto" style={{ fontFamily: 'Gowun Batang, serif' }}>
@@ -51,7 +71,13 @@ const SolicitanteTablaCodigos = () => {
               <div className="p-10 text-center text-slate-500 text-sm">No hay solicitudes pendientes.</div>
             ) : (
               currentItems.map((item) => (
-                <CardMovil key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} />
+                <CardMovil
+                  key={item.id}
+                  item={item}
+                  onEdit={handleEdit}
+                  onDelete={() => openDeleteModal(item)}
+                  clasesColor={clasesColor}
+                />
               ))
             )}
           </div>
@@ -69,7 +95,13 @@ const SolicitanteTablaCodigos = () => {
                   <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">No hay solicitudes pendientes.</td></tr>
                 ) : (
                   currentItems.map((item) => (
-                    <TableRowEscritorio key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} />
+                    <TableRowEscritorio
+                      key={item.id}
+                      item={item}
+                      onEdit={handleEdit}
+                      onDelete={() => openDeleteModal(item)}
+                      clasesColor={clasesColor}
+                    />
                   ))
                 )}
               </tbody>
@@ -119,6 +151,13 @@ const SolicitanteTablaCodigos = () => {
           </div>
         )}
       </div>
+
+      <SolicitanteEliminacion
+        codigo={codigoToDelete}
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onDeleted={handleDeleted}
+      />
     </div>
   );
 };

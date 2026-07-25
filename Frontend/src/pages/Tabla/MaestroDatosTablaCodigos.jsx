@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useTablaCodigos } from '../../hooks/useTablaCodigos';
 import { CardMovil, TableRowEscritorio } from './TablaCodigos_Components';
+import MaestroEliminacion from '../eliminacion/MaestroEliminación';
 
 const MaestroDatosTablaCodigos = () => {
   const colorConfig = "bg-blue-300 text-black";
@@ -18,6 +20,20 @@ const MaestroDatosTablaCodigos = () => {
     '/dashboard/maestro/editar',
     colorConfig
   );
+
+  // eliminar modal state
+  const [codigoToDelete, setCodigoToDelete] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setCodigoToDelete(null);
+  };
+
+  const handleDeleted = () => {
+    // refresh list after deletion
+    window.location.reload();
+  };
 
   const renderTableHeader = () => (
     <tr className={`${clasesColor} border-b border-slate-200`}>
@@ -51,7 +67,16 @@ const MaestroDatosTablaCodigos = () => {
               <div className="p-10 text-center text-slate-500 text-sm">No hay códigos pendientes para maestro de datos.</div>
             ) : (
               currentItems.map((item) => (
-                <CardMovil key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} />
+                <CardMovil
+                  key={item.id}
+                  item={item}
+                  onEdit={handleEdit}
+                  onDelete={() => {
+                    setCodigoToDelete(item);
+                    setIsDeleteModalOpen(true);
+                  }}
+                  clasesColor={clasesColor}
+                />
               ))
             )}
           </div>
@@ -69,7 +94,16 @@ const MaestroDatosTablaCodigos = () => {
                   <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">No hay códigos pendientes para maestro de datos.</td></tr>
                 ) : (
                   currentItems.map((item) => (
-                    <TableRowEscritorio key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} />
+                    <TableRowEscritorio
+                      key={item.id}
+                      item={item}
+                      onEdit={handleEdit}
+                      onDelete={() => {
+                        setCodigoToDelete(item);
+                        setIsDeleteModalOpen(true);
+                      }}
+                      clasesColor={clasesColor}
+                    />
                   ))
                 )}
               </tbody>
@@ -119,6 +153,13 @@ const MaestroDatosTablaCodigos = () => {
           </div>
         )}
       </div>
+
+      <MaestroEliminacion
+        codigo={codigoToDelete}
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onDeleted={handleDeleted}
+      />
     </div>
   );
 };
