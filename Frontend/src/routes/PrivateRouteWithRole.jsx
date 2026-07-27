@@ -1,14 +1,16 @@
 import storeAuth from '../context/storeAuth';
 import Forbidden from '../pages/Forbidden';
 import { Navigate } from 'react-router';
-import { getAuthClaims } from '../utils/authClaims';
+import { getAuthClaims, isTokenValid } from '../utils/authClaims';
 
 export default function PrivateRouteWithRole({ children, allowedRoles = [] }) {
     const token = storeAuth.getState().token;
     const claims = getAuthClaims(token);
     const role = claims?.rol || '';
+    const valid = isTokenValid(token);
     
-    if (!token) {
+    if (!token || !valid) {
+        storeAuth.getState().logout();
         return <Navigate to="/login" replace />;
     }
     

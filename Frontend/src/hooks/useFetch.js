@@ -28,6 +28,11 @@ function useFetch() {
       const response = await axios(options);
       return response?.data;
     } catch (error) {
+      const status = error?.response?.status;
+      if (status === 401) {
+        storeAuth.getState().logout();
+        window.location.href = '/login';
+      }
       console.error(error);
       return null;
     }

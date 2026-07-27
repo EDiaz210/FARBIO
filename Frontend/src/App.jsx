@@ -20,6 +20,7 @@ import AdminReportes from "./pages/Reportes/AdminReportes";
 import MisSolicitudes from "./pages/Solicitudes/MisSolicitudes";
 import CrearUsuarioPage from "./pages/Administrador/CrearUsuarioPage";
 import EditarUsuario from "./pages/Administrador/EditarUsuario";
+import NotFound from "./pages/NotFound";
 
 // Componentes por Rol
 import SolicitanteCrearCodigo from "./pages/Articulo/SolicitanteCrearCodigo";
@@ -180,7 +181,7 @@ function App() {
         </Route>
 
         {/* 🔹 Manejo de 404 */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

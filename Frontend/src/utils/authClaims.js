@@ -10,3 +10,10 @@ export const getAuthClaims = (token) => {
     return null;
   }
 };
+
+export const isTokenValid = (token) => {
+  const claims = getAuthClaims(token);
+  if (!claims || typeof claims.exp !== 'number') return false;
+  const now = Math.floor(Date.now() / 1000);
+  return now < claims.exp;
+};
