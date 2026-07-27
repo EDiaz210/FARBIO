@@ -2,7 +2,7 @@ import pool from '../database.js';
 import axios from 'axios';
 import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 import { notificarResumenPorEstado } from '../telegram/telegramService.js'; 
-
+import {buildDynamicUpdate} from '../utils/dbHelpers.js';
 
 
   // CREAR CÓDIGO (Solo SOLICITANTE)
@@ -56,25 +56,26 @@ const AREA_OPTIONS = [
       return res.status(401).json({ success: false, message: 'Usuario no validado' });
     }
 
-    const userRole = userResults[0].rol.toLowerCase();
+    const userRole = (userResults[0].rol || '').toLowerCase();
     if (!userRole.includes('solicitante')) {
-      return res.status(403).json({ success: false, message: 'Solo solicitante puede crear códigos' });
+      return res.status(403).json({ success: false, msg: 'Solo solicitante puede crear códigos' });
     }
 
     // Validaciones básicas
     if (!detalles || !link_referencia || !descripcionSolicitante || !RequestorArea || !nombreSolicitante) {
-      return res.status(400).json({ success: false, message: 'Detalles, link de referencia, descripción, área y nombre del solicitante son requeridos' });
+      return res.status(400).json({ success: false, msg: 'Detalles, link de referencia, descripción, área y nombre del solicitante son requeridos' });
     }
 
     // Validar área
     if (!AREA_OPTIONS.includes(RequestorArea)) {
-      return res.status(400).json({ success: false, message: `Área inválida. Debe ser una de: ${AREA_OPTIONS.join(', ')}` });
+      return res.status(400).json({ success: false, msg: `Área inválida. Debe ser una de: ${AREA_OPTIONS.join(', ')}` });
     }
 
     // Crear historial inicial
     const historyEntry = JSON.stringify([{
-      usuario: userName || 'Solicitante',
-      fecha: new Date().toISOString().split('T')[0]
+      usuario: userName || nombreSolicitante || 'Solicitante',
+      fecha: new Date().toISOString().split('T')[0],
+      accion : 'Creación incial de solicitud'
     }]);
     
 
@@ -95,8 +96,10 @@ const AREA_OPTIONS = [
       nombreSolicitante         // 8. nombre_solicitante 
     ]);
 
+    const newId = insertResult.insertId;
+
     await registrarReporteCodigo({
-      codigoId: insertResult.insertId,
+      codigoId: newId,
       codigo: null,
       modulo: 'creacion',
       accion: 'Creación de código',
@@ -120,14 +123,14 @@ const AREA_OPTIONS = [
       console.error('Error enviando notificación de Telegram:', telegramError);
     }
     
-    res.status(201).json({ success: true, message: 'Código creado exitosamente', id: insertResult.insertId });
+    res.status(201).json({ success: true, msg: 'Código creado exitosamente', id: insertResult.insertId });
     console.log('Código creado exitosamente');
 
     
   } catch (error) {
     console.error('Error detallado:', error);
     if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({ success: false, message: 'El código ya existe' });
+      return res.status(400).json({ success: false, msg: 'El código ya existe' });
     }
     res.status(500).json({ success: false, message: 'Error al crear código', error: error.message });
     console.error('Error al crear código:', error);
@@ -137,16 +140,21 @@ const AREA_OPTIONS = [
 
 
   // UPDATE CONTABILIDAD SOLICITANTE
+
+  const SOLICITANTE_FIELDS_MAPPING = {
+    descripcionSolicitante: 'descripcion',
+    RequestorArea: 'requestor_area',
+    detalles: 'detalles',
+    link_referencia: 'link_referencia',
+    nombreSolicitante: 'nombre_solicitante'
+  };
+
   const updateSolicitante = async (req, res) => {
   const { id } = req.params;
   const {
-    nombreSolicitante,
-    descripcionSolicitante, 
-    detalles, 
-    link_referencia,
-    RequestorArea,
     userId,
-    userName
+    userName,
+    RequestorArea
   } = req.body;
 
   try {
@@ -155,98 +163,86 @@ const AREA_OPTIONS = [
     const [userResults] = await pool.query(userQuery, [userId]);
     
     if (!userResults || userResults.length === 0) {
-      return res.status(401).json({ success: false, message: 'Usuario no validado' });
+      return res.status(401).json({ success: false, msg: 'Usuario no validado' });
     }
 
     const userRole = userResults[0].rol.toLowerCase();
     if (!userRole.includes('solicitante')) {
-      return res.status(403).json({ success: false, message: 'Solo el solicitante puede editar esta fase' });
+      return res.status(403).json({ success: false, msg: 'Solo el solicitante puede editar esta fase' });
     }
 
     // 2. Validar existencia del registro
-    const queryExistencia = 'SELECT id, codigo, descripcion, detalles, link_referencia, status, requestor_area, nombre_solicitante FROM codigos WHERE id = ?';
+    const queryExistencia = 'SELECT * FROM codigos WHERE id = ?';
     const [existe] = await pool.query(queryExistencia, [id]);
     
     if (existe.length === 0) {
-      return res.status(404).json({ success: false, message: 'El código no existe' });
+      return res.status(404).json({ success: false, msg: 'El código no existe' });
     }
-
-    // 3. Validaciones de campos
-    if (!detalles || !link_referencia || !descripcionSolicitante || !RequestorArea || !nombreSolicitante  ) {
-      return res.status(400).json({ success: false, message: 'Faltan campos obligatorios' });
-    }
-
-    // Validar área
-    if (!AREA_OPTIONS.includes(RequestorArea)) {
-      return res.status(400).json({ success: false, message: `Área inválida. Debe ser una de: ${AREA_OPTIONS.join(', ')}` });
-    }
-
-    // Preparar JSONs
-    const historyEntry = JSON.stringify([{
-      usuario: userName || 'Solicitante',
-      fecha: new Date().toISOString().split('T')[0],
-      accion: 'Actualización Solicitante'
-    }]);
 
     const codigoAnterior = existe[0];
-    
-    // 4. Query corregida (Sin la "f" y con nombres de columnas revisados)
-    const updateQuery = `
-      UPDATE codigos 
-      SET 
-        descripcion = ?, 
-        requestor_area = ?,
-        detalles = ?, 
-        link_referencia = ?, 
-        r_creacion = ?, 
-        status = ?,
-        updated_by = ?
-      WHERE id = ?
-    `;
 
-    await pool.query(updateQuery, [
-      descripcionSolicitante, 
-      RequestorArea,
-      detalles, 
-      link_referencia, 
-      historyEntry, 
-      'Nuevo',
-      userId, 
-      id 
-    ]);
+    // Validar área
+    if (RequestorArea && !AREA_OPTIONS.includes(RequestorArea)) {
+      return res.status(400).json({ success: false, msg: `Área inválida. Debe ser una de: ${AREA_OPTIONS.join(', ')}` });
+    }
+
+    const { setClause, values, changedFields, hasChanges } = buildDynamicUpdate(codigoAnterior, req.body, SOLICITANTE_FIELDS_MAPPING);
+
+    if(!hasChanges) {
+      return res.status(200).json({ success: true, msg: 'No se realizaron cambios en el código' });
+    }
+
+    let currentHistory = [];
+    try {
+      currentHistory = JSON.parse(codigoAnterior.r_creacion || '[]');
+    } catch (parseError) {
+      currentHistory = [];
+    }
+
+    currentHistory.push({
+      usuario: userName || codigoAnterior.nombre_solicitante || 'Solicitante',
+      fecha: new Date().toISOString().split('T')[0],
+      accion: 'Actualización de Solicitante',
+      camposModificados: Object.keys(changedFields)
+    });
+
+    const finalSetClause = `${setClause}, r_creacion = ?, status = ?, updated_by = ?`;
+    const finalValues = [...values, JSON.stringify(currentHistory), 'Nuevo', userId, id];
+
+    const updateQuery = `UPDATE codigos SET ${finalSetClause} WHERE id = ?`;
+    await pool.query(updateQuery, finalValues);
+
+    const valorAnteriorLimpiado = {};
+    const valorNuevoLimpiado = {};
+
+    for (const [columna, datos] of Object.entries(changedFields)) {
+      valorAnteriorLimpiado[columna] = datos.anterior;
+      valorNuevoLimpiado[columna] = datos.nuevo;
+    }
+
+    
+    
 
     await registrarReporteCodigo({
       codigoId: id,
       codigo: codigoAnterior.codigo,
       modulo: 'creacion',
-      accion: 'Actualización de solicitud',
-      campoAfectado: 'descripcion,requestor_area,detalles,link_referencia,status,nombre_solicitante',
-      valorAnterior: {
-        descripcion: codigoAnterior.descripcion,
-        requestor_area: codigoAnterior.requestor_area,
-        detalles: codigoAnterior.detalles,
-        link_referencia: codigoAnterior.link_referencia,
-        nombre_solicitante: codigoAnterior.nombre_solicitante,
-        status: codigoAnterior.status
-      },
-      valorNuevo: {
-        descripcion: descripcionSolicitante,
-        requestor_area: RequestorArea,
-        detalles,
-        link_referencia,
-        status: 'Nuevo'
-      },
+      accion: 'Actualización de Solicitante',
+      campoAfectado: Object.keys(changedFields).join(','),
+      valorAnterior: valorAnteriorLimpiado,
+      valorNuevo: valorNuevoLimpiado,
       usuarioId: userId,
-      usuarioNombre: userName 
+      usuarioNombre: userName || codigoAnterior.nombre_solicitante
     });
 
     
 
-    console.log(`Código ${id} actualizado exitosamente por ${userName}`);
+    console.log(`Código ${id} actualizado exitosamente por ${userName}.Campos alterados:`, Object.keys(changedFields));
     
     res.status(200).json({ 
       success: true, 
-      message: 'Código actualizado exitosamente' 
+      msg: 'Código actualizado exitosamente', 
+      camposModificados: Object.keys(changedFields)
     });
     
   } catch (error) {

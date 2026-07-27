@@ -1,9 +1,19 @@
 import pool from '../database.js';
-import axios from 'axios';
+import { buildDynamicUpdate } from '../utils/dbHelpers.js';
 import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 import { notificarResumenPorEstado } from '../telegram/telegramService.js';
 
 // INSERTAR PARTES DEL  CÓDIGO (Solo CONTABILIDAD)
+
+const CONTABILIDAD_FIELDS_MAPPING = {
+  grupo_articulos: 'grupo_articulos',
+  tipo_bien: 'tipo_bien',
+  grava_iva: 'grava_iva',
+  indicadorIVACompras: 'impuesto_compra',
+  indicadorIVAVentas: 'impuesto_venta'
+};
+
+
 const updateContabilidadCodigo = async (req, res) => {
   const { id } = req.params; 
   const {
@@ -23,92 +33,84 @@ const updateContabilidadCodigo = async (req, res) => {
     const [resultadoUsuario] = await pool.query(queryUsuario, [userId]);
     
     if (!resultadoUsuario || resultadoUsuario.length === 0) {
-      return res.status(401).json({ success: false, message: 'Usuario no validado' });
+      return res.status(401).json({ success: false, msg: 'Usuario no validado' });
     }
 
     const userRole = resultadoUsuario[0].rol.toLowerCase();
     if (!userRole.includes('contabilidad')) {
-      return res.status(403).json({ success: false, message: 'Solo contabilidad puede realizar esta acción' });
+      return res.status(403).json({ success: false, msg: 'Solo contabilidad puede realizar esta acción' });
     }
 
     // 2. VALIDAR EXISTENCIA DEL REGISTRO
-    const queryExistencia = 'SELECT id, codigo, grupo_articulos, tipo_bien, status FROM codigos WHERE id = ?';
+    const queryExistencia = 'SELECT * FROM codigos WHERE id = ?';
     const [existe] = await pool.query(queryExistencia, [id]);
     
     if (existe.length === 0) {
-      return res.status(404).json({ success: false, message: 'El código no existe' });
+      return res.status(404).json({ success: false, msg: 'El código no existe' });
     }
+
+    const codigoActual = existe[0];
 
     // 3. VALIDACIÓN DE CAMPOS
     if (!grupo_articulos || !tipo_bien) {
-      return res.status(400).json({ success: false, message: 'Faltan campos obligatorios' });
+      return res.status(400).json({ success: false, msg: 'Faltan campos obligatorios' });
     }
 
     if (grava_iva === 'SI' && (!impuesto_compra || !impuesto_venta)) {
-      return res.status(400).json({ success: false, message: 'Faltan campos obligatorios de IVA' });
+      return res.status(400).json({ success: false, msg: 'Faltan campos obligatorios de IVA' });
     }
 
-    // 4. PREPARAR HISTORIAL
-    const historyEntry = JSON.stringify({
-      usuario: userName,
+    const bodyAjustado = {
+      ...req.body,
+      impuesto_compra: grava_iva === 'SI' ? impuesto_compra : null,
+      impuesto_venta: grava_iva === 'SI' ? impuesto_venta : null
+    };
+
+    const { setClause, values, changedFields, hasChanges } = buildDynamicUpdate(codigoActual, bodyAjustado, CONTABILIDAD_FIELDS_MAPPING);
+
+    if (!hasChanges) {
+      return res.status(200).json({ success: true, msg: 'No se realizaron cambios en el código' });
+    }
+    let currentHistory = [];
+    try {
+      currentHistory = JSON.parse(codigoActual.r_contabilidad || '[]');
+      if (!Array.isArray(currentHistory)) currentHistory = [currentHistory];
+    } catch {
+      currentHistory = [];
+    }
+
+    currentHistory.push({
+      usuario: userName ||nombreContabilidad || 'Contabilidad',
       fecha: new Date().toISOString().split('T')[0],
-      accion: "Aprobado por Contabilidad"
+      accion: 'Aprobado/Actualizado por Contabilidad',
+      camposModificados: Object.keys(changedFields)
     });
 
-    // 5. EJECUTAR EL UPDATE (8 campos en SET + 1 en WHERE = 9 parámetros en total)
-    const updateQuery = `
-      UPDATE codigos 
-      SET grupo_articulos = ?, 
-          tipo_bien = ?, 
-          grava_iva = ?,
-          indicadorIVACompras = ?,
-          indicadorIVAVentas = ?,
-          status = ?,
-          r_contabilidad = ?, 
-          updated_by = ?
-      WHERE id = ?
-    `;
+    const finalSetClause = `${setClause}, status = ?, r_contabilidad = ?, updated_by = ?`;
+    const finalValues = [...values, 'Con Maestro de Datos', JSON.stringify(currentHistory), userId, id];
 
-    // Asignación limpia de impuestos según si grava IVA o no
-    const iIvaCompras = grava_iva === 'SI' ? impuesto_compra : null;
-    const iIvaVentas = grava_iva === 'SI' ? impuesto_venta : null;
+    const queryUpdate = `UPDATE codigos SET ${finalSetClause} WHERE id = ?`;
+    await pool.query(queryUpdate, finalValues);
 
-    await pool.query(updateQuery, [
-      grupo_articulos,        // 1. grupo_articulos
-      tipo_bien,              // 2. tipo_bien
-      grava_iva,              // 3. grava_iva ('SI' / 'NO')
-      iIvaCompras,            // 4. indicadorIVACompras
-      iIvaVentas,             // 5. indicadorIVAVentas
-      'Con Maestro de Datos', // 6. status
-      historyEntry,           // 7. r_contabilidad 
-      userId,                 // 8. updated_by 
-      id                      // 9. WHERE id = ?
-    ]);
+    const valorAnteriorLimpio = {};
+    const valorNuevoLimpio = {};
+
+    for (const [columna, datos] of Object.entries(changedFields)) {
+      valorAnteriorLimpio[columna] = datos.anterior;
+      valorNuevoLimpio[columna] = datos.nuevo;
+    }
 
     await registrarReporteCodigo({
       codigoId: id,
-      codigo: existe[0].codigo,
+      codigo: codigoActual.codigo,
       modulo: 'contabilidad',
-      accion: 'Actualización de contabilidad',
-      campoAfectado: 'grupo_articulos,tipo_bien,indicadorIVACompras,indicadorIVAVentas,status',
-      valorAnterior: {
-        grupo_articulos: existe[0].grupo_articulos,
-        tipo_bien: existe[0].tipo_bien,
-        impuesto_compra: existe[0].indicadorIVACompras,
-        impuesto_venta: existe[0].indicadorIVAVentas,
-        status: existe[0].status
-      },
-      valorNuevo: {
-        grupo_articulos,
-        tipo_bien,
-        impuesto_compra: iIvaCompras,
-        impuesto_venta: iIvaVentas,
-        status: 'Con Maestro de Datos'
-      },
+      accion: 'Aprobado/Actualizado por Contabilidad',
+      campoAfectado: Object.keys(changedFields).join(','),
+      valorAnterior: valorAnteriorLimpio,
+      valorNuevo: valorNuevoLimpio,
       usuarioId: userId,
-      usuarioNombre: nombreContabilidad
+      usuarioNombre: userName || nombreContabilidad
     });
-
     try {
       await notificarResumenPorEstado(
         'Con Maestro de Datos', 
@@ -150,7 +152,6 @@ const retornoCodigosContabilidad = async (req, res) => {
       });
     }
   
-
     // 3. Cambiar el estado a 'nuevo' y reescribir el comentario
     const query = 'UPDATE codigos SET status = ?, comentario = ? WHERE id = ?';
     await pool.query(query, ['RetornoCompras', comentario, id]);
@@ -160,7 +161,6 @@ const retornoCodigosContabilidad = async (req, res) => {
       console.error('Error enviando notificación de Telegram:', telegramError);
       // No lanzamos el error para que la petición responda 200/201 aunque falle Telegram
     }
-    
     return res.status(200).json({ msg: 'Envio con exito a compras para revisión' });
   } catch (error) {
     console.error('Error en retornoCodigosContabilidad:', error);

@@ -3,6 +3,7 @@ import axios from 'axios';
 import https from 'https';
 import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 import { notificarResumenPorEstado } from '../telegram/telegramService.js';
+import { buildDynamicUpdate } from '../utils/dbHelpers.js';
 
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false
@@ -99,14 +100,27 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
 
 
 // UPDATE Y ENVIO A SAP - MAESTRO DE DATOS
+const MAESTRODATOS_FIELD_MAP = {
+  codigo: 'codigo',
+  descripcion_sap: 'descripcion_sap',
+  lead_time: 'lead_time',
+  dias_tolerancia: 'dias_tolerancia',
+  cantidad_minima_pedido: 'cantidad_minima_pedido',
+  unidad_compra: 'unidad_medida',
+  grupo_articulos: 'grupo_articulos',
+  tipo_bien: 'tipo_bien',
+  impuesto_compra: 'indicadorIVACompras',
+  impuesto_venta: 'indicadorIVAVentas',
+  inventario: 'inventoryItem',
+  venta: 'salesItem',
+  compra: 'purchaseItem'
+};
+
 const updateMaestroDatos = async (req, res) => {
   const { id } = req.params;
   const {
     nombreMaestroDatos,
     codigo,
-    descripcion,
-    detalles,
-    link_referencia,
     descripcion_sap,
     nombre_extranjero,
     unidad_compra,
@@ -134,7 +148,7 @@ const updateMaestroDatos = async (req, res) => {
     if (codigoResults.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'El código no existe'
+        msg: 'El código no existe'
       });
     }
 
@@ -143,7 +157,7 @@ const updateMaestroDatos = async (req, res) => {
     const [userResults] = await pool.query(userQuery, [userId]);
 
     if (!userResults || userResults.length === 0) {
-      return res.status(401).json({ success: false, message: 'Usuario no validado' });
+      return res.status(401).json({ success: false, msg: 'Usuario no validado' });
     }
 
     const userRole = (userResults[0].rol || '').toLowerCase();
@@ -203,7 +217,7 @@ const updateMaestroDatos = async (req, res) => {
       await closeSapSession(sessionId);
       return res.status(400).json({
         success: false,
-        message: `VATs no válidos en SAP: ${missingVATs.join(', ')}`,
+        msg: `VATs no válidos en SAP: ${missingVATs.join(', ')}`,
         missing: missingVATs
       });
     }
@@ -222,7 +236,7 @@ const updateMaestroDatos = async (req, res) => {
       await closeSapSession(sessionId);
       return res.status(409).json({
         success: false,
-        message: 'El código ya existe en SAP',
+        msg: 'El código ya existe en SAP',
         duplicateInSap: true,
         codigo
       });
@@ -232,7 +246,7 @@ const updateMaestroDatos = async (req, res) => {
         await closeSapSession(sessionId);
         return res.status(statusCode).json({
           success: false,
-          message: 'Error al validar duplicado en SAP',
+          msg: 'Error al validar duplicado en SAP',
           error: error.response?.data || error.message
         });
       }
@@ -283,87 +297,77 @@ const updateMaestroDatos = async (req, res) => {
     // 9. ACTUALIZAR BASE DE DATOS LOCAL
     console.log('\n3. Actualizando base de datos local...');
 
-    const historyEntry = JSON.stringify([{
+    // Normalizamos tipos numéricos requeridos para la base de datos
+    const bodyAjustado = {
+      ...req.body,
+      lead_time: parseInt(lead_time) || 0,
+      dias_tolerancia: parseInt(dias_tolerancia) || 0,
+      cantidad_minima_pedido: parseFloat(cantidad_minima_pedido) || 0
+    };
+
+    const { setClause, values, changedFields } = buildDynamicUpdate(
+      codigoActual,
+      bodyAjustado,
+      MAESTRODATOS_FIELD_MAP
+    );
+
+    // Preparar historial acumulativo
+    let currentHistory = [];
+    try {
+      currentHistory = JSON.parse(codigoActual.r_maestrodatos || '[]');
+      if (!Array.isArray(currentHistory)) currentHistory = [currentHistory];
+    } catch {
+      currentHistory = [];
+    }
+
+    currentHistory.push({
       usuario: userName || nombreMaestroDatos,
       fecha: new Date().toISOString().split('T')[0],
-      accion: 'Sincronizado con SAP'
-    }]);
+      accion: 'Sincronizado con SAP y Finalizado'
+    });
 
-    // SQL Corregida con exactitud en el número de parámetros (18 placeholders)
-    const updateQuery = `
-      UPDATE codigos 
-      SET 
-        codigo = ?,
-        descripcion = ?,
-        detalles = ?,
-        link_referencia = ?,
-        descripcion_sap = ?,
-        lead_time = ?,
-        dias_tolerancia = ?,
-        cantidad_minima_pedido = ?,
-        unidad_medida = ?,
-        grupo_articulos = ?,
-        tipo_bien = ?,
-        indicadorIVACompras = ?,
-        indicadorIVAVentas = ?,
-        inventoryItem = ?,
-        salesItem = ?,
-        purchaseItem = ?,
-        status = ?,
-        r_maestrodatos = ?,
-        r_sap = ?,
-        updated_by = ?
-      WHERE id = ?
-    `;
-
-    await pool.query(updateQuery, [
-      codigo,
-      descripcion,
-      detalles,
-      link_referencia,
-      descripcion_sap,
-      parseInt(lead_time) || 0,
-      parseInt(dias_tolerancia) || 0,
-      parseFloat(cantidad_minima_pedido) || 0,
-      unidad_compra,
-      grupo_articulos,
-      tipo_bien,
-      impuesto_compra,
-      impuesto_venta,
-      inventario,
-      venta,
-      compra,
+    // Si setClause está vacío (raro pero posible), preparamos la consulta base
+    const baseSetClause = setClause ? `${setClause}, ` : '';
+    const finalSetClause = `${baseSetClause}status = ?, r_maestrodatos = ?, r_sap = ?, updated_by = ?`;
+    
+    const finalValues = [
+      ...values,
       'Finalizado',
-      historyEntry,
+      JSON.stringify(currentHistory),
       JSON.stringify(sapItemResponse.data),
       userId,
       id
-    ]);
+    ];
 
-    // Audit log
+    const updateQuery = `UPDATE codigos SET ${finalSetClause} WHERE id = ?`;
+    await pool.query(updateQuery, finalValues);
+
+    // 9. AUDITORÍA / LOGS DE CAMBIOS
+    const valorAnteriorLimpiado = {};
+    const valorNuevoLimpiado = {};
+
+    for (const [columna, datos] of Object.entries(changedFields)) {
+      valorAnteriorLimpiado[columna] = datos.anterior;
+      valorNuevoLimpiado[columna] = datos.nuevo;
+    }
+
     await registrarReporteCodigo({
       codigoId: id,
       codigo,
       modulo: 'maestrodatos',
       accion: 'Sincronización con SAP y actualización maestro de datos',
-      campoAfectado: '',
-      valorAnterior: codigoResults[0],
-      valorNuevo: {
-        codigo,
-        descripcion,
-        descripcion_sap,
-        status: 'Finalizado',
-        sapResponse: sapItemResponse.data
-      },
+      campoAfectado: Object.keys(changedFields).join(','),
+      valorAnterior: valorAnteriorLimpiado,
+      valorNuevo: valorNuevoLimpiado,
       usuarioId: userId,
       usuarioNombre: nombreMaestroDatos || userName
     });
 
+    // 10. NOTIFICACIÓN TELEGRAM
     try {
-      await notificarResumenPorEstado('Finalizado', codigo,'Código sincronizado con SAP por Maestro de Datos');
+      await notificarResumenPorEstado('Finalizado', codigo, 'Código sincronizado con SAP por Maestro de Datos');
     } catch (telegramError) {
       console.error('Error enviando notificación de Telegram:', telegramError);
-      // No lanzamos el error para que la petición responda 200/201 aunque falle Telegram
     }
 
     return res.status(200).json({
@@ -374,11 +378,11 @@ const updateMaestroDatos = async (req, res) => {
         sapItemCode: sapItemResponse.data.ItemCode,
         status: 'Finalizado',
         sapResponse: sapItemResponse.data,
+        camposModificados: Object.keys(changedFields)
       }
     });
 
   } catch (error) {
-    // Garantizar que la sesión de SAP no quede colgada ante excepciones
     if (sessionId) await closeSapSession(sessionId);
 
     console.error('\nERROR CRÍTICO EN MAESTRO DE DATOS:', error.response?.data || error.message);
