@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 export const CardMovil = ({ 
   item, 
   onEdit, 
+  onDelete,
   clasesColor, 
   onReturn, 
   showReturnButton = false, 
@@ -79,6 +80,20 @@ export const CardMovil = ({
                   </svg>
                 </button>
               )}
+              {onDelete && (
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onDelete(item);
+                  }}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-red-100 text-red-700 transition hover:bg-red-200 shadow-sm"
+                  title="Eliminar código"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h8" />
+                  </svg>
+                </button>
+              )}
               <button
                 onClick={() => onEdit(item.id)}
                 className={`inline-flex h-11 px-4 items-center gap-2 rounded-xl ${clasesColor} transition hover:opacity-90 shadow-sm text-sm font-medium`}
@@ -101,6 +116,7 @@ export const CardMovil = ({
 export const TableRowEscritorio = ({ 
   item, 
   onEdit, 
+  onDelete,
   clasesColor, 
   onReturn, 
   showReturnButton = false, 
@@ -143,6 +159,17 @@ export const TableRowEscritorio = ({
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={() => onDelete(item)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white transition hover:bg-red-700"
+            title="Eliminar código"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h8" />
             </svg>
           </button>
         )}

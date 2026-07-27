@@ -2,7 +2,8 @@ import express from 'express';
 import {
   obtenerCodigos,
   obtenerCodigoID,
-  obtenerMisCodigos
+  obtenerMisCodigos,
+  eliminarCodigo
 } from '../controllers/Codigos_controllers.js';
 import { verificarTokenJWT } from '../middlewares/JWT.js';
 const router = express.Router();
@@ -16,6 +17,8 @@ router.get('/search', verificarTokenJWT, obtenerCodigos);
 // GET - Obtener un código específico por ID
 // La ruta es GET /api/codigos/:id
 router.get('/:id', verificarTokenJWT, obtenerCodigoID);
-
+// DELETE - Eliminar un código por ID
+// La ruta es DELETE /api/codigos/:id
+router.delete('/:id', verificarTokenJWT, eliminarCodigo);
 
 export default router;
