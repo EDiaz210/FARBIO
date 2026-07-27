@@ -145,19 +145,21 @@ const AREA_OPTIONS = [
   // UPDATE CONTABILIDAD SOLICITANTE
 
   const SOLICITANTE_FIELDS_MAPPING = {
-    descripcionSolicitante: 'descripcion',
-    RequestorArea: 'requestor_area',
-    detalles: 'detalles',
-    link_referencia: 'link_referencia',
-    nombreSolicitante: 'nombre_solicitante'
-  };
+  descripcionSolicitante: 'descripcion',
+  RequestorArea: 'requestor_area',
+  detalles: 'detalles',
+  link_referencia: 'link_referencia',
+  nombreSolicitante: 'nombre_solicitante',
+  empresa: 'empresa' // Mapeo correcto: req.body.empresa -> columna 'empresa' en MySQL
+};
 
-  const updateSolicitante = async (req, res) => {
+const updateSolicitante = async (req, res) => {
   const { id } = req.params;
   const {
     userId,
     userName,
-    RequestorArea
+    RequestorArea,
+    empresa
   } = req.body;
 
   try {
@@ -169,9 +171,9 @@ const AREA_OPTIONS = [
       return res.status(401).json({ success: false, msg: 'Usuario no validado' });
     }
 
-    const userRole = userResults[0].rol.toLowerCase();
-    if (!userRole.includes('solicitante')) {
-      return res.status(403).json({ success: false, msg: 'Solo el solicitante puede editar esta fase' });
+    const userRole = (userResults[0].rol || '').toLowerCase();
+    if (!userRole.includes('solicitante') && !userRole.includes('admin')) {
+      return res.status(403).json({ success: false, msg: 'Solo el solicitante o un administrador puede editar esta fase' });
     }
 
     // 2. Validar existencia del registro
@@ -184,20 +186,30 @@ const AREA_OPTIONS = [
 
     const codigoAnterior = existe[0];
 
-    // Validar área
-    if (RequestorArea && !AREA_OPTIONS.includes(RequestorArea)) {
-      return res.status(400).json({ success: false, msg: `Área inválida. Debe ser una de: ${AREA_OPTIONS.join(', ')}` });
+    // 3. Validar opciones permitidas
+    if (RequestorArea && typeof AREA_OPTIONS !== 'undefined' && !AREA_OPTIONS.includes(RequestorArea)) {
+      return res.status(400).json({ 
+        success: false, 
+        msg: `Área inválida. Debe ser una de: ${AREA_OPTIONS.join(', ')}` 
+      });
     }
 
-    const { setClause, values, changedFields, hasChanges } = buildDynamicUpdate(codigoAnterior, req.body, SOLICITANTE_FIELDS_MAPPING);
+    // 4. Evaluar cambios dinámicamente (incluye 'empresa')
+    const { setClause, values, changedFields, hasChanges } = buildDynamicUpdate(
+      codigoAnterior, 
+      req.body, 
+      SOLICITANTE_FIELDS_MAPPING
+    );
 
-    if(!hasChanges) {
+    if (!hasChanges) {
       return res.status(200).json({ success: true, msg: 'No se realizaron cambios en el código' });
     }
 
+    // 5. Historial acumulativo
     let currentHistory = [];
     try {
       currentHistory = JSON.parse(codigoAnterior.r_creacion || '[]');
+      if (!Array.isArray(currentHistory)) currentHistory = [currentHistory];
     } catch (parseError) {
       currentHistory = [];
     }
@@ -209,12 +221,14 @@ const AREA_OPTIONS = [
       camposModificados: Object.keys(changedFields)
     });
 
+    // 6. Actualización en la Base de Datos
     const finalSetClause = `${setClause}, r_creacion = ?, status = ?, updated_by = ?`;
     const finalValues = [...values, JSON.stringify(currentHistory), 'Nuevo', userId, id];
 
     const updateQuery = `UPDATE codigos SET ${finalSetClause} WHERE id = ?`;
     await pool.query(updateQuery, finalValues);
 
+    // 7. Preparación de datos para auditoría
     const valorAnteriorLimpiado = {};
     const valorNuevoLimpiado = {};
 
@@ -222,9 +236,6 @@ const AREA_OPTIONS = [
       valorAnteriorLimpiado[columna] = datos.anterior;
       valorNuevoLimpiado[columna] = datos.nuevo;
     }
-
-    
-    
 
     await registrarReporteCodigo({
       codigoId: id,
@@ -238,11 +249,9 @@ const AREA_OPTIONS = [
       usuarioNombre: userName || codigoAnterior.nombre_solicitante
     });
 
+    console.log(`Código ${id} actualizado exitosamente por ${userName}. Campos alterados:`, Object.keys(changedFields));
     
-
-    console.log(`Código ${id} actualizado exitosamente por ${userName}.Campos alterados:`, Object.keys(changedFields));
-    
-    res.status(200).json({ 
+    return res.status(200).json({ 
       success: true, 
       msg: 'Código actualizado exitosamente', 
       camposModificados: Object.keys(changedFields)
@@ -250,7 +259,7 @@ const AREA_OPTIONS = [
     
   } catch (error) {
     console.error('Error en updateSolicitante:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       message: 'Error interno al actualizar', 
       error: error.message 
