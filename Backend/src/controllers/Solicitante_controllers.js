@@ -43,6 +43,7 @@ const AREA_OPTIONS = [
     detalles, 
     link_referencia,
     RequestorArea,
+    empresa, 
     userId,
     userName
   } = req.body;
@@ -62,8 +63,8 @@ const AREA_OPTIONS = [
     }
 
     // Validaciones básicas
-    if (!detalles || !link_referencia || !descripcionSolicitante || !RequestorArea || !nombreSolicitante) {
-      return res.status(400).json({ success: false, msg: 'Detalles, link de referencia, descripción, área y nombre del solicitante son requeridos' });
+    if (!detalles || !link_referencia || !descripcionSolicitante || !RequestorArea || !nombreSolicitante || !empresa) {
+      return res.status(400).json({ success: false, msg: 'Detalles, link de referencia, descripción, área, nombre del solicitante y empresa son requeridos' });
     }
 
     // Validar área
@@ -81,8 +82,8 @@ const AREA_OPTIONS = [
 
     const insertQuery = `
       INSERT INTO codigos 
-      (status, descripcion, requestor_area, detalles, link_referencia, r_creacion, created_by, nombre_solicitante)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (status, descripcion, requestor_area, detalles, link_referencia, r_creacion, created_by, nombre_solicitante, empresa)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [insertResult] = await pool.query(insertQuery, [
@@ -93,7 +94,8 @@ const AREA_OPTIONS = [
       link_referencia,        // 5. link_referencia
       historyEntry,           // 6. r_creacion (JSON con historial)
       userId,                 // 7. created_by
-      nombreSolicitante         // 8. nombre_solicitante 
+      nombreSolicitante,      // 8. nombre_solicitante
+      empresa                 // 9. empresa
     ]);
 
     const newId = insertResult.insertId;
@@ -103,7 +105,7 @@ const AREA_OPTIONS = [
       codigo: null,
       modulo: 'creacion',
       accion: 'Creación de código',
-      campoAfectado: 'descripcion,requestor_area,detalles,link_referencia,status,nombre_solicitante',
+      campoAfectado: 'descripcion,requestor_area,detalles,link_referencia,status,nombre_solicitante, empresa',
       valorAnterior: null,
       valorNuevo: {
         status: 'Nuevo',
@@ -111,7 +113,8 @@ const AREA_OPTIONS = [
         requestor_area: RequestorArea,
         detalles,
         link_referencia,
-        nombre_solicitante: nombreSolicitante
+        nombre_solicitante: nombreSolicitante,
+        empresa: empresa
       },
       usuarioId: userId,
       usuarioNombre: nombreSolicitante 

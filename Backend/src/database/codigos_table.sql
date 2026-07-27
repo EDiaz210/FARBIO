@@ -26,6 +26,7 @@ CREATE TABLE codigos (
   indicadorIVAVentas varchar(30),
   unidad_medida VARCHAR(50),
   cantidad_minima_pedido INT,
+  empresa VARCHAR(40),
 
   
   -- Historial de cambios (JSON)
