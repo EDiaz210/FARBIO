@@ -57,6 +57,7 @@ const MaestroDatosEditarCodigo = () => {
       Details: '',
       ReferenceLink: '',
       RequestorArea: '',
+      Empresa: '',
       nombreSolicitante: '',
       descripcion_sap: '',
       InventoryItem: false,
@@ -90,6 +91,7 @@ const MaestroDatosEditarCodigo = () => {
             Details: item.detalles || '',
             ReferenceLink: item.link_referencia || '',
             RequestorArea: item.requestor_area || '',
+            Empresa: item.empresa || '',
             nombreSolicitante: item.nombre_solicitante || '',
             descripcion_sap: item.descripcion_sap || '',
             InventoryItem: item.inventoryItem === 'tYES',
@@ -300,7 +302,7 @@ const MaestroDatosEditarCodigo = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 md:col-span-2">
+                <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                       <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM14 3.5L18.5 8H14a1 1 0 01-1-1V3.5z" />
@@ -310,6 +312,19 @@ const MaestroDatosEditarCodigo = () => {
                   <div>
                     <p className="text-sm font-semibold text-slate-900">Descripción del Solicitante</p>
                     <p className="mt-1 text-sm text-slate-700 whitespace-pre-wrap">{watch('RequestorDescription') || 'Sin datos'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
+                      <path d="M5 12c0-3.86 3.14-7 7-7s7 3.14 7 7-3.14 7-7 7-7-3.14-7-7zm7-5c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z" />
+                      <path d="M12 4c.41 0 .75.34.75.75V7h1.5V4.75c0-.41.34-.75.75-.75s.75.34.75.75V7h1.5V4.75c0-.41.34-.75.75-.75s.75.34.75.75V7h.25A3.75 3.75 0 0119.75 10.75v.5a3.75 3.75 0 01-3.75 3.75H8.75A3.75 3.75 0 015 11.25v-.5A3.75 3.75 0 018.75 7H9V4.75c0-.41.34-.75.75-.75z" opacity=".3" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Empresa</p>
+                    <p className="mt-1 text-sm text-slate-700">{watch('Empresa') || 'Sin datos'}</p>
                   </div>
                 </div>
 

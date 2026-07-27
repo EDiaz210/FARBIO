@@ -2,6 +2,7 @@ import pool from '../database.js';
 import axios from 'axios';
 import { registrarReporteCodigo } from '../utils/reportesCodigos.js';
 import { notificarResumenPorEstado } from '../telegram/telegramService.js';
+import { buildDynamicUpdate } from '../utils/dbHelpers.js';
 
 
 // INSERTAR PARTES DEL  CÓDIGO (Solo COMPRAS)
@@ -52,8 +53,7 @@ const COMPRAS_FIELDS_MAPPING = {
       return res.status(404).json({ success: false, msg: 'El código no existe' });
     }
 
-    codigoActual = existe[0];
-
+    const codigoActual = existe[0];
 
     // 3. VALIDACIÓN DE CAMPOS
     if (!descripcion_sap) {
@@ -66,8 +66,10 @@ const COMPRAS_FIELDS_MAPPING = {
     const bodyAjustado = {
       ...req.body,
       nombre_extranjero: descripcion_sap,
-      grava_iva: grava_iva || 'SI' 
+      grava_iva: grava_iva || 'SI'
     };
+
+    const { setClause, values, changedFields, hasChanges } = buildDynamicUpdate(codigoActual, bodyAjustado, COMPRAS_FIELDS_MAPPING);
 
     if (!hasChanges) {
       return res.status(200).json({ success: true, msg: 'No se realizaron cambios en el código' });

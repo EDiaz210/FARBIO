@@ -36,6 +36,12 @@ const AREA_OPTIONS = [
   'VALIDACIONES',
 ];
 
+const EMPRESA_OPTIONS = [
+  'FARBIOPHARMA',
+  'INPEL',
+  'CLAREL',
+];
+
   const createCodigo = async (req, res) => {
   const {
     nombreSolicitante,
@@ -70,6 +76,11 @@ const AREA_OPTIONS = [
     // Validar área
     if (!AREA_OPTIONS.includes(RequestorArea)) {
       return res.status(400).json({ success: false, msg: `Área inválida. Debe ser una de: ${AREA_OPTIONS.join(', ')}` });
+    }
+
+    // Validar empresa
+    if (!EMPRESA_OPTIONS.includes(empresa)) {
+      return res.status(400).json({ success: false, msg: `Empresa inválida. Debe ser una de: ${EMPRESA_OPTIONS.join(', ')}` });
     }
 
     // Crear historial inicial
@@ -191,6 +202,13 @@ const updateSolicitante = async (req, res) => {
       return res.status(400).json({ 
         success: false, 
         msg: `Área inválida. Debe ser una de: ${AREA_OPTIONS.join(', ')}` 
+      });
+    }
+
+    if (empresa && !EMPRESA_OPTIONS.includes(empresa)) {
+      return res.status(400).json({
+        success: false,
+        msg: `Empresa inválida. Debe ser una de: ${EMPRESA_OPTIONS.join(', ')}`
       });
     }
 

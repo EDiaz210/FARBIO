@@ -37,9 +37,16 @@ const AREA_OPTIONS = [
   'VALIDACIONES',
 ];
 
+const EMPRESA_OPTIONS = [
+  'FARBIOPHARMA',
+  'INPEL',
+  'CLAREL',
+];
+
 const defaultValues = {
-  RequestorDescription: '',
   RequestorArea: '',
+  Empresa: '',
+  RequestorDescription: '',
   Details: '',
   ReferenceLink: '',
 };
@@ -101,6 +108,7 @@ const SolicitanteCrearCodigo = () => {
         nombreSolicitante,
         descripcionSolicitante: data.RequestorDescription,
         RequestorArea: data.RequestorArea,
+        empresa: data.Empresa,
         detalles: data.Details,
         link_referencia: data.ReferenceLink,
         userId: userID,
@@ -141,26 +149,27 @@ const SolicitanteCrearCodigo = () => {
         <form onSubmit={handleSubmit(createCodigo)} className="space-y-6">
           <fieldset className="w-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <div className="grid gap-6 pt-2">
-              {/* Descripción */}
+
+              {/* Empresa */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-900">
-                  Descripción *
+                  Empresa en la que se va a crear el código *
                 </label>
-                <input
-                  type="text"
-                  placeholder="Ej: Paracetamol 500mg"
-                  autoComplete="off"
+                <select
                   className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('RequestorDescription', {
-                    required: 'La descripción es obligatoria',
-                    minLength: {
-                      value: 5,
-                      message: 'La descripción debe tener al menos 5 caracteres'
-                    }
+                  {...register('Empresa', {
+                    required: 'La empresa es obligatoria'
                   })}
-                />
-                {errors.RequestorDescription && (
-                  <p className="text-sm text-red-600">{errors.RequestorDescription.message}</p>
+                >
+                  <option value="">Selecciona una empresa</option>
+                  {EMPRESA_OPTIONS.map((empresa) => (
+                    <option key={empresa} value={empresa}>
+                      {empresa}
+                    </option>
+                  ))}
+                </select>
+                {errors.Empresa && (
+                  <p className="text-sm text-red-600">{errors.Empresa.message}</p>
                 )}
               </div>
 
@@ -184,6 +193,31 @@ const SolicitanteCrearCodigo = () => {
                 </select>
                 {errors.RequestorArea && (
                   <p className="text-sm text-red-600">{errors.RequestorArea.message}</p>
+                )}
+              </div>
+
+              
+
+              {/* Descripción */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-900">
+                  Descripción *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: Paracetamol 500mg"
+                  autoComplete="off"
+                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                  {...register('RequestorDescription', {
+                    required: 'La descripción es obligatoria',
+                    minLength: {
+                      value: 5,
+                      message: 'La descripción debe tener al menos 5 caracteres'
+                    }
+                  })}
+                />
+                {errors.RequestorDescription && (
+                  <p className="text-sm text-red-600">{errors.RequestorDescription.message}</p>
                 )}
               </div>
 
@@ -237,7 +271,7 @@ const SolicitanteCrearCodigo = () => {
               Cancelar
             </button>
             <button
-              type="submit" 
+              type="submit"   
               disabled={isSubmitting}
               className="flex-1 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-[#274C77] via-[#2F5D8A] to-[#1F3F5B] px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >

@@ -37,9 +37,16 @@ const AREA_OPTIONS = [
   'VALIDACIONES',
 ];
 
+const EMPRESA_OPTIONS = [
+  'FARBIOPHARMA',
+  'INPEL',
+  'CLAREL',
+];
+
 const defaultValues = {
-  RequestorDescription: '',
+  Empresa: '',
   RequestorArea: '',
+  RequestorDescription: '',
   Details: '',
   ReferenceLink: '',
 };
@@ -111,6 +118,7 @@ const SolicitanteEditarCodigo = () => {
         if (response?.codigo) {
           const codigo = response.codigo;
           reset({
+            Empresa: codigo.empresa || '',
             RequestorDescription: codigo.descripcion || '',
             RequestorArea: codigo.requestor_area || '',
             Details: codigo.detalles || '',
@@ -141,6 +149,7 @@ const SolicitanteEditarCodigo = () => {
         nombreSolicitante,
         descripcionSolicitante: data.RequestorDescription,
         RequestorArea: data.RequestorArea,
+        empresa: data.Empresa,
         detalles: data.Details,
         link_referencia: data.ReferenceLink,
         userId: userID,
@@ -191,6 +200,29 @@ const SolicitanteEditarCodigo = () => {
         <form onSubmit={handleSubmit(updateCodigo)} className="space-y-6">
           <fieldset className="w-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <div className="grid gap-6 pt-2">
+              {/* Empresa */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-900">
+                  Empresa *
+                </label>
+                <select
+                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                  {...register('Empresa', {
+                    required: 'La empresa es obligatoria',
+                  })}
+                >
+                  <option value="">Selecciona una empresa</option>
+                  {EMPRESA_OPTIONS.map((empresa) => (
+                    <option key={empresa} value={empresa}>
+                      {empresa}
+                    </option>
+                  ))}
+                </select>
+                {errors.Empresa && (
+                  <p className="text-sm text-red-600">{errors.Empresa.message}</p>
+                )}
+              </div>
+
               {/* Descripción */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-900">

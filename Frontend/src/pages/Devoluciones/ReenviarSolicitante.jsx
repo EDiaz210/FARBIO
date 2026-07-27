@@ -37,7 +37,14 @@ const AREA_OPTIONS = [
   'VALIDACIONES',
 ];
 
+const EMPRESA_OPTIONS = [
+  'FARBIOPHARMA',
+  'INPEL',
+  'CLAREL',
+];
+
 const defaultValues = {
+  Empresa: '',
   RequestorDescription: '',
   RequestorArea: '',
   Details: '',
@@ -105,6 +112,7 @@ const ReenviarSolicitante = () => {
         if (response?.codigo) {
           const codigo = response.codigo;
           reset({
+            Empresa: codigo.empresa || '',
             RequestorDescription: codigo.descripcion || '',
             RequestorArea: codigo.requestor_area || '',
             Details: codigo.detalles || '',
@@ -134,6 +142,7 @@ const ReenviarSolicitante = () => {
         nombreSolicitante,
         descripcionSolicitante: data.RequestorDescription,
         RequestorArea: data.RequestorArea,
+        empresa: data.Empresa,
         detalles: data.Details,
         link_referencia: data.ReferenceLink,
         userId: userID,
@@ -175,7 +184,7 @@ const ReenviarSolicitante = () => {
 
       <div className="w-full bg-gradient-to-r from-[#274C77] via-[#2F5D8A] to-[#1F3F5B] text-white shadow-sm">
         <div className="px-6 lg:px-8 py-4 lg:py-5">
-          <h1 className="text-4xl font-bold">Reenviar a Solicitante - Código #{id}</h1>
+          <h1 className="text-4xl font-bold">Reenviar a Compras - Código #{id}</h1>
           <p className="mt-1 text-sm text-white/90">Actualiza los datos de tu solicitud</p>
         </div>
       </div>
@@ -185,22 +194,22 @@ const ReenviarSolicitante = () => {
           <fieldset className="w-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <div className="grid gap-6 pt-2">
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-900">Descripción *</label>
-                <input
-                  type="text"
-                  placeholder="Ej: Paracetamol 500mg"
-                  autoComplete="off"
+                <label className="block text-sm font-semibold text-slate-900">Empresa *</label>
+                <select
                   className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('RequestorDescription', {
-                    required: 'La descripción es obligatoria',
-                    minLength: {
-                      value: 5,
-                      message: 'La descripción debe tener al menos 5 caracteres',
-                    },
+                  {...register('Empresa', {
+                    required: 'La empresa es obligatoria',
                   })}
-                />
-                {errors.RequestorDescription && (
-                  <p className="text-sm text-red-600">{errors.RequestorDescription.message}</p>
+                >
+                  <option value="">Selecciona una empresa</option>
+                  {EMPRESA_OPTIONS.map((empresa) => (
+                    <option key={empresa} value={empresa}>
+                      {empresa}
+                    </option>
+                  ))}
+                </select>
+                {errors.Empresa && (
+                  <p className="text-sm text-red-600">{errors.Empresa.message}</p>
                 )}
               </div>
 
@@ -223,6 +232,28 @@ const ReenviarSolicitante = () => {
                   <p className="text-sm text-red-600">{errors.RequestorArea.message}</p>
                 )}
               </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-900">Descripción *</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Paracetamol 500mg"
+                  autoComplete="off"
+                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                  {...register('RequestorDescription', {
+                    required: 'La descripción es obligatoria',
+                    minLength: {
+                      value: 5,
+                      message: 'La descripción debe tener al menos 5 caracteres',
+                    },
+                  })}
+                />
+                {errors.RequestorDescription && (
+                  <p className="text-sm text-red-600">{errors.RequestorDescription.message}</p>
+                )}
+              </div>
+
+              
 
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-900">Detalles *</label>
