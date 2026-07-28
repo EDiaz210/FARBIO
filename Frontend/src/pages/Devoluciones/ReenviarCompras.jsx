@@ -115,23 +115,25 @@ const ReenviarCompras = () => {
     try {
       setIsSubmitting(true);
 
+      const currentUserName = perfilUsuario?.nombre || claims?.nombre || 'Compras';
       const codigoData = {
-        nombreCompras: perfilUsuario?.nombre,
+        nombreCompras: currentUserName,
         descripcion_sap: data.descripcion_sap,
         unidad_medida: data.unidad_medida,
         grava_iva: data.gravaIva,
         lead_time: data.LeadTimeInDays,
         dias_tolerancia: data.ToleranceDays,
         cantidad_minima_pedido: data.CantidadMinimaPedido,
-        userId: userID,
-        userName: claims?.nombre || 'Compras'
+        userId: userID ?? claims?.id ?? null,
+        userName: currentUserName,
+        forceStatusUpdate: true,
       };
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/compras/update/${id}`;
       const response = await fetchDataBackend(url, codigoData, 'PUT', token);
 
       if (response?.success) {
-        toast.success('Código actualizado exitosamente');
+        toast.success(response?.message || 'Código actualizado exitosamente');
         setTimeout(() => {
           navigate('/dashboard/compras/rechazados');
         }, 1500);

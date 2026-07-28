@@ -28,13 +28,21 @@ const COMPRAS_FIELDS_MAPPING = {
     descripcion_sap,
     grava_iva,
     userId,
-    userName
+    userName,
+    forceStatusUpdate = false
   } = req.body;
 
   try {
+    const authenticatedUserId = req.user?.id || userId;
+    const authenticatedUserName = userName || nombreCompras || req.user?.nombre;
+
+    if (!authenticatedUserId) {
+      return res.status(401).json({ success: false, msg: 'Usuario no validado' });
+    }
+
     // 1. VALIDAR ROL (Cambiamos nombres de variables para evitar el error 500)
     const queryUsuario = 'SELECT rol FROM usuarios WHERE id = ?';
-    const [resultadoUsuario] = await pool.query(queryUsuario, [userId]);
+    const [resultadoUsuario] = await pool.query(queryUsuario, [authenticatedUserId]);
     
     if (!resultadoUsuario || resultadoUsuario.length === 0) {
       return res.status(401).json({ success: false, msg: 'Usuario no validado' });
@@ -59,7 +67,7 @@ const COMPRAS_FIELDS_MAPPING = {
     if (!descripcion_sap) {
       return res.status(400).json({ success: false, msg: 'Falta campo requerido: descripcion_sap' });
     }
-    if (!lead_time && !dias_tolerancia && !cantidad_minima_pedido) {
+    if (lead_time === undefined && dias_tolerancia === undefined && cantidad_minima_pedido === undefined) {
       return res.status(400).json({ success: false, msg: 'Faltan campos: Lead Time, Días de Tolerancia o Cantidad Mínima de Pedido' });
     }
 
@@ -69,9 +77,10 @@ const COMPRAS_FIELDS_MAPPING = {
       grava_iva: grava_iva || 'SI'
     };
 
-    const { setClause, values, changedFields, hasChanges } = buildDynamicUpdate(codigoActual, bodyAjustado, COMPRAS_FIELDS_MAPPING);
+    const { setClause, values, changedFields } = buildDynamicUpdate(codigoActual, bodyAjustado, COMPRAS_FIELDS_MAPPING);
+    const shouldUpdateStatus = forceStatusUpdate || Object.keys(changedFields).length > 0;
 
-    if (!hasChanges) {
+    if (!shouldUpdateStatus) {
       return res.status(200).json({ success: true, msg: 'No se realizaron cambios en el código' });
     }
 
@@ -84,14 +93,16 @@ const COMPRAS_FIELDS_MAPPING = {
     }
 
     currentHistory.push({
-      usuario: userName || nombreCompras,
+      usuario: authenticatedUserName || nombreCompras || userName,
       fecha: new Date().toISOString().split('T')[0],
       accion: 'Aprobado/Actualizado por Compras',
       camposModificados: Object.keys(changedFields)
     });
 
-    const finalSetClause = `${setClause}, status = ?, r_compras = ?, updated_by = ?`;
-    const finalValues = [...values, 'En Contabilidad', JSON.stringify(currentHistory), userId, id];
+    const finalSetClause = setClause
+      ? `${setClause}, status = ?, r_compras = ?, updated_by = ?`
+      : 'status = ?, r_compras = ?, updated_by = ?';
+    const finalValues = [...values, 'En Contabilidad', JSON.stringify(currentHistory), authenticatedUserId, id];
 
     const updateQuery = `UPDATE codigos SET ${finalSetClause} WHERE id = ?`;
     await pool.query(updateQuery, finalValues);
@@ -112,8 +123,8 @@ const COMPRAS_FIELDS_MAPPING = {
       campoAfectado: Object.keys(changedFields).join(','),
       valorAnterior: valorAnteriorLimpiado,
       valorNuevo: valorNuevoLimpiado,
-      usuarioId: userId,
-      usuarioNombre: nombreCompras || userName
+      usuarioId: authenticatedUserId,
+      usuarioNombre: authenticatedUserName || nombreCompras || userName
     });
 
     try {
