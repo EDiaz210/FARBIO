@@ -267,6 +267,20 @@ const ContabilidadEditarCodigo = () => {
                   <p className="mt-1 text-sm text-slate-700">{loadingCodigo ? 'Cargando...' : (watch('unidad_medida') || 'Sin datos')}</p>
                 </div>
               </div>
+
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 text-yellow-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-6 w-6">
+                      <circle cx="7" cy="7" r="2" fill="currentColor" />
+                      <circle cx="17" cy="17" r="2" fill="currentColor" />
+                      <path d="M19 5L5 19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Grava o no grava IVA</p>
+                  <p className="mt-1 text-sm text-slate-700">{loadingCodigo ? 'Cargando...' : (watch('gravaIva') || 'Sin datos')}</p>
+                </div>
+              </div>
             </div>
 
             <hr className="my-6 border-slate-200" />
@@ -308,7 +322,7 @@ const ContabilidadEditarCodigo = () => {
                 </label>
                 <select
                   disabled={loadingSap}
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 cursor-wait"
+                  className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 ${loadingSap ? 'cursor-wait' : ''}`}
                   {...register('ItemsGroupCode', {
                     required: 'El grupo de artículos es obligatorio'
                   })}
@@ -353,25 +367,6 @@ const ContabilidadEditarCodigo = () => {
                 )}
               </div>
 
-              {/* Grava o no grava IVA */}
-              <div className="space-y-3 md:col-span-2">
-                <label className="block text-sm font-semibold text-slate-900">
-                  Grava o no grava IVA *
-                </label>
-                <select
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100"
-                  {...register('gravaIva', {
-                    required: 'Seleccione si grava IVA'
-                  })}
-                >
-                  <option value="SI">SI</option>
-                  <option value="NO">NO</option>
-                </select>
-                {errors.gravaIva && (
-                  <p className="text-sm text-red-600">{errors.gravaIva.message}</p>
-                )}
-              </div>
-
               {gravaIva === 'SI' && (
                 <>
                   {/* IVA Compra */}
@@ -381,7 +376,7 @@ const ContabilidadEditarCodigo = () => {
                     </label>
                     <select
                       disabled={loadingSap}
-                      className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 cursor-wait"
+                      className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 ${loadingSap ? 'cursor-wait' : ''}`}
                       {...register('PurchaseTaxCode', {
                         required: gravaIva === 'SI' ? 'El IVA de compra es obligatorio' : false
                       })}
@@ -411,7 +406,7 @@ const ContabilidadEditarCodigo = () => {
                     </label>
                     <select
                       disabled={loadingSap}
-                      className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 cursor-wait"
+                      className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 ${loadingSap ? 'cursor-wait' : ''}`}
                       {...register('SalesTaxCode', {
                         required: gravaIva === 'SI' ? 'El IVA de venta es obligatorio' : false
                       })}
