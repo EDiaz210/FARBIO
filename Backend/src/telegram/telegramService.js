@@ -12,7 +12,8 @@ export const notificarResumenPorEstado = async (
   estadoEtapa, 
   comentario = '', 
   evento = 'Actualización de Código',
-  codigo = '' // <-- Añadido para identificar el código creado
+  codigo = '',
+  solicitante = ''
 ) => {
   // Si la etapa es Finalizado, la notificación siempre va al grupo de Solicitantes
   const destinoEtapa = (estadoEtapa === 'Finalizado' || evento.toLowerCase().includes('finalizado')) 
@@ -27,18 +28,20 @@ export const notificarResumenPorEstado = async (
   }
 
   try {
-    const titulo = `📢 <b>${evento.toUpperCase()}</b>`;
     let mensaje = '';
-
     const eventoLower = evento.toLowerCase();
+    const lineaSolicitante = solicitante ? `👤 <b>Solicitante:</b> ${solicitante}\n` : '';
 
     // 1. Flujo de Finalización (Código Creado)
     if (estadoEtapa === 'Finalizado' || eventoLower.includes('finalizado') || eventoLower.includes('creado')) {
       mensaje = `
-${titulo}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎉 El código <b>${codigo || 'solicitado'}</b> ha sido creado exitosamente.
-💬 <b>Comentario:</b> ${comentario || 'Sin observaciones'}
+🟢 <b>${evento.toUpperCase()}</b>
+➖➖➖➖➖➖➖➖➖➖➖➖
+${lineaSolicitante}
+📦 <b>Código generado:</b> <code>${codigo }</code>
+💬 <b>Descripción:</b> <i>"${comentario}"</i>
+
+✨ <i>El código ya se encuentra disponible para su uso.</i>
 `.trim();
 
     // 2. Flujo de Rechazo / Devolución
@@ -52,10 +55,11 @@ ${titulo}
       const devueltosSolicitante = filas[0]?.devueltos || 0;
 
       mensaje = `
-${titulo}
-💬 <b>Comentario:</b> ${comentario || 'Sin comentario'}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ <b>${devueltosSolicitante}</b> código(s) devuelto(s) / rechazado(s)
+🔴 <b>${evento.toUpperCase()}</b>
+➖➖➖➖➖➖➖➖➖➖➖➖
+💬 <b>Motivo:</b> <i>"${comentario || 'No se especificó un motivo.'}"</i>
+
+🚨 <b>Atención:</b> Hay <b>${devueltosSolicitante}</b> código(s) en la bandeja de devueltos que requieren revisión.
 `.trim();
 
     // 3. Flujos normales (Pendientes generales)
@@ -94,19 +98,25 @@ ${titulo}
       });
 
       mensaje = `
-${titulo}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📌 <b>${pendientes}</b> código(s) pendiente(s) en esta etapa
+🔵 <b>${evento.toUpperCase()}</b>
+➖➖➖➖➖➖➖➖➖➖➖➖
+🏢 <b>Etapa actual:</b> ${estadoEtapa}
+📌 <b>Pendientes de gestión:</b> <b>${pendientes}</b> código(s)
 `.trim();
 
       if (estadoEtapa === 'Nuevo' || estadoEtapa === 'Solicitante') {
-        mensaje += `\n⚠️ <b>${devueltos}</b> código(s) devuelto(s) / rechazado(s)`;
+        mensaje += `\n⚠️ <b>Requieren corrección:</b> <b>${devueltos}</b> código(s) devuelto(s)`;
+      }
+      
+      // Añadir comentario si existe incluso en etapas pendientes
+      if (comentario) {
+          mensaje += `\n\n💬 <b>Descripción:</b> <i>"${comentario}"</i>`;
       }
     }
 
     await bot.sendMessage(chatId, mensaje, { parse_mode: 'HTML' });
 
   } catch (error) {
-    console.error(` Error al notificar al grupo de ${destinoEtapa}:`, error.message);
+    console.error(`❌ Error al notificar al grupo de ${destinoEtapa}:`, error.message);
   }
 };

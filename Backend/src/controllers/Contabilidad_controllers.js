@@ -114,7 +114,7 @@ const updateContabilidadCodigo = async (req, res) => {
     try {
       await notificarResumenPorEstado(
         'Con Maestro de Datos', 
-        `Código ${existe[0].codigo} actualizado por Contabilidad`, 
+        `${codigoActual.descripcion_sap}`, 
         'Código actualizado por Contabilidad'
       );
     } catch (telegramError) {

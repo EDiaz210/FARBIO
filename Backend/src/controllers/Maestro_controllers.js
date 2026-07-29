@@ -306,7 +306,7 @@ const updateMaestroDatos = async (req, res) => {
     };
 
     const { setClause, values, changedFields } = buildDynamicUpdate(
-      codigoActual,
+      codigo,
       bodyAjustado,
       MAESTRODATOS_FIELD_MAP
     );
@@ -314,7 +314,7 @@ const updateMaestroDatos = async (req, res) => {
     // Preparar historial acumulativo
     let currentHistory = [];
     try {
-      currentHistory = JSON.parse(codigoActual.r_maestrodatos || '[]');
+      currentHistory = JSON.parse(codigo.r_maestrodatos || '[]');
       if (!Array.isArray(currentHistory)) currentHistory = [currentHistory];
     } catch {
       currentHistory = [];
@@ -365,7 +365,7 @@ const updateMaestroDatos = async (req, res) => {
 
     // 10. NOTIFICACIÓN TELEGRAM
     try {
-      await notificarResumenPorEstado('Finalizado', codigo, 'Código sincronizado con SAP por Maestro de Datos');
+      await notificarResumenPorEstado('Finalizado',descripcion_sap, 'Código sincronizado con SAP por Maestro de Datos', codigo );
     } catch (telegramError) {
       console.error('Error enviando notificación de Telegram:', telegramError);
     }
@@ -440,5 +440,166 @@ const retornoCodigosMaestroDatos = async (req, res) => {
     return res.status(500).json({ success: false, msg: 'Error interno del servidor al retornar el código' });
   }
 };
+
+// ACTUALIZACIÓN EXCLUSIVA PARA INPEL - MAESTRO DE DATOS
+const updateMaestroDatosLocal = async (req, res) => {
+  const { id } = req.params;
+  const {
+    nombreMaestroDatos,
+    codigo,
+    descripcion_sap,
+    nombre_extranjero,
+    unidad_compra,
+    cantidad_minima_pedido,
+    impuesto_compra,
+    impuesto_venta,
+    lead_time,
+    dias_tolerancia,
+    grupo_articulos,
+    tipo_bien,
+    inventario,
+    venta,
+    compra,
+    userId,
+    userName
+  } = req.body;
+
+  try {
+    // 1. VALIDAR QUE EL CÓDIGO EXISTA EN BD
+    const codigoQuery = 'SELECT * FROM codigos WHERE id = ?';
+    const [codigoResults] = await pool.query(codigoQuery, [id]);
+
+    if (codigoResults.length === 0) {
+      return res.status(404).json({
+        success: false,
+        msg: 'El código no existe'
+      });
+    }
+
+    const codigoActual = codigoResults[0]; // Usado para historial y validaciones previas
+
+    // 2. VALIDAR ROL DEL USUARIO
+    const userQuery = 'SELECT rol FROM usuarios WHERE id = ?';
+    const [userResults] = await pool.query(userQuery, [userId]);
+
+    if (!userResults || userResults.length === 0) {
+      return res.status(401).json({ success: false, msg: 'Usuario no validado' });
+    }
+
+    const userRole = (userResults[0].rol || '').toLowerCase();
+    if (!userRole.includes('maestro') && !userRole.includes('admin')) {
+      return res.status(403).json({
+        success: false,
+        msg: 'Solo el Maestro de Datos o Administrador puede realizar esta acción'
+      });
+    }
+
+    // 3. VALIDACIONES DE CAMPOS REQUERIDOS
+    if (!codigo || !descripcion_sap || !nombre_extranjero || !unidad_compra || !grupo_articulos || !tipo_bien || !impuesto_compra || !impuesto_venta || cantidad_minima_pedido === undefined) {
+      return res.status(400).json({
+        success: false,
+        msg: 'Faltan campos obligatorios para la actualización local'
+      });
+    }
+
+    // 4. ACTUALIZAR BASE DE DATOS LOCAL
+    console.log('\nActualizando base de datos local (Sin SAP)...');
+
+    // Normalizamos tipos numéricos requeridos para la base de datos
+    const bodyAjustado = {
+      ...req.body,
+      lead_time: parseInt(lead_time) || 0,
+      dias_tolerancia: parseInt(dias_tolerancia) || 0,
+      cantidad_minima_pedido: parseFloat(cantidad_minima_pedido) || 0
+    };
+
+    const { setClause, values, changedFields } = buildDynamicUpdate(
+      codigoActual, // Usamos la fila de la BD obtenida en el paso 1
+      bodyAjustado,
+      MAESTRODATOS_FIELD_MAP
+    );
+
+    // Preparar historial acumulativo
+    let currentHistory = [];
+    try {
+      currentHistory = JSON.parse(codigoActual.r_maestrodatos || '[]');
+      if (!Array.isArray(currentHistory)) currentHistory = [currentHistory];
+    } catch {
+      currentHistory = [];
+    }
+
+    currentHistory.push({
+      usuario: userName || nombreMaestroDatos,
+      fecha: new Date().toISOString().split('T')[0],
+      accion: 'Actualización Local (Maestro de Datos)'
+    });
+
+    // Eliminamos r_sap = ? ya que no hay respuesta de SAP
+    const baseSetClause = setClause ? `${setClause}, ` : '';
+    const finalSetClause = `${baseSetClause}status = ?, r_maestrodatos = ?, updated_by = ?`;
+    
+    // Cambiamos el estado, puedes ajustarlo si necesitas que siga siendo "Finalizado"
+    const estadoNuevo = 'Actualizado Local'; 
+
+    const finalValues = [
+      ...values,
+      estadoNuevo,
+      JSON.stringify(currentHistory),
+      userId,
+      id
+    ];
+
+    const updateQuery = `UPDATE codigos SET ${finalSetClause} WHERE id = ?`;
+    await pool.query(updateQuery, finalValues);
+
+    // 5. AUDITORÍA / LOGS DE CAMBIOS
+    const valorAnteriorLimpiado = {};
+    const valorNuevoLimpiado = {};
+
+    for (const [columna, datos] of Object.entries(changedFields)) {
+      valorAnteriorLimpiado[columna] = datos.anterior;
+      valorNuevoLimpiado[columna] = datos.nuevo;
+    }
+
+    await registrarReporteCodigo({
+      codigoId: id,
+      codigo,
+      modulo: 'maestrodatos',
+      accion: 'Actualización local maestro de datos',
+      campoAfectado: Object.keys(changedFields).join(','),
+      valorAnterior: valorAnteriorLimpiado,
+      valorNuevo: valorNuevoLimpiado,
+      usuarioId: userId,
+      usuarioNombre: nombreMaestroDatos || userName
+    });
+
+    // 6. NOTIFICACIÓN TELEGRAM
+    try {
+      await notificarResumenPorEstado(estadoNuevo, descripcion_sap, 'Código actualizado localmente por Maestro de Datos', codigo);
+    } catch (telegramError) {
+      console.error('Error enviando notificación de Telegram:', telegramError);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Item actualizado exitosamente en la base de datos local',
+      data: {
+        codigoId: id,
+        status: estadoNuevo,
+        camposModificados: Object.keys(changedFields)
+      }
+    });
+
+  } catch (error) {
+    console.error('\nERROR EN ACTUALIZACIÓN LOCAL MAESTRO DE DATOS:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Error al procesar la actualización local del código',
+      error: error.message
+    });
+  }
+};
+
+
 
 export { updateMaestroDatos, obtenerCodigosFinalizadosMaestro, retornoCodigosMaestroDatos };
