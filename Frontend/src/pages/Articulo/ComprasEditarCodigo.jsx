@@ -248,6 +248,64 @@ const ComprasEditarCodigo = () => {
 
                 <div className="grid gap-6 pt-1">
                   <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-900">Descripción SAP *</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Jabón S3"
+                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                      {...register('descripcion_sap', {
+                        required: 'La descripción SAP es obligatoria'
+                      })}
+                    />
+                    {errors.descripcion_sap && <p className="text-sm text-red-600">{errors.descripcion_sap.message}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-900">Grava o no grava IVA *</label>
+                    <select
+                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                      {...register('gravaIva', {
+                        required: 'Seleccione si grava IVA'
+                      })}
+                    >
+                      <option value="SI">SI</option>
+                      <option value="NO">NO</option>
+                    </select>
+                    {errors.gravaIva && <p className="text-sm text-red-600">{errors.gravaIva.message}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-900">Unidad de Medida *</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: CAJA"
+                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                      {...register('unidad_medida', {
+                        required: 'La unidad de medida es obligatoria'
+                      })}
+                    />
+                    {errors.unidad_medida && <p className="text-sm text-red-600">{errors.unidad_medida.message}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-900">Cantidad Mínima de Pedido *</label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Ej: 10"
+                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                      {...register('CantidadMinimaPedido', {
+                        required: 'La cantidad mínima de pedido es obligatoria',
+                        min: {
+                          value: 0,
+                          message: 'La cantidad mínima debe ser positiva'
+                        }
+                      })}
+                    />
+                    {errors.CantidadMinimaPedido && <p className="text-sm text-red-600">{errors.CantidadMinimaPedido.message}</p>}
+                  </div>
+
+                  <div className="space-y-2">
                     <label className="block text-sm font-semibold text-slate-900">Lead Time (días) *</label>
                     <input
                       type="number"
@@ -281,64 +339,6 @@ const ComprasEditarCodigo = () => {
                       })}
                     />
                     {errors.ToleranceDays && <p className="text-sm text-red-600">{errors.ToleranceDays.message}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-slate-900">Cantidad Mínima de Pedido *</label>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder="Ej: 10"
-                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                      {...register('CantidadMinimaPedido', {
-                        required: 'La cantidad mínima de pedido es obligatoria',
-                        min: {
-                          value: 0,
-                          message: 'La cantidad mínima debe ser positiva'
-                        }
-                      })}
-                    />
-                    {errors.CantidadMinimaPedido && <p className="text-sm text-red-600">{errors.CantidadMinimaPedido.message}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-slate-900">Descripción SAP *</label>
-                    <input
-                      type="text"
-                      placeholder="Ej: Jabón S3"
-                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                      {...register('descripcion_sap', {
-                        required: 'La descripción SAP es obligatoria'
-                      })}
-                    />
-                    {errors.descripcion_sap && <p className="text-sm text-red-600">{errors.descripcion_sap.message}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-slate-900">Unidad de Medida *</label>
-                    <input
-                      type="text"
-                      placeholder="Ej: CAJA"
-                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                      {...register('unidad_medida', {
-                        required: 'La unidad de medida es obligatoria'
-                      })}
-                    />
-                    {errors.unidad_medida && <p className="text-sm text-red-600">{errors.unidad_medida.message}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-slate-900">Grava o no grava IVA *</label>
-                    <select
-                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                      {...register('gravaIva', {
-                        required: 'Seleccione si grava IVA'
-                      })}
-                    >
-                      <option value="SI">SI</option>
-                      <option value="NO">NO</option>
-                    </select>
-                    {errors.gravaIva && <p className="text-sm text-red-600">{errors.gravaIva.message}</p>}
                   </div>
                 </div>
               </fieldset>
