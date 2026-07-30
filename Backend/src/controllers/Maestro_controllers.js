@@ -100,6 +100,7 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
 
 
 // UPDATE Y ENVIO A SAP - MAESTRO DE DATOS
+// UPDATE Y ENVIO A SAP - MAESTRO DE DATOS
 const MAESTRODATOS_FIELD_MAP = {
   codigo: 'codigo',
   descripcion_sap: 'descripcion_sap',
@@ -151,6 +152,9 @@ const updateMaestroDatos = async (req, res) => {
         msg: 'El código no existe'
       });
     }
+
+    // Guardamos el objeto actual obtenido de la BD en codigoActual
+    const codigoActual = codigoResults[0];
 
     // 2. VALIDAR ROL DEL USUARIO
     const userQuery = 'SELECT rol FROM usuarios WHERE id = ?';
@@ -240,6 +244,9 @@ const updateMaestroDatos = async (req, res) => {
         duplicateInSap: true,
         codigo
       });
+
+      console.log(`Código ${codigo} ya existe en SAP, no se puede crear duplicado.`);
+      
     } catch (error) {
       const statusCode = error.response?.status;
       if (statusCode && statusCode !== 404) {
@@ -291,8 +298,9 @@ const updateMaestroDatos = async (req, res) => {
       headers: { Cookie: `B1SESSION=${sessionId}` }
     });
 
-    // Logout inmediato tras operacion exitosa en SAP
+    // Logout inmediato tras operación exitosa en SAP
     await closeSapSession(sessionId);
+    sessionId = null;
 
     // 9. ACTUALIZAR BASE DE DATOS LOCAL
     console.log('\n3. Actualizando base de datos local...');
@@ -306,7 +314,7 @@ const updateMaestroDatos = async (req, res) => {
     };
 
     const { setClause, values, changedFields } = buildDynamicUpdate(
-      codigo,
+      codigoActual, // Usamos codigoActual en lugar del registro previo
       bodyAjustado,
       MAESTRODATOS_FIELD_MAP
     );
@@ -314,7 +322,7 @@ const updateMaestroDatos = async (req, res) => {
     // Preparar historial acumulativo
     let currentHistory = [];
     try {
-      currentHistory = JSON.parse(codigo.r_maestrodatos || '[]');
+      currentHistory = JSON.parse(codigoActual.r_maestrodatos || '[]');
       if (!Array.isArray(currentHistory)) currentHistory = [currentHistory];
     } catch {
       currentHistory = [];
@@ -342,7 +350,7 @@ const updateMaestroDatos = async (req, res) => {
     const updateQuery = `UPDATE codigos SET ${finalSetClause} WHERE id = ?`;
     await pool.query(updateQuery, finalValues);
 
-    // 9. AUDITORÍA / LOGS DE CAMBIOS
+    // 10. AUDITORÍA / LOGS DE CAMBIOS
     const valorAnteriorLimpiado = {};
     const valorNuevoLimpiado = {};
 
@@ -363,9 +371,9 @@ const updateMaestroDatos = async (req, res) => {
       usuarioNombre: nombreMaestroDatos || userName
     });
 
-    // 10. NOTIFICACIÓN TELEGRAM
+    // 11. NOTIFICACIÓN TELEGRAM
     try {
-      await notificarResumenPorEstado('Finalizado',descripcion_sap, 'Código sincronizado con SAP por Maestro de Datos', codigo );
+      await notificarResumenPorEstado('Finalizado', descripcion_sap, 'Código sincronizado con SAP por Maestro de Datos', codigo);
     } catch (telegramError) {
       console.error('Error enviando notificación de Telegram:', telegramError);
     }
@@ -393,7 +401,6 @@ const updateMaestroDatos = async (req, res) => {
     });
   }
 };
-
 
 // DEVOLVER CÓDIGO A REVISIÓN
 const retornoCodigosMaestroDatos = async (req, res) => {

@@ -12,19 +12,22 @@ const ContabilidadEditarCodigo = () => {
   const navigate = useNavigate();
   const { token } = storeAuth();
   const { fetchDataBackend } = useFetch();
-  
-  // Estados de carga separados
+
+  // Estados de carga
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingCodigo, setLoadingCodigo] = useState(true);
   const [loadingSap, setLoadingSap] = useState(true);
-  
+
+  // Datos para lectura y selectores
+  const [codigoInfo, setCodigoInfo] = useState(null);
   const [itemsGroups, setItemsGroups] = useState([]);
   const [vatGroups, setVatGroups] = useState([]);
   const [perfilUsuario, setPerfilUsuario] = useState(null);
-  
+
   const claims = getAuthClaims(token);
   const userID = claims?.id || null;
 
+  // Formulario únicamente con campos editables
   const {
     register,
     handleSubmit,
@@ -39,15 +42,10 @@ const ContabilidadEditarCodigo = () => {
       gravaIva: 'SI',
       PurchaseTaxCode: '',
       SalesTaxCode: '',
-      nombre_solicitante: '',
-      requestor_area: '',
-      descripcion_sap: '',
-      unidad_medida: '',
-      Details: '',
-    }
+    },
   });
 
-  // Cargar datos del perfil para la UI
+  // 1. Cargar perfil de usuario
   useEffect(() => {
     const cargarDatosUsuario = async () => {
       if (!token) {
@@ -70,7 +68,7 @@ const ContabilidadEditarCodigo = () => {
     cargarDatosUsuario();
   }, [token, fetchDataBackend]);
 
-  // Cargar los datos específicos del código a editar de forma independiente
+  // 2. Cargar los datos del código a editar
   useEffect(() => {
     const cargarCodigo = async () => {
       try {
@@ -84,25 +82,32 @@ const ContabilidadEditarCodigo = () => {
 
         if (response?.codigo) {
           const item = response.codigo;
+
+          // Guardar info general de solo lectura
+          setCodigoInfo({
+            nombre_solicitante: item.nombre_solicitante || '',
+            requestor_area: item.requestor_area || '',
+            descripcion_sap: item.descripcion_sap || '',
+            unidad_medida: item.unidad_medida || '',
+            gravaIva: item.grava_iva || 'SI',
+            Details: item.detalles || '',
+          });
+
+          // Cargar datos editables en el formulario
           reset({
             ItemsGroupCode: item.grupo_articulos || '',
             ItemType: item.tipo_bien || 'B',
             gravaIva: item.grava_iva || 'SI',
             PurchaseTaxCode: item.impuesto_compra || '',
             SalesTaxCode: item.impuesto_venta || '',
-            nombre_solicitante: item.nombre_solicitante || '',
-            requestor_area: item.requestor_area || '',
-            descripcion_sap: item.descripcion_sap || '',
-            unidad_medida: item.unidad_medida || '',
-            Details: item.detalles || '',
           });
         } else {
-          toast.error('No se pudo cargar el código');
+          toast.error(response?.msg || 'No se pudo cargar el código');
           setTimeout(() => navigate('/dashboard/tablas'), 1500);
         }
       } catch (error) {
         console.error('Error cargando el código:', error);
-        toast.error('Error al inicializar los datos del formulario');
+        toast.error(error?.response?.data?.msg || error?.msg || error?.message || 'Error al inicializar los datos del formulario');
       } finally {
         setLoadingCodigo(false);
       }
@@ -113,23 +118,23 @@ const ContabilidadEditarCodigo = () => {
     }
   }, [id, token, navigate, fetchDataBackend, reset]);
 
-  // Cargar Grupos de Artículos e IVA de SAP de forma independiente
+  // 3. Cargar Catálogos SAP
   useEffect(() => {
     const cargarCatalogosSap = async () => {
       try {
         setLoadingSap(true);
         const [itemsRes, vatRes] = await Promise.all([
           fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`, null, 'GET', token),
-          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/vat-groups`, null, 'GET', token)
+          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/vat-groups`, null, 'GET', token),
         ]);
 
         const itemsData = itemsRes?.data || itemsRes?.value || itemsRes || [];
         const vatData = vatRes?.data || vatRes?.value || vatRes || [];
 
         const mappedItemsGroups = Array.isArray(itemsData)
-          ? itemsData.map(item => ({
+          ? itemsData.map((item) => ({
               Code: item.Number,
-              Name: item.GroupName
+              Name: item.GroupName,
             }))
           : [];
 
@@ -137,7 +142,7 @@ const ContabilidadEditarCodigo = () => {
         setVatGroups(Array.isArray(vatData) ? vatData : []);
       } catch (error) {
         console.error('Error cargando catálogos de SAP:', error);
-        toast.error('Error al cargar opciones de SAP');
+        toast.error(error?.response?.data?.msg || error?.msg || error?.message || 'Error al cargar opciones de SAP');
       } finally {
         setLoadingSap(false);
       }
@@ -148,6 +153,7 @@ const ContabilidadEditarCodigo = () => {
     }
   }, [token, fetchDataBackend]);
 
+  // Observar gravaIva para limpiar impuestos en caso de cambiar a "NO"
   const gravaIva = watch('gravaIva');
 
   useEffect(() => {
@@ -157,7 +163,7 @@ const ContabilidadEditarCodigo = () => {
     }
   }, [gravaIva, setValue]);
 
-  // Actualizar código con datos de contabilidad
+  // 4. Guardar Cambios
   const updateCodigo = async (data) => {
     try {
       setIsSubmitting(true);
@@ -170,23 +176,23 @@ const ContabilidadEditarCodigo = () => {
         impuesto_compra: data.gravaIva === 'SI' ? data.PurchaseTaxCode : '',
         impuesto_venta: data.gravaIva === 'SI' ? data.SalesTaxCode : '',
         userId: userID,
-        userName: perfilUsuario?.nombre || claims?.nombre || 'Contabilidad'
+        userName: perfilUsuario?.nombre || claims?.nombre || 'Contabilidad',
       };
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/contabilidad/update/${id}`;
       const response = await fetchDataBackend(url, codigoData, 'PUT', token);
 
       if (response?.success) {
-        toast.success('Código actualizado exitosamente');
+        toast.success(response?.msg || 'Código actualizado exitosamente');
         setTimeout(() => {
           navigate('/dashboard/tablas');
         }, 1500);
       } else {
-        toast.error(response?.message || 'Error al actualizar el código');
+        toast.error(response?.msg || 'Error al actualizar el código');
       }
     } catch (error) {
       console.error('Error al actualizar:', error);
-      toast.error('Error al actualizar el código');
+      toast.error(error?.response?.data?.msg || error?.msg || error?.message || 'Error al actualizar el código');
     } finally {
       setIsSubmitting(false);
     }
@@ -212,7 +218,9 @@ const ContabilidadEditarCodigo = () => {
                 <p className="text-lg font-semibold text-slate-900">Información del Código</p>
               </div>
               <div>
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">Solo lectura</span>
+                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
+                  Solo lectura
+                </span>
               </div>
             </div>
 
@@ -226,7 +234,9 @@ const ContabilidadEditarCodigo = () => {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Nombre del Solicitante</p>
-                  <p className="mt-1 text-sm text-slate-700">{loadingCodigo ? 'Cargando...' : (watch('nombre_solicitante') || 'Sin datos')}</p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    {loadingCodigo ? 'Cargando...' : codigoInfo?.nombre_solicitante || 'Sin datos'}
+                  </p>
                 </div>
               </div>
 
@@ -239,7 +249,9 @@ const ContabilidadEditarCodigo = () => {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Área Solicitante</p>
-                  <p className="mt-1 text-sm text-slate-700">{loadingCodigo ? 'Cargando...' : (watch('requestor_area') || 'Sin datos')}</p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    {loadingCodigo ? 'Cargando...' : codigoInfo?.requestor_area || 'Sin datos'}
+                  </p>
                 </div>
               </div>
 
@@ -252,7 +264,9 @@ const ContabilidadEditarCodigo = () => {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Descripción SAP</p>
-                  <p className="mt-1 text-sm text-slate-700">{loadingCodigo ? 'Cargando...' : (watch('descripcion_sap') || 'Sin datos')}</p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    {loadingCodigo ? 'Cargando...' : codigoInfo?.descripcion_sap || 'Sin datos'}
+                  </p>
                 </div>
               </div>
 
@@ -264,21 +278,25 @@ const ContabilidadEditarCodigo = () => {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Unidad de Medida</p>
-                  <p className="mt-1 text-sm text-slate-700">{loadingCodigo ? 'Cargando...' : (watch('unidad_medida') || 'Sin datos')}</p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    {loadingCodigo ? 'Cargando...' : codigoInfo?.unidad_medida || 'Sin datos'}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 text-yellow-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-6 w-6">
-                      <circle cx="7" cy="7" r="2" fill="currentColor" />
-                      <circle cx="17" cy="17" r="2" fill="currentColor" />
-                      <path d="M19 5L5 19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-6 w-6">
+                    <circle cx="7" cy="7" r="2" fill="currentColor" />
+                    <circle cx="17" cy="17" r="2" fill="currentColor" />
+                    <path d="M19 5L5 19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Grava o no grava IVA</p>
-                  <p className="mt-1 text-sm text-slate-700">{loadingCodigo ? 'Cargando...' : (watch('gravaIva') || 'Sin datos')}</p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    {loadingCodigo ? 'Cargando...' : codigoInfo?.gravaIva || 'Sin datos'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -293,7 +311,9 @@ const ContabilidadEditarCodigo = () => {
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-900">Detalles</p>
-                <p className="mt-1 text-sm text-slate-700 leading-7">{loadingCodigo ? 'Cargando...' : (watch('Details') || 'Sin datos')}</p>
+                <p className="mt-1 text-sm text-slate-700 leading-7">
+                  {loadingCodigo ? 'Cargando...' : codigoInfo?.Details || 'Sin datos'}
+                </p>
               </div>
             </div>
           </section>
@@ -322,9 +342,11 @@ const ContabilidadEditarCodigo = () => {
                 </label>
                 <select
                   disabled={loadingSap}
-                  className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 ${loadingSap ? 'cursor-wait' : ''}`}
+                  className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 ${
+                    loadingSap ? 'cursor-wait' : ''
+                  }`}
                   {...register('ItemsGroupCode', {
-                    required: 'El grupo de artículos es obligatorio'
+                    required: 'El grupo de artículos es obligatorio',
                   })}
                 >
                   {loadingSap ? (
@@ -353,7 +375,7 @@ const ContabilidadEditarCodigo = () => {
                 <select
                   className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100"
                   {...register('ItemType', {
-                    required: 'El tipo de bien es obligatorio'
+                    required: 'El tipo de bien es obligatorio',
                   })}
                 >
                   {ITEM_TYPES.map((type) => (
@@ -376,9 +398,11 @@ const ContabilidadEditarCodigo = () => {
                     </label>
                     <select
                       disabled={loadingSap}
-                      className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 ${loadingSap ? 'cursor-wait' : ''}`}
+                      className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 ${
+                        loadingSap ? 'cursor-wait' : ''
+                      }`}
                       {...register('PurchaseTaxCode', {
-                        required: gravaIva === 'SI' ? 'El IVA de compra es obligatorio' : false
+                        required: gravaIva === 'SI' ? 'El IVA de compra es obligatorio' : false,
                       })}
                     >
                       {loadingSap ? (
@@ -406,9 +430,11 @@ const ContabilidadEditarCodigo = () => {
                     </label>
                     <select
                       disabled={loadingSap}
-                      className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 ${loadingSap ? 'cursor-wait' : ''}`}
+                      className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 ${
+                        loadingSap ? 'cursor-wait' : ''
+                      }`}
                       {...register('SalesTaxCode', {
-                        required: gravaIva === 'SI' ? 'El IVA de venta es obligatorio' : false
+                        required: gravaIva === 'SI' ? 'El IVA de venta es obligatorio' : false,
                       })}
                     >
                       {loadingSap ? (

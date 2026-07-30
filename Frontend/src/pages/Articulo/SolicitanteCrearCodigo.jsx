@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import useFetch from '../../hooks/useFetch';
 import storeAuth from '../../context/storeAuth';
 import { getAuthClaims } from '../../utils/authClaims';
-import { ToastContainer } from 'react-toastify';
 
 const AREA_OPTIONS = [
   'BODEGA MATERIALES',
@@ -58,7 +57,6 @@ const SolicitanteCrearCodigo = () => {
 
   // Estados
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [cargandoUsuario, setCargandoUsuario] = useState(false);
   const [perfilUsuario, setPerfilUsuario] = useState(null);
 
   // Formulario
@@ -82,7 +80,6 @@ const SolicitanteCrearCodigo = () => {
         return;
       }
 
-      setCargandoUsuario(true);
       try {
         const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/mi-perfil`;
         const response = await fetchDataBackend(url, null, "GET", token, false);
@@ -91,8 +88,6 @@ const SolicitanteCrearCodigo = () => {
         }
       } catch (error) {
         console.error("Error al cargar perfil de usuario:", error);
-      } finally {
-        setCargandoUsuario(false);
       }
     };
 
@@ -118,13 +113,13 @@ const SolicitanteCrearCodigo = () => {
       const response = await fetchDataBackend(url, codigoData, 'POST', token);
 
       if (response?.success) {
-        toast.success('Código creado exitosamente');
+        toast.success(response?.msg || 'Código creado exitosamente');
         reset();
         setTimeout(() => {
           navigate('/dashboard/tablas');
         }, 1500);
       } else {
-        toast.error(response?.message || 'Error al crear el código');
+        toast.error(response?.msg || 'Error al crear el código');
       }
     } catch (error) {
       console.error('Error al crear el código:', error);
@@ -196,8 +191,6 @@ const SolicitanteCrearCodigo = () => {
                 )}
               </div>
 
-              
-
               {/* Descripción */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-900">
@@ -252,7 +245,12 @@ const SolicitanteCrearCodigo = () => {
                   type="url"
                   placeholder="https://ejemplo.com"
                   className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('ReferenceLink')}
+                  {...register('ReferenceLink', {
+                    pattern: {
+                      value: /^(https?:\/\/)?([\w.-]+)\.([a-z]{2,})(:\d{1,5})?(\/.*)?$/i,
+                      message: 'Ingresa un enlace URL válido'
+                    }
+                  })}
                 />
                 {errors.ReferenceLink && (
                   <p className="text-sm text-red-600">{errors.ReferenceLink.message}</p>

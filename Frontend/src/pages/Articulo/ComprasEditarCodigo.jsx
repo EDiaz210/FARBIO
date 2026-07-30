@@ -1,51 +1,45 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import useFetch from '../../hooks/useFetch';
 import storeAuth from '../../context/storeAuth';
 import { getAuthClaims } from '../../utils/authClaims';
-import { ToastContainer } from 'react-toastify';
 
 const ComprasEditarCodigo = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { token } = storeAuth();
   const { fetchDataBackend } = useFetch();
+
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [cargandoUsuario, setCargandoUsuario] = useState(false);
   const [perfilUsuario, setPerfilUsuario] = useState(null);
   const [referenceLink, setReferenceLink] = useState('');
+
   const claims = getAuthClaims(token);
   const userID = claims?.id || null;
 
-  // Cargar datos del perfil para la UI
+  // 1. Cargar perfil del usuario
   useEffect(() => {
     const cargarDatosUsuario = async () => {
-      if (!token) {
-        setPerfilUsuario(null);
-        return;
-      }
+      if (!token) return;
 
-      setCargandoUsuario(true);
       try {
         const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/mi-perfil`;
-        const response = await fetchDataBackend(url, null, "GET", token, false);
+        const response = await fetchDataBackend(url, null, 'GET', token, false);
         if (response?.usuario) {
           setPerfilUsuario(response.usuario);
         }
       } catch (error) {
-        console.error("Error al cargar perfil de usuario:", error);
-      } finally {
-        setCargandoUsuario(false);
+        console.error('Error al cargar perfil de usuario:', error);
       }
     };
 
     cargarDatosUsuario();
   }, [token, fetchDataBackend]);
 
-
+  // 2. Formulario optimizado
   const {
     register,
     handleSubmit,
@@ -53,13 +47,6 @@ const ComprasEditarCodigo = () => {
     setValue,
   } = useForm({
     defaultValues: {
-      ItemCode: '',
-      ItemName: '',
-      ForeignName: '',
-      PurchaseUnit: '',
-      LeadTimeInDays: '',
-      ToleranceDays: '',
-      CantidadMinimaPedido: '',
       RequestorDescription: '',
       Details: '',
       ReferenceLink: '',
@@ -67,10 +54,13 @@ const ComprasEditarCodigo = () => {
       descripcion_sap: '',
       unidad_medida: '',
       gravaIva: 'SI',
-    }
+      LeadTimeInDays: '',
+      ToleranceDays: '',
+      CantidadMinimaPedido: '',
+    },
   });
 
-  // Cargar datos del código
+  // 3. Cargar datos del código
   useEffect(() => {
     const fetchCodigoData = async () => {
       try {
@@ -80,28 +70,28 @@ const ComprasEditarCodigo = () => {
 
         if (response?.codigo) {
           const item = response.codigo;
-          setValue('ItemCode', item.codigo || '');
-          setValue('ItemName', item.descripcion_sap || '');
-          setValue('ForeignName', item.nombre_extranjero || '');
-          setValue('PurchaseUnit', item.unidad_compra || '');
-          setValue('LeadTimeInDays', item.lead_time || '');
-          setValue('ToleranceDays', item.dias_tolerancia || '');
-          setValue('CantidadMinimaPedido', item.cantidad_minima_pedido ?? '');
+
+          // Datos de solo lectura
           setValue('RequestorDescription', item.descripcion || '');
           setValue('Details', item.detalles || '');
           setValue('ReferenceLink', item.link_referencia || '');
-          setReferenceLink(item.link_referencia || '');
           setValue('RequestorArea', item.requestor_area || '');
+          setReferenceLink(item.link_referencia || '');
+
+          // Datos editables de compras
           setValue('descripcion_sap', item.descripcion_sap || '');
           setValue('unidad_medida', item.unidad_medida || '');
           setValue('gravaIva', item.grava_iva || 'SI');
+          setValue('LeadTimeInDays', item.lead_time || '');
+          setValue('ToleranceDays', item.dias_tolerancia || '');
+          setValue('CantidadMinimaPedido', item.cantidad_minima_pedido ?? '');
         } else {
-          toast.error('No se pudo cargar el código');
+          toast.error(response?.msg || 'No se pudo cargar el código');
           setTimeout(() => navigate('/dashboard/tablas'), 1500);
         }
       } catch (error) {
         console.error('Error cargando código:', error);
-        toast.error('Error al cargar el código');
+        toast.error(error?.response?.data?.msg || 'Error al cargar el código');
       } finally {
         setLoading(false);
       }
@@ -112,13 +102,13 @@ const ComprasEditarCodigo = () => {
     }
   }, [id, token, setValue, navigate, fetchDataBackend]);
 
-  // Actualizar código con datos de compras
+  // 4. Guardar cambios usando 'msg'
   const updateCodigo = async (data) => {
     try {
       setIsSubmitting(true);
 
       const codigoData = {
-        nombreCompras: perfilUsuario?.nombre,
+        nombreCompras: perfilUsuario?.nombre || 'Compras',
         descripcion_sap: data.descripcion_sap,
         unidad_medida: data.unidad_medida,
         grava_iva: data.gravaIva,
@@ -126,23 +116,23 @@ const ComprasEditarCodigo = () => {
         dias_tolerancia: data.ToleranceDays,
         cantidad_minima_pedido: data.CantidadMinimaPedido,
         userId: userID,
-        userName: claims?.nombre || 'Compras'
+        userName: perfilUsuario?.nombre || 'Compras',
       };
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/compras/update/${id}`;
       const response = await fetchDataBackend(url, codigoData, 'PUT', token);
 
       if (response?.success) {
-        toast.success('Código actualizado exitosamente');
+        toast.success(response?.msg || 'Código actualizado exitosamente');
         setTimeout(() => {
           navigate('/dashboard/tablas');
         }, 1500);
       } else {
-        toast.error(response?.message || 'Error al actualizar el código');
+        toast.error(response?.msg || 'Error al actualizar el código');
       }
     } catch (error) {
       console.error('Error al actualizar:', error);
-      toast.error('Error al actualizar el código');
+      toast.error(error?.response?.data?.msg || 'Error al actualizar el código');
     } finally {
       setIsSubmitting(false);
     }

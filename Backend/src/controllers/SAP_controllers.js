@@ -136,7 +136,7 @@ const logoutFromSap = async (sessionId) => {
 
     res.status(200).json({
       success: true,
-      message: 'Items Groups obtenidos exitosamente',
+      msg: 'Items Groups obtenidos exitosamente',
       total: itemsGroupsResponse.data.value.length,
       data: itemsGroupsResponse.data.value
     });
@@ -145,7 +145,7 @@ const logoutFromSap = async (sessionId) => {
     console.error('Error en obtenerItemsGroups:', error.response?.data || error.message);
     res.status(500).json({
       success: false,
-      message: 'Error al obtener Items Groups',
+      msg: 'Error al obtener Items Groups',
       error: error.response?.data || error.message
     });
   }
@@ -186,7 +186,7 @@ const obtenerItems = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Items obtenidos',
+      msg: 'Items obtenidos',
       data: unitsData
     });
 
@@ -194,7 +194,7 @@ const obtenerItems = async (req, res) => {
     console.error('Error en obtenerItems:', error.response?.data || error.message);
     res.status(200).json({
       success: true,
-      message: 'Items (vacío - endpoint no disponible)',
+      msg: 'Items (vacío - endpoint no disponible)',
       data: []
     });
   }
@@ -232,7 +232,7 @@ const buscarItemSAP = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Item encontrado en SAP',
+      msg: 'Item encontrado en SAP',
       data: itemResponse.data
     });
   } catch (error) {
@@ -242,7 +242,7 @@ const buscarItemSAP = async (req, res) => {
 
     return res.status(statusCode).json({
       success: false,
-      message: 'No se pudo obtener el item desde SAP',
+      msg: 'No se pudo obtener el item desde SAP',
       error: error.response?.data || error.message
     });
   }

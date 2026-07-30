@@ -16,19 +16,19 @@ const MaestroDatosEditarCodigo = () => {
   const navigate = useNavigate();
   const { token } = storeAuth();
   const { fetchDataBackend } = useFetch();
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sapLoading, setSapLoading] = useState(false);
-  
+
   // Estados de carga independientes para mostrar "Cargando..." en los selects
   const [loadingItemsGroups, setLoadingItemsGroups] = useState(true);
   const [loadingVatGroups, setLoadingVatGroups] = useState(true);
 
   const [itemsGroups, setItemsGroups] = useState([]);
   const [vatGroups, setVatGroups] = useState([]);
-  
+
   const rawDataRef = useRef(null);
-  
+
   const claims = getAuthClaims(token);
   const userID = claims?.id || null;
 
@@ -63,7 +63,7 @@ const MaestroDatosEditarCodigo = () => {
       InventoryItem: false,
       SalesItem: false,
       PurchaseItem: false,
-    }
+    },
   });
 
   // 1. CARGA INMEDIATA: Pinta los datos locales al instante
@@ -120,35 +120,31 @@ const MaestroDatosEditarCodigo = () => {
   useEffect(() => {
     const fetchSapOptions = async () => {
       try {
-        // Solicitamos en paralelo pero manejamos estados separados si se desea, 
-        // o indicadores globales de carga para los selects.
         const [vatRes, itemsRes] = await Promise.all([
           fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/vat-groups`, null, 'GET', token),
-          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`, null, 'GET', token)
+          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`, null, 'GET', token),
         ]);
 
         const vatData = vatRes?.data || vatRes?.value || vatRes || [];
         const itemsData = itemsRes?.data || itemsRes?.value || itemsRes || [];
 
         const mappedItemsGroups = Array.isArray(itemsData)
-          ? itemsData.map(item => ({
+          ? itemsData.map((item) => ({
               Code: item.Number,
-              Name: item.GroupName
+              Name: item.GroupName,
             }))
           : [];
 
         setVatGroups(Array.isArray(vatData) ? vatData : []);
         setItemsGroups(mappedItemsGroups);
 
-        // Activamos los estados como listos para quitar el texto "Cargando..."
         setLoadingItemsGroups(false);
         setLoadingVatGroups(false);
 
-        // Re-aplicamos el reset para autocompletar los selects con los valores previos
+        // Re-aplicamos el reset manteniendo cualquier edición previa del usuario
         if (rawDataRef.current) {
-          reset(rawDataRef.current);
+          reset(rawDataRef.current, { keepDirty: true });
         }
-
       } catch (error) {
         console.error('Error cargando opciones de SAP en segundo plano:', error);
         setLoadingItemsGroups(false);
@@ -182,15 +178,15 @@ const MaestroDatosEditarCodigo = () => {
 
       const item = response.data.value || response.data;
 
-      setValue('ItemCode', item.ItemCode || item.codigo || itemCode);
-      setValue('ItemName', item.ItemName || item.descripcion_sap || '');
-      setValue('ForeignName', item.ForeignName || item.nombre_extranjero || '');
-      setValue('unidad_medida', item.PurchaseUnit || item.unidad_compra || item.unidad_medida || '');
-      setValue('PurchaseTaxCode', item.PurchaseTaxCode || item.impuesto_compra || '');
-      setValue('SalesTaxCode', item.SalesTaxCode || item.impuesto_venta || '');
-      setValue('ItemsGroupCode', item.ItemsGroupCode ?? item.grupo_articulos ?? '');
-      setValue('ItemType', item.ItemType || item.tipo_bien || 'B');
-      setValue('LeadTime', item.LeadTime || item.lead_time || '');
+      setValue('ItemCode', item.ItemCode || item.codigo || itemCode, { shouldDirty: true });
+      setValue('ItemName', item.ItemName || item.descripcion_sap || '', { shouldDirty: true });
+      setValue('ForeignName', item.ForeignName || item.nombre_extranjero || '', { shouldDirty: true });
+      setValue('unidad_medida', item.PurchaseUnit || item.unidad_compra || item.unidad_medida || '', { shouldDirty: true });
+      setValue('PurchaseTaxCode', item.PurchaseTaxCode || item.impuesto_compra || '', { shouldDirty: true });
+      setValue('SalesTaxCode', item.SalesTaxCode || item.impuesto_venta || '', { shouldDirty: true });
+      setValue('ItemsGroupCode', item.ItemsGroupCode ?? item.grupo_articulos ?? '', { shouldDirty: true });
+      setValue('ItemType', item.ItemType || item.tipo_bien || 'B', { shouldDirty: true });
+      setValue('LeadTime', item.LeadTime || item.lead_time || '', { shouldDirty: true });
 
       toast.success('Item encontrado en SAP');
     } catch (error) {
@@ -226,7 +222,7 @@ const MaestroDatosEditarCodigo = () => {
         venta: data.SalesItem ? 'tYES' : 'tNO',
         compra: data.PurchaseItem ? 'tYES' : 'tNO',
         userId: userID,
-        userName: claims?.nombre || 'Maestro'
+        userName: claims?.nombre || 'Maestro',
       };
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/maestro/codigos/${id}`;
@@ -247,7 +243,7 @@ const MaestroDatosEditarCodigo = () => {
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     <div className="min-h-full overflow-auto" style={{ fontFamily: 'Gowun Batang, serif' }}>
       <ToastContainer />
