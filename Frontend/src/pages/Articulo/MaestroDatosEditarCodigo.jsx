@@ -159,43 +159,36 @@ const MaestroDatosEditarCodigo = () => {
 
   // Buscar item en SAP
   const buscarItemEnSAP = async () => {
-    const itemCode = getValues('ItemCode')?.trim();
+  const itemCode = getValues('ItemCode')?.trim();
+  const itemName = getValues('ItemName')?.trim();
 
-    if (!itemCode) {
-      toast.error('Ingresa un código de item para buscarlo en SAP');
-      return;
+  if (!itemCode && !itemName) {
+    toast.error('Ingresa un código o descripción para verificar en SAP');
+    return;
+  }
+
+  try {
+    setSapLoading(true);
+
+    const params = new URLSearchParams();
+    if (itemCode) params.append('itemCode', itemCode);
+    if (itemName) params.append('description', itemName);
+
+    const url = `${import.meta.env.VITE_BACKEND_URL}/api/sap/items?${params.toString()}`;
+    const response = await fetchDataBackend(url, null, 'GET', token);
+
+    if (response?.success && response?.existe) {
+      toast.success(response.msg || 'Coincidencia encontrada en SAP');
+    } else {
+      toast.warning(response?.msg || 'No se encontraron coincidencias en SAP');
     }
-
-    try {
-      setSapLoading(true);
-      const url = `${import.meta.env.VITE_BACKEND_URL}/api/sap/items/${encodeURIComponent(itemCode)}`;
-      const response = await fetchDataBackend(url, null, 'GET', token);
-
-      if (!response?.success || !response?.data) {
-        toast.error('No se encontró el item en SAP');
-        return;
-      }
-
-      const item = response.data.value || response.data;
-
-      setValue('ItemCode', item.ItemCode || item.codigo || itemCode, { shouldDirty: true });
-      setValue('ItemName', item.ItemName || item.descripcion_sap || '', { shouldDirty: true });
-      setValue('ForeignName', item.ForeignName || item.nombre_extranjero || '', { shouldDirty: true });
-      setValue('unidad_medida', item.PurchaseUnit || item.unidad_compra || item.unidad_medida || '', { shouldDirty: true });
-      setValue('PurchaseTaxCode', item.PurchaseTaxCode || item.impuesto_compra || '', { shouldDirty: true });
-      setValue('SalesTaxCode', item.SalesTaxCode || item.impuesto_venta || '', { shouldDirty: true });
-      setValue('ItemsGroupCode', item.ItemsGroupCode ?? item.grupo_articulos ?? '', { shouldDirty: true });
-      setValue('ItemType', item.ItemType || item.tipo_bien || 'B', { shouldDirty: true });
-      setValue('LeadTime', item.LeadTime || item.lead_time || '', { shouldDirty: true });
-
-      toast.success('Item encontrado en SAP');
-    } catch (error) {
-      console.error('Error buscando item en SAP:', error);
-      toast.error('Error buscando el item en SAP');
-    } finally {
-      setSapLoading(false);
-    }
-  };
+  } catch (error) {
+    console.error('Error verificando item en SAP:', error);
+    toast.error('Error al consultar la existencia en SAP');
+  } finally {
+    setSapLoading(false);
+  }
+};
 
   // Actualizar código con datos de maestro de datos
   const updateCodigo = async (data) => {

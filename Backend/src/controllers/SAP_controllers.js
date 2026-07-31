@@ -204,23 +204,33 @@ const obtenerItems = async (req, res) => {
 // Busca un item específico en SAP por código de item
 const buscarItemSAP = async (req, res) => {
   try {
-    const itemCode = req.params.itemCode || req.query.itemCode || req.query.code;
+    
+    const { itemCode, description } = req.query;
 
-    if (!itemCode) {
+    if (!itemCode && !description) {
       return res.status(400).json({
         success: false,
-        message: 'Debes enviar el código del item para buscarlo en SAP'
+        msg: 'Debes enviar el código o descripción del item para buscarlo en SAP'
       });
     }
 
-    console.log(`Buscando item en SAP: ${itemCode}`);
+    console.log(`Buscando item en SAP: ${searchTerm}`);
 
     const sessionId = await loginToSap();
     console.log(`Sesión iniciada: ${sessionId}`);
 
+
+
+    const cleanCode = item.Code.trim().replace(/'/g, "''");
+    const cleanDesc = description.trim().replace(/'/g, "''");
+
     const itemResponse = await axios.get(
-      `${process.env.SAP_URL}/Items('${encodeURIComponent(itemCode)}')`,
+      `${process.env.SAP_URL}/Items`,
       {
+        params: {
+          '$filter': `ItemCode eq '${cleanCode}' or contains(ItemName, '${cleanDesc}')`,
+          '$select': 'ItemCode,ItemName'
+        },
         httpsAgent,
         headers: {
           'Cookie': `B1SESSION=${sessionId}`
@@ -230,19 +240,25 @@ const buscarItemSAP = async (req, res) => {
 
     await logoutFromSap(sessionId);
 
+    const items = itemResponse.data.value || [];
+
+    // Evaluamos cada caso por separado
+    const existeCodigo = items.some(item => item.ItemCode.toLowerCase() === itemCode.toLowerCase());
+    const existeDescripcion = items.some(item => item.ItemName.toLowerCase().includes(description.toLowerCase()));
+
     return res.status(200).json({
       success: true,
-      msg: 'Item encontrado en SAP',
-      data: itemResponse.data
+      valido: existeCodigo || existeDescripcion,
+      detalle: {
+        existeCodigo,
+        existeDescripcion
+      }
     });
   } catch (error) {
     console.error('Error en buscarItemSAP:', error.response?.data || error.message);
-
-    const statusCode = error.response?.status || 500;
-
-    return res.status(statusCode).json({
+    return res.status(error.response?.status || 500).json({
       success: false,
-      msg: 'No se pudo obtener el item desde SAP',
+      msg: 'Error al verificar en SAP',
       error: error.response?.data || error.message
     });
   }
