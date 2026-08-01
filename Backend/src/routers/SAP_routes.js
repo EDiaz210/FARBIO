@@ -20,6 +20,10 @@ router.get('/items-groups', obtenerItemsGroups);
 // La ruta es /api/sap/items
 router.get('/items', obtenerItems);
 
+// GET - Buscar items de SAP por código o descripción (query params)
+// La ruta es /api/sap/items/search?itemCode=...&description=...
+router.get('/items/search', buscarItemSAP);
+
 // GET - Buscar un item específico de SAP por código
 // La ruta es /api/sap/items/:itemCode
 router.get('/items/:itemCode', buscarItemSAP);

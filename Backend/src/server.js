@@ -10,6 +10,7 @@ import comprasRoutes from './routers/Compras_routes.js';
 import contabilidadRoutes from './routers/Contabilidad_routes.js';
 import maestroRoutes from './routers/Maestro_routes.js';
 import reportesRoutes from './routers/Reportes_routes.js';
+import syncRoutes from './routers/Sync_routes.js';
 
 
 //Inicializaciones
@@ -63,6 +64,9 @@ app.use('/api/maestro', maestroRoutes);
 
 // Rutas de Reportes
 app.use('/api/reportes', reportesRoutes);
+
+// Rutas de sincronización
+app.use('/api/sync', syncRoutes);
 
 
 

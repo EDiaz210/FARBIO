@@ -120,6 +120,14 @@ const MaestroDatosEditarCodigo = () => {
   useEffect(() => {
     const fetchSapOptions = async () => {
       try {
+        // Clear select values so placeholder ('Cargando datos...') is visible while loading
+        try {
+          setValue('ItemsGroupCode', '', { shouldDirty: false });
+          setValue('PurchaseTaxCode', '', { shouldDirty: false });
+          setValue('SalesTaxCode', '', { shouldDirty: false });
+        } catch (e) {
+          // If setValue not ready, ignore
+        }
         const [vatRes, itemsRes] = await Promise.all([
           fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/vat-groups`, null, 'GET', token),
           fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`, null, 'GET', token),
@@ -174,13 +182,24 @@ const MaestroDatosEditarCodigo = () => {
     if (itemCode) params.append('itemCode', itemCode);
     if (itemName) params.append('description', itemName);
 
-    const url = `${import.meta.env.VITE_BACKEND_URL}/api/sap/items?${params.toString()}`;
+    const url = `${import.meta.env.VITE_BACKEND_URL}/api/sap/items/search?${params.toString()}`;
     const response = await fetchDataBackend(url, null, 'GET', token);
 
-    if (response?.success && response?.existe) {
-      toast.success(response.msg || 'Coincidencia encontrada en SAP');
+    if (response?.success) {
+      const existeCodigo = response?.detalle?.existeCodigo;
+      const existeDescripcion = response?.detalle?.existeDescripcion;
+
+      if (existeCodigo && existeDescripcion) {
+        toast.success('item encontrado por descripción del sap y code');
+      } else if (existeCodigo) {
+        toast.success('item encontrado por code');
+      } else if (existeDescripcion) {
+        toast.success('item encontrado por descripcion sap');
+      } else {
+        toast.warning('No se encontraron coincidencias en SAP');
+      }
     } else {
-      toast.warning(response?.msg || 'No se encontraron coincidencias en SAP');
+      toast.error(response?.msg || 'Error al consultar SAP');
     }
   } catch (error) {
     console.error('Error verificando item en SAP:', error);
@@ -530,21 +549,28 @@ const MaestroDatosEditarCodigo = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <label className="block text-sm font-semibold text-slate-900">Grupo de Artículos *</label>
-                        {loadingItemsGroups && (
-                          <span className="text-xs text-blue-600 animate-pulse font-medium">Cargando datos...</span>
-                        )}
                       </div>
-                      <select
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                        {...register('ItemsGroupCode', { required: 'El grupo de artículos es obligatorio' })}
-                      >
-                        <option value="">{loadingItemsGroups ? 'Cargando grupos desde SAP...' : 'Selecciona un grupo'}</option>
-                        {itemsGroups.map((group) => (
-                          <option key={group.Code} value={group.Code}>
-                            {group.Name}
-                          </option>
-                        ))}
-                      </select>
+                      {loadingItemsGroups ? (
+                        <select
+                          disabled
+                          className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                        >
+                          <option value="">Cargando datos...</option>
+                        </select>
+                      ) : (
+                        <select
+                          className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                          {...register('ItemsGroupCode', { required: 'El grupo de artículos es obligatorio' })}
+                          defaultValue={getValues('ItemsGroupCode') || ''}
+                        >
+                          <option value="">Selecciona un grupo</option>
+                          {itemsGroups.map((group) => (
+                            <option key={group.Code} value={group.Code}>
+                              {group.Name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                       {errors.ItemsGroupCode && <p className="text-sm text-red-600">{errors.ItemsGroupCode.message}</p>}
                     </div>
 
@@ -568,21 +594,25 @@ const MaestroDatosEditarCodigo = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <label className="block text-sm font-semibold text-slate-900">IVA Compra *</label>
-                        {loadingVatGroups && (
-                          <span className="text-xs text-blue-600 animate-pulse font-medium">Cargando datos...</span>
-                        )}
                       </div>
-                      <select
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                        {...register('PurchaseTaxCode', { required: 'El IVA de compra es obligatorio' })}
-                      >
-                        <option value="">{loadingVatGroups ? 'Cargando impuestos desde SAP...' : 'Selecciona IVA'}</option>
-                        {vatGroups.map((vat) => (
-                          <option key={vat.Code} value={vat.Code}>
-                            {vat.Name} ({vat.Code})
-                          </option>
-                        ))}
-                      </select>
+                      {loadingVatGroups ? (
+                        <select disabled className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white">
+                          <option value="">Cargando datos...</option>
+                        </select>
+                      ) : (
+                        <select
+                          className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                          {...register('PurchaseTaxCode', { required: 'El IVA de compra es obligatorio' })}
+                          defaultValue={getValues('PurchaseTaxCode') || ''}
+                        >
+                          <option value="">Selecciona IVA</option>
+                          {vatGroups.map((vat) => (
+                            <option key={vat.Code} value={vat.Code}>
+                              {vat.Name} ({vat.Code})
+                            </option>
+                          ))}
+                        </select>
+                      )}
                       {errors.PurchaseTaxCode && <p className="text-sm text-red-600">{errors.PurchaseTaxCode.message}</p>}
                     </div>
 
@@ -590,21 +620,25 @@ const MaestroDatosEditarCodigo = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <label className="block text-sm font-semibold text-slate-900">IVA Venta *</label>
-                        {loadingVatGroups && (
-                          <span className="text-xs text-blue-600 animate-pulse font-medium">Cargando datos...</span>
-                        )}
                       </div>
-                      <select
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                        {...register('SalesTaxCode', { required: 'El IVA de venta es obligatorio' })}
-                      >
-                        <option value="">{loadingVatGroups ? 'Cargando impuestos desde SAP...' : 'Selecciona IVA'}</option>
-                        {vatGroups.map((vat) => (
-                          <option key={vat.Code} value={vat.Code}>
-                            {vat.Name} ({vat.Code})
-                          </option>
-                        ))}
-                      </select>
+                      {loadingVatGroups ? (
+                        <select disabled className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white">
+                          <option value="">Cargando datos...</option>
+                        </select>
+                      ) : (
+                        <select
+                          className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                          {...register('SalesTaxCode', { required: 'El IVA de venta es obligatorio' })}
+                          defaultValue={getValues('SalesTaxCode') || ''}
+                        >
+                          <option value="">Selecciona IVA</option>
+                          {vatGroups.map((vat) => (
+                            <option key={vat.Code} value={vat.Code}>
+                              {vat.Name} ({vat.Code})
+                            </option>
+                          ))}
+                        </select>
+                      )}
                       {errors.SalesTaxCode && <p className="text-sm text-red-600">{errors.SalesTaxCode.message}</p>}
                     </div>
                   </div>

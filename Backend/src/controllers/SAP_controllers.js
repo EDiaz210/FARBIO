@@ -213,22 +213,24 @@ const buscarItemSAP = async (req, res) => {
         msg: 'Debes enviar el código o descripción del item para buscarlo en SAP'
       });
     }
-
-    console.log(`Buscando item en SAP: ${searchTerm}`);
+    console.log(`Buscando item en SAP. itemCode=${itemCode || ''} description=${description || ''}`);
 
     const sessionId = await loginToSap();
     console.log(`Sesión iniciada: ${sessionId}`);
 
+    const cleanCode = itemCode ? itemCode.trim().replace(/'/g, "''") : null;
+    const cleanDesc = description ? description.trim().replace(/'/g, "''") : null;
 
-
-    const cleanCode = item.Code.trim().replace(/'/g, "''");
-    const cleanDesc = description.trim().replace(/'/g, "''");
+    const filterParts = [];
+    if (cleanCode) filterParts.push(`ItemCode eq '${cleanCode}'`);
+    if (cleanDesc) filterParts.push(`contains(ItemName, '${cleanDesc}')`);
+    const filterQuery = filterParts.join(' or ');
 
     const itemResponse = await axios.get(
       `${process.env.SAP_URL}/Items`,
       {
         params: {
-          '$filter': `ItemCode eq '${cleanCode}' or contains(ItemName, '${cleanDesc}')`,
+          '$filter': filterQuery,
           '$select': 'ItemCode,ItemName'
         },
         httpsAgent,
@@ -242,17 +244,21 @@ const buscarItemSAP = async (req, res) => {
 
     const items = itemResponse.data.value || [];
 
-    // Evaluamos cada caso por separado
-    const existeCodigo = items.some(item => item.ItemCode.toLowerCase() === itemCode.toLowerCase());
-    const existeDescripcion = items.some(item => item.ItemName.toLowerCase().includes(description.toLowerCase()));
+    const existeCodigo = cleanCode
+      ? items.some(i => String(i.ItemCode || '').toLowerCase() === cleanCode.toLowerCase())
+      : false;
+    const existeDescripcion = cleanDesc
+      ? items.some(i => String(i.ItemName || '').toLowerCase().includes(cleanDesc.toLowerCase()))
+      : false;
+
+    const existe = existeCodigo || existeDescripcion;
 
     return res.status(200).json({
       success: true,
-      valido: existeCodigo || existeDescripcion,
-      detalle: {
-        existeCodigo,
-        existeDescripcion
-      }
+      existe,
+      msg: existe ? 'Coincidencia encontrada en SAP' : 'No se encontraron coincidencias en SAP',
+      detalle: { existeCodigo, existeDescripcion },
+      data: items
     });
   } catch (error) {
     console.error('Error en buscarItemSAP:', error.response?.data || error.message);
