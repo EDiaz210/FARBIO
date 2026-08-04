@@ -3,7 +3,7 @@ import axios from "axios";
 import storeAuth from "../context/storeAuth";
 
 function useFetch() {
-  const fetchDataBackend = useCallback(async (url, data = null, method = "GET", token = null, showToast = false) => {
+  const fetchDataBackend = useCallback(async (url, data = null, method = "GET", token = null, showToast = false, signal = null) => {
     try {
       const storeToken = storeAuth.getState().token;
       const authToken = token || storeToken;
@@ -19,6 +19,7 @@ function useFetch() {
         method,
         url,
         headers: requestHeaders,
+        signal,
       };
 
       if (data && method !== "GET") {
@@ -28,6 +29,9 @@ function useFetch() {
       const response = await axios(options);
       return response?.data;
     } catch (error) {
+      if (axios.isCancel?.(error) || error?.code === 'ERR_CANCELED') {
+        return null;
+      }
       const status = error?.response?.status;
       if (status === 401) {
         storeAuth.getState().logout();

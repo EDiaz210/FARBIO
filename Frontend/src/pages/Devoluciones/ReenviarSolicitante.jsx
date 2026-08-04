@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -62,12 +62,81 @@ const ReenviarSolicitante = () => {
   const [cargandoDatos, setCargandoDatos] = useState(true);
   const [perfilUsuario, setPerfilUsuario] = useState(null);
 
+  const validateDescripcion = useCallback((value) => {
+    if (!value || value.trim() === '') {
+      return 'La descripción es obligatoria';
+    }
+
+    const trimmed = value.trim();
+
+    if (trimmed.length < 10) {
+      return 'La descripción debe tener mínimo 10 caracteres';
+    }
+    if (trimmed.length > 100) {
+      return 'La descripción debe tener máximo 100 caracteres';
+    }
+
+    return true;
+  }, []);
+
+  const validateDetalles = useCallback((value) => {
+    if (!value || value.trim() === '') {
+      return 'Los detalles son obligatorios';
+    }
+
+    const trimmed = value.trim();
+
+    if (trimmed.length < 30) {
+      return 'Los detalles deben tener mínimo 30 caracteres';
+    }
+    if (trimmed.length > 300) {
+      return 'Los detalles deben tener máximo 300 caracteres';
+    }
+
+    return true;
+  }, []);
+
+  const validateLink = useCallback((value) => {
+    if (!value || value.trim() === '') {
+      return 'El enlace es obligatorio';
+    }
+
+    const trimmed = value.trim();
+
+    if (trimmed.length > 900) {
+      return 'El enlace debe tener máximo 900 caracteres';
+    }
+
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      return 'El enlace debe comenzar con http:// o https://';
+    }
+
+    try {
+      const url = new URL(trimmed);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        return 'El protocolo debe ser http o https';
+      }
+
+      if (!url.hostname || url.hostname === '') {
+        return 'Ingresa un enlace URL válido';
+      }
+
+      return true;
+    } catch (error) {
+      return 'Ingresa un enlace URL válido (http://ejemplo.com o https://ejemplo.com)';
+    }
+  }, []);
+
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValidating },
     reset,
-  } = useForm({ defaultValues });
+  } = useForm({
+    mode: 'onChange',
+    reValidateMode: 'onChange',
+    defaultValues,
+  });
 
   const claims = getAuthClaims(token);
   const userID = claims?.id || null;
@@ -147,6 +216,7 @@ const ReenviarSolicitante = () => {
         link_referencia: data.ReferenceLink,
         userId: userID,
         userName: nombreSolicitante,
+        forceStatusUpdate: true,
       };
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/solicitante/codigos/${id}`;
@@ -196,7 +266,11 @@ const ReenviarSolicitante = () => {
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-900">Empresa *</label>
                 <select
-                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                  className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition focus:ring-2 ${
+                    errors.Empresa
+                      ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100'
+                      : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'
+                  }`}
                   {...register('Empresa', {
                     required: 'La empresa es obligatoria',
                   })}
@@ -216,7 +290,11 @@ const ReenviarSolicitante = () => {
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-900">Área Solicitante *</label>
                 <select
-                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                  className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition focus:ring-2 ${
+                    errors.RequestorArea
+                      ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100'
+                      : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'
+                  }`}
                   {...register('RequestorArea', {
                     required: 'El área solicitante es obligatoria',
                   })}
@@ -239,35 +317,29 @@ const ReenviarSolicitante = () => {
                   type="text"
                   placeholder="Ej: Paracetamol 500mg"
                   autoComplete="off"
-                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('RequestorDescription', {
-                    required: 'La descripción es obligatoria',
-                    minLength: {
-                      value: 5,
-                      message: 'La descripción debe tener al menos 5 caracteres',
-                    },
-                  })}
+                  className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition focus:ring-2 ${
+                    errors.RequestorDescription
+                      ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100'
+                      : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'
+                  }`}
+                  {...register('RequestorDescription', { validate: validateDescripcion })}
                 />
                 {errors.RequestorDescription && (
                   <p className="text-sm text-red-600">{errors.RequestorDescription.message}</p>
                 )}
               </div>
 
-              
-
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-900">Detalles *</label>
                 <textarea
                   rows={4}
                   placeholder="Describe detalladamente el artículo que necesitas"
-                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('Details', {
-                    required: 'Los detalles son obligatorios',
-                    minLength: {
-                      value: 10,
-                      message: 'Los detalles deben tener al menos 10 caracteres',
-                    },
-                  })}
+                  className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition focus:ring-2 ${
+                    errors.Details
+                      ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100'
+                      : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'
+                  }`}
+                  {...register('Details', { validate: validateDetalles })}
                 />
                 {errors.Details && (
                   <p className="text-sm text-red-600">{errors.Details.message}</p>
@@ -275,12 +347,16 @@ const ReenviarSolicitante = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-900">Link de Referencia (Opcional)</label>
+                <label className="block text-sm font-semibold text-slate-900">Link de Referencia *</label>
                 <input
-                  type="url"
+                  type="text"
                   placeholder="https://ejemplo.com"
-                  className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                  {...register('ReferenceLink')}
+                  className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition focus:ring-2 ${
+                    errors.ReferenceLink
+                      ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100'
+                      : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'
+                  }`}
+                  {...register('ReferenceLink', { validate: validateLink })}
                 />
                 {errors.ReferenceLink && (
                   <p className="text-sm text-red-600">{errors.ReferenceLink.message}</p>

@@ -170,7 +170,8 @@ const updateSolicitante = async (req, res) => {
     userId,
     userName,
     RequestorArea,
-    empresa
+    empresa,
+    forceStatusUpdate = false
   } = req.body;
 
   try {
@@ -219,7 +220,8 @@ const updateSolicitante = async (req, res) => {
       SOLICITANTE_FIELDS_MAPPING
     );
 
-    if (!hasChanges) {
+    const shouldUpdateStatus = hasChanges || forceStatusUpdate || codigoAnterior.status === 'RetornoSolicitante';
+    if (!shouldUpdateStatus) {
       return res.status(200).json({ success: true, msg: 'No se realizaron cambios en el código' });
     }
 
@@ -235,12 +237,14 @@ const updateSolicitante = async (req, res) => {
     currentHistory.push({
       usuario: userName || codigoAnterior.nombre_solicitante || 'Solicitante',
       fecha: new Date().toISOString().split('T')[0],
-      accion: 'Actualización de Solicitante',
+      accion: Object.keys(changedFields).length > 0 ? 'Actualización de Solicitante' : 'Reenvío de Solicitante',
       camposModificados: Object.keys(changedFields)
     });
 
     // 6. Actualización en la Base de Datos
-    const finalSetClause = `${setClause}, r_creacion = ?, status = ?, updated_by = ?`;
+    const finalSetClause = setClause
+      ? `${setClause}, r_creacion = ?, status = ?, updated_by = ?`
+      : 'r_creacion = ?, status = ?, updated_by = ?';
     const finalValues = [...values, JSON.stringify(currentHistory), 'Nuevo', userId, id];
 
     const updateQuery = `UPDATE codigos SET ${finalSetClause} WHERE id = ?`;
@@ -259,8 +263,8 @@ const updateSolicitante = async (req, res) => {
       codigoId: id,
       codigo: codigoAnterior.codigo,
       modulo: 'creacion',
-      accion: 'Actualización de Solicitante',
-      campoAfectado: Object.keys(changedFields).join(','),
+      accion: Object.keys(changedFields).length > 0 ? 'Actualización de Solicitante' : 'Reenvío de Solicitante',
+      campoAfectado: Object.keys(changedFields).length > 0 ? Object.keys(changedFields).join(',') : 'status',
       valorAnterior: valorAnteriorLimpiado,
       valorNuevo: valorNuevoLimpiado,
       usuarioId: userId,

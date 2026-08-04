@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { toast, ToastContainer } from 'react-toastify';
@@ -38,6 +38,69 @@ const ComprasEditarCodigo = () => {
 
     cargarDatosUsuario();
   }, [token, fetchDataBackend]);
+
+  const validateDescripcionSAP = useCallback((value) => {
+    if (!value || value.trim() === '') {
+      return 'La descripción SAP es obligatoria';
+    }
+
+    const trimmed = value.trim();
+    if (trimmed.length < 10) {
+      return 'La descripción SAP debe tener mínimo 10 caracteres';
+    }
+    if (trimmed.length > 100) {
+      return 'La descripción SAP debe tener máximo 100 caracteres';
+    }
+    if (/[a-z]/.test(trimmed)) {
+      return 'La descripción SAP no acepta letras en minúscula';
+    }
+    const upperValue = trimmed.toUpperCase();
+    if (!/(ADM|VTS|PROD)$/.test(upperValue)) {
+      return 'La descripción SAP debe terminar en ADM, VTS o PROD';
+    }
+
+    return true;
+  }, []);
+
+  const validateUnidadMedida = useCallback((value) => {
+    if (!value || value.trim() === '') {
+      return 'La unidad de medida es obligatoria';
+    }
+
+    const trimmed = value.trim();
+    if (trimmed.length < 2) {
+      return 'La unidad de medida debe tener mínimo 2 caracteres';
+    }
+    if (trimmed.length > 50) {
+      return 'La unidad de medida debe tener máximo 50 caracteres';
+    }
+    if (/[a-z]/.test(trimmed)) {
+      return 'La unidad de medida no acepta letras en minúscula';
+    }
+    if (/[0-9]/.test(trimmed)) {
+      return 'La unidad de medida no acepta números';
+    }
+
+    return true;
+  }, []);
+
+  const validateNumericField = useCallback((value, fieldName) => {
+    if (value === undefined || value === null || String(value).trim() === '') {
+      return `${fieldName} es obligatorio`;
+    }
+
+    const stringValue = String(value).trim();
+    if (!/^[0-9]+$/.test(stringValue)) {
+      return `${fieldName} solo acepta números`; 
+    }
+
+    const numericValue = Number(stringValue);
+    if (numericValue < 1) {
+      return `El valor mínimo para ${fieldName} es 1`;
+    }
+
+    return true;
+  }, []);
 
   // 2. Formulario optimizado
   const {
@@ -241,10 +304,10 @@ const ComprasEditarCodigo = () => {
                     <label className="block text-sm font-semibold text-slate-900">Descripción SAP *</label>
                     <input
                       type="text"
-                      placeholder="Ej: Jabón S3"
-                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                      placeholder="Ej: JABON S3 ADM"
+                      className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition ${errors.descripcion_sap ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'}`}
                       {...register('descripcion_sap', {
-                        required: 'La descripción SAP es obligatoria'
+                        validate: validateDescripcionSAP,
                       })}
                     />
                     {errors.descripcion_sap && <p className="text-sm text-red-600">{errors.descripcion_sap.message}</p>}
@@ -253,7 +316,7 @@ const ComprasEditarCodigo = () => {
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-slate-900">Grava o no grava IVA *</label>
                     <select
-                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                      className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition ${errors.gravaIva ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'}`}
                       {...register('gravaIva', {
                         required: 'Seleccione si grava IVA'
                       })}
@@ -269,9 +332,9 @@ const ComprasEditarCodigo = () => {
                     <input
                       type="text"
                       placeholder="Ej: CAJA"
-                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                      className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition ${errors.unidad_medida ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'}`}
                       {...register('unidad_medida', {
-                        required: 'La unidad de medida es obligatoria'
+                        validate: validateUnidadMedida,
                       })}
                     />
                     {errors.unidad_medida && <p className="text-sm text-red-600">{errors.unidad_medida.message}</p>}
@@ -281,15 +344,11 @@ const ComprasEditarCodigo = () => {
                     <label className="block text-sm font-semibold text-slate-900">Cantidad Mínima de Pedido *</label>
                     <input
                       type="number"
-                      min="0"
+                      min="1"
                       placeholder="Ej: 10"
-                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                      className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition ${errors.CantidadMinimaPedido ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'}`}
                       {...register('CantidadMinimaPedido', {
-                        required: 'La cantidad mínima de pedido es obligatoria',
-                        min: {
-                          value: 0,
-                          message: 'La cantidad mínima debe ser positiva'
-                        }
+                        validate: (value) => validateNumericField(value, 'Cantidad Mínima de Pedido'),
                       })}
                     />
                     {errors.CantidadMinimaPedido && <p className="text-sm text-red-600">{errors.CantidadMinimaPedido.message}</p>}
@@ -299,15 +358,11 @@ const ComprasEditarCodigo = () => {
                     <label className="block text-sm font-semibold text-slate-900">Lead Time (días) *</label>
                     <input
                       type="number"
-                      min="0"
+                      min="1"
                       placeholder="Ej: 30"
-                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                      className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition ${errors.LeadTimeInDays ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'}`}
                       {...register('LeadTimeInDays', {
-                        required: 'El lead time es obligatorio',
-                        min: {
-                          value: 0,
-                          message: 'El lead time debe ser positivo'
-                        }
+                        validate: (value) => validateNumericField(value, 'Lead Time (días)'),
                       })}
                     />
                     {errors.LeadTimeInDays && <p className="text-sm text-red-600">{errors.LeadTimeInDays.message}</p>}
@@ -317,15 +372,11 @@ const ComprasEditarCodigo = () => {
                     <label className="block text-sm font-semibold text-slate-900">Días de Tolerancia *</label>
                     <input
                       type="number"
-                      min="0"
+                      min="1"
                       placeholder="Ej: 5"
-                      className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                      className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition ${errors.ToleranceDays ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'}`}
                       {...register('ToleranceDays', {
-                        required: 'Los días de tolerancia son obligatorios',
-                        min: {
-                          value: 0,
-                          message: 'Los días deben ser positivos'
-                        }
+                        validate: (value) => validateNumericField(value, 'Días de Tolerancia'),
                       })}
                     />
                     {errors.ToleranceDays && <p className="text-sm text-red-600">{errors.ToleranceDays.message}</p>}

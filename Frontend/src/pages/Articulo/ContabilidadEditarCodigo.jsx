@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { toast, ToastContainer } from 'react-toastify';
@@ -10,8 +10,23 @@ import { ITEM_TYPES } from './ArticuloFormUtils';
 const ContabilidadEditarCodigo = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { token } = storeAuth();
+  const token = storeAuth((state) => state.token);
   const { fetchDataBackend } = useFetch();
+
+  const getPersistedToken = () => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const stored = window.localStorage.getItem('auth-session');
+      if (!stored) return null;
+      const parsed = JSON.parse(stored);
+      return parsed?.state?.token || null;
+    } catch (error) {
+      console.error('Error leyendo token persistido:', error);
+      return null;
+    }
+  };
+
+  const authToken = token || storeAuth.getState().token || getPersistedToken();
 
   // Estados de carga
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,7 +39,7 @@ const ContabilidadEditarCodigo = () => {
   const [vatGroups, setVatGroups] = useState([]);
   const [perfilUsuario, setPerfilUsuario] = useState(null);
 
-  const claims = getAuthClaims(token);
+  const claims = getAuthClaims(authToken);
   const userID = claims?.id || null;
 
   // Formulario únicamente con campos editables
@@ -47,38 +62,57 @@ const ContabilidadEditarCodigo = () => {
 
   // 1. Cargar perfil de usuario
   useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
     const cargarDatosUsuario = async () => {
-      if (!token) {
+      if (!authToken) {
         setPerfilUsuario(null);
         return;
       }
 
       try {
         const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/mi-perfil`;
-        const response = await fetchDataBackend(url, null, 'GET', token, false);
+        const response = await fetchDataBackend(url, null, 'GET', authToken, false, controller.signal);
 
+        if (!isMounted) return;
         if (response?.usuario) {
           setPerfilUsuario(response.usuario);
         }
       } catch (error) {
+        if (!isMounted) return;
         console.error('Error al cargar perfil de usuario:', error);
       }
     };
 
     cargarDatosUsuario();
-  }, [token, fetchDataBackend]);
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [authToken, fetchDataBackend]);
 
   // 2. Cargar los datos del código a editar
   useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
     const cargarCodigo = async () => {
       try {
         setLoadingCodigo(true);
+        setCodigoInfo(null);
+
         const response = await fetchDataBackend(
           `${import.meta.env.VITE_BACKEND_URL}/api/codigos/${id}`,
           null,
           'GET',
-          token
+          authToken,
+          false,
+          controller.signal
         );
+
+        if (!isMounted) return;
 
         if (response?.codigo) {
           const item = response.codigo;
@@ -106,27 +140,42 @@ const ContabilidadEditarCodigo = () => {
           setTimeout(() => navigate('/dashboard/tablas'), 1500);
         }
       } catch (error) {
+        if (!isMounted) return;
         console.error('Error cargando el código:', error);
         toast.error(error?.response?.data?.msg || error?.msg || error?.message || 'Error al inicializar los datos del formulario');
       } finally {
+        if (!isMounted) return;
         setLoadingCodigo(false);
       }
     };
 
-    if (id && token) {
+    if (id && authToken) {
       cargarCodigo();
+    } else if (!authToken) {
+      setLoadingCodigo(false);
     }
-  }, [id, token, navigate, fetchDataBackend, reset]);
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [id, authToken, navigate, fetchDataBackend, reset]);
 
   // 3. Cargar Catálogos SAP
   useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
     const cargarCatalogosSap = async () => {
       try {
         setLoadingSap(true);
+
         const [itemsRes, vatRes] = await Promise.all([
-          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`, null, 'GET', token),
-          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/vat-groups`, null, 'GET', token),
+          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/items-groups`, null, 'GET', authToken, false, controller.signal),
+          fetchDataBackend(`${import.meta.env.VITE_BACKEND_URL}/api/sap/vat-groups`, null, 'GET', authToken, false, controller.signal),
         ]);
+
+        if (!isMounted) return;
 
         const itemsData = itemsRes?.data || itemsRes?.value || itemsRes || [];
         const vatData = vatRes?.data || vatRes?.value || vatRes || [];
@@ -141,17 +190,26 @@ const ContabilidadEditarCodigo = () => {
         setItemsGroups(mappedItemsGroups);
         setVatGroups(Array.isArray(vatData) ? vatData : []);
       } catch (error) {
+        if (!isMounted) return;
         console.error('Error cargando catálogos de SAP:', error);
         toast.error(error?.response?.data?.msg || error?.msg || error?.message || 'Error al cargar opciones de SAP');
       } finally {
+        if (!isMounted) return;
         setLoadingSap(false);
       }
     };
 
-    if (token) {
+    if (authToken) {
       cargarCatalogosSap();
+    } else {
+      setLoadingSap(false);
     }
-  }, [token, fetchDataBackend]);
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [authToken, fetchDataBackend]);
 
   // Observar gravaIva para limpiar impuestos en caso de cambiar a "NO"
   const gravaIva = watch('gravaIva');
@@ -180,7 +238,7 @@ const ContabilidadEditarCodigo = () => {
       };
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/contabilidad/update/${id}`;
-      const response = await fetchDataBackend(url, codigoData, 'PUT', token);
+      const response = await fetchDataBackend(url, codigoData, 'PUT', authToken);
 
       if (response?.success) {
         toast.success(response?.msg || 'Código actualizado exitosamente');
