@@ -14,5 +14,9 @@ router.get('/codigos/finalizados', verificarTokenJWT, obtenerCodigosFinalizadosM
 //PUT - Actualizar partes del código - MAESTRO
 // La ruta es PUT /api/maestro/codigos/:id
 router.put('/codigos/:id', verificarTokenJWT, updateMaestroDatos);
+
+//PUT - Actualizar partes del código - MAESTRO (LOCAL)
+// La ruta es PUT /api/maestro/codigos/base/:id
+router.put('/codigos/local/:id', verificarTokenJWT, updateMaestroDatosLocal);
     
 export default router;

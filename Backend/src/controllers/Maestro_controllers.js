@@ -449,7 +449,7 @@ const retornoCodigosMaestroDatos = async (req, res) => {
 };
 
 // ACTUALIZACIÓN EXCLUSIVA PARA INPEL - MAESTRO DE DATOS
-const updateMaestroDatosLocal = async (req, res) => {
+const updateMaestroDatosBase = async (req, res) => {
   const { id } = req.params;
   const {
     nombreMaestroDatos,
@@ -607,6 +607,4 @@ const updateMaestroDatosLocal = async (req, res) => {
   }
 };
 
-
-
-export { updateMaestroDatos, obtenerCodigosFinalizadosMaestro, retornoCodigosMaestroDatos };
+export { updateMaestroDatos, obtenerCodigosFinalizadosMaestro, retornoCodigosMaestroDatos, updateMaestroDatosBase };
