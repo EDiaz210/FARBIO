@@ -5,6 +5,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import useFetch from '../../hooks/useFetch';
 import storeAuth from '../../context/storeAuth';
 import { getAuthClaims } from '../../utils/authClaims';
+import EvioInpelClarel from '../BDDLOCAL/EvioInpelClarel';
 
 const ITEM_TYPES = [
   { Code: 'B', Name: 'Bien' },
@@ -380,9 +381,18 @@ const MaestroDatosEditarCodigo = () => {
                   </div>
                   <p className="text-xl font-semibold text-slate-900">Datos del Artículo</p>
                 </div>
-                <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">
-                  Ingrese la información
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">
+                    Ingrese la información
+                  </span>
+                  <EvioInpelClarel
+                    id={id}
+                    token={token}
+                    getValues={getValues}
+                    userId={userID}
+                    userName={claims?.nombre || 'Maestro'}
+                  />
+                </div>
               </div>
 
               <div className="px-6 py-6">

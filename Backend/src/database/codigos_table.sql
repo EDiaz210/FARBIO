@@ -7,7 +7,7 @@ CREATE TABLE codigos (
   status VARCHAR(25) DEFAULT 'nuevo', -- nuevo, pendiente, finalizado
   descripcion VARCHAR(100),
   requestor_area VARCHAR(100),
-  detalles VARCHAR(100),
+  detalles VARCHAR(300),
   link_referencia VARCHAR(900),
   descripcion_sap VARCHAR(100),
   nombre_solicitante varchar(50),

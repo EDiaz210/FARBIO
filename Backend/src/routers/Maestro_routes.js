@@ -2,6 +2,7 @@ import express from 'express';
 import {
   updateMaestroDatos,
   obtenerCodigosFinalizadosMaestro,
+  updateMaestroDatosBase,
 } from '../controllers/Maestro_controllers.js';
 import { verificarTokenJWT } from '../middlewares/JWT.js';
 const router = express.Router();
@@ -17,6 +18,6 @@ router.put('/codigos/:id', verificarTokenJWT, updateMaestroDatos);
 
 //PUT - Actualizar partes del código - MAESTRO (LOCAL)
 // La ruta es PUT /api/maestro/codigos/base/:id
-router.put('/codigos/local/:id', verificarTokenJWT, updateMaestroDatosLocal);
+router.put('/codigos/base/:id', verificarTokenJWT, updateMaestroDatosBase);
     
 export default router;

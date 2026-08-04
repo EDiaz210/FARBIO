@@ -9,6 +9,13 @@ const httpsAgent = new https.Agent({
   rejectUnauthorized: false
 });
 
+const normalizeRole = (rol = '') => String(rol || '').toLowerCase().trim();
+
+const hasMaestroAccess = (rol = '') => {
+  const normalizedRole = normalizeRole(rol);
+  return normalizedRole.includes('maestro') || normalizedRole.includes('maestrodedatos') || normalizedRole.includes('admin') || normalizedRole.includes('administrador');
+};
+
 // Helper para cerrar sesión en SAP de forma segura
 const closeSapSession = async (sessionId) => {
   if (!sessionId) return;
@@ -164,8 +171,8 @@ const updateMaestroDatos = async (req, res) => {
       return res.status(401).json({ success: false, msg: 'Usuario no validado' });
     }
 
-    const userRole = (userResults[0].rol || '').toLowerCase();
-    if (!userRole.includes('maestro') && !userRole.includes('admin')) {
+    const userRole = normalizeRole(userResults[0].rol);
+    if (!hasMaestroAccess(userRole)) {
       return res.status(403).json({
         success: false,
         msg: 'Solo el Maestro de Datos o Administrador puede realizar esta acción'
@@ -424,8 +431,8 @@ const retornoCodigosMaestroDatos = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Usuario no validado' });
     }
 
-    const userRole = (userResults[0].rol || '').toLowerCase();
-    if (!userRole.includes('maestro') && !userRole.includes('admin')) {
+    const userRole = normalizeRole(userResults[0].rol);
+    if (!hasMaestroAccess(userRole)) {
       return res.status(403).json({
         success: false,
         msg: 'Solo el Maestro de Datos puede realizar esta acción'
@@ -485,23 +492,21 @@ const updateMaestroDatosBase = async (req, res) => {
 
     const codigoActual = codigoResults[0]; // Usado para historial y validaciones previas
 
-    // 2. VALIDAR ROL DEL USUARIO
-    const userQuery = 'SELECT rol FROM usuarios WHERE id = ?';
-    const [userResults] = await pool.query(userQuery, [userId]);
-
-    if (!userResults || userResults.length === 0) {
+    // 2. VALIDAR ROL DEL USUARIO DESDE EL MIDDLEWARE JWT
+    if (!req.user) {
       return res.status(401).json({ success: false, msg: 'Usuario no validado' });
     }
 
-    const userRole = (userResults[0].rol || '').toLowerCase();
-    if (!userRole.includes('maestro') && !userRole.includes('admin')) {
+    const userRole = normalizeRole(req.user.rol);
+    if (!hasMaestroAccess(userRole)) {
       return res.status(403).json({
         success: false,
         msg: 'Solo el Maestro de Datos o Administrador puede realizar esta acción'
       });
     }
 
-    // 3. VALIDACIONES DE CAMPOS REQUERIDOS
+    // Usar el ID del usuario autenticado, no del body
+    const authenticatedUserId = req.user.id;
     if (!codigo || !descripcion_sap || !nombre_extranjero || !unidad_compra || !grupo_articulos || !tipo_bien || !impuesto_compra || !impuesto_venta || cantidad_minima_pedido === undefined) {
       return res.status(400).json({
         success: false,
@@ -552,7 +557,7 @@ const updateMaestroDatosBase = async (req, res) => {
       ...values,
       estadoNuevo,
       JSON.stringify(currentHistory),
-      userId,
+      authenticatedUserId,
       id
     ];
 
@@ -576,7 +581,7 @@ const updateMaestroDatosBase = async (req, res) => {
       campoAfectado: Object.keys(changedFields).join(','),
       valorAnterior: valorAnteriorLimpiado,
       valorNuevo: valorNuevoLimpiado,
-      usuarioId: userId,
+      usuarioId: authenticatedUserId,
       usuarioNombre: nombreMaestroDatos || userName
     });
 
