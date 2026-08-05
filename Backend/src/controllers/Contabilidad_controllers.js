@@ -9,8 +9,8 @@ const CONTABILIDAD_FIELDS_MAPPING = {
   grupo_articulos: 'grupo_articulos',
   tipo_bien: 'tipo_bien',
   grava_iva: 'grava_iva',
-  indicadorIVACompras: 'impuesto_compra',
-  indicadorIVAVentas: 'impuesto_venta'
+  impuesto_compra: 'indicadorIVACompras',
+  impuesto_venta: 'indicadorIVAVentas'
 };
 
 

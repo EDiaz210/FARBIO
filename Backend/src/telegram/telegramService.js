@@ -13,7 +13,8 @@ export const notificarResumenPorEstado = async (
   comentario = '', 
   evento = 'Actualización de Código',
   codigo = '',
-  solicitante = ''
+  solicitante = '',
+  empresa = ''
 ) => {
   // Si la etapa es Finalizado, la notificación siempre va al grupo de Solicitantes
   const destinoEtapa = (estadoEtapa === 'Finalizado' || evento.toLowerCase().includes('finalizado')) 
@@ -31,6 +32,7 @@ export const notificarResumenPorEstado = async (
     let mensaje = '';
     const eventoLower = evento.toLowerCase();
     const lineaSolicitante = solicitante ? `👤 <b>Solicitante:</b> ${solicitante}\n` : '';
+    const lineaEmpresa = empresa ? `🏢 <b>Empresa:</b> ${empresa}\n` : '';
 
     // 1. Flujo de Finalización (Código Creado)
     if (estadoEtapa === 'Finalizado' || eventoLower.includes('finalizado') || eventoLower.includes('creado')) {
@@ -38,6 +40,7 @@ export const notificarResumenPorEstado = async (
 🟢 <b>${evento.toUpperCase()}</b>
 ➖➖➖➖➖➖➖➖➖➖➖➖
 ${lineaSolicitante}
+${lineaEmpresa}
 📦 <b>Código generado:</b> <code>${codigo }</code>
 💬 <b>Descripción:</b> <i>"${comentario}"</i>
 

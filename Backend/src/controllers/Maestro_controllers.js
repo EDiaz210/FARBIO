@@ -128,6 +128,8 @@ const updateMaestroDatos = async (req, res) => {
   const { id } = req.params;
   const {
     nombreMaestroDatos,
+    nombreSolicitante,
+    empresa,
     codigo,
     descripcion_sap,
     nombre_extranjero,
@@ -341,6 +343,21 @@ const updateMaestroDatos = async (req, res) => {
       accion: 'Sincronizado con SAP y Finalizado'
     });
 
+    // Preparar historial acumulativo de sincronizaciones SAP
+    let currentSapHistory = [];
+    try {
+      currentSapHistory = JSON.parse(codigoActual.r_sap || '[]');
+      if (!Array.isArray(currentSapHistory)) currentSapHistory = [currentSapHistory];
+    } catch {
+      currentSapHistory = [];
+    }
+
+    currentSapHistory.push({
+      fecha: new Date().toISOString().split('T')[0],
+      accion: 'Codigo creado en SAP',
+      usuario: userName || nombreMaestroDatos
+    });
+
     // Si setClause está vacío (raro pero posible), preparamos la consulta base
     const baseSetClause = setClause ? `${setClause}, ` : '';
     const finalSetClause = `${baseSetClause}status = ?, r_maestrodatos = ?, r_sap = ?, updated_by = ?`;
@@ -349,7 +366,7 @@ const updateMaestroDatos = async (req, res) => {
       ...values,
       'Finalizado',
       JSON.stringify(currentHistory),
-      JSON.stringify(sapItemResponse.data),
+      JSON.stringify(currentSapHistory),
       userId,
       id
     ];
@@ -380,7 +397,14 @@ const updateMaestroDatos = async (req, res) => {
 
     // 11. NOTIFICACIÓN TELEGRAM
     try {
-      await notificarResumenPorEstado('Finalizado', descripcion_sap, 'Código sincronizado con SAP por Maestro de Datos', codigo);
+      await notificarResumenPorEstado(
+        'Finalizado',
+        descripcion_sap,
+        'Código sincronizado con SAP por Maestro de Datos',
+        codigo,
+        nombreSolicitante || codigoActual.nombre_solicitante || '',
+        empresa || codigoActual.empresa || ''
+      );
     } catch (telegramError) {
       console.error('Error enviando notificación de Telegram:', telegramError);
     }
@@ -460,6 +484,8 @@ const updateMaestroDatosBase = async (req, res) => {
   const { id } = req.params;
   const {
     nombreMaestroDatos,
+    nombreSolicitante,
+    empresa,
     codigo,
     descripcion_sap,
     nombre_extranjero,
@@ -587,7 +613,14 @@ const updateMaestroDatosBase = async (req, res) => {
 
     // 6. NOTIFICACIÓN TELEGRAM
     try {
-      await notificarResumenPorEstado(estadoNuevo, descripcion_sap, 'Código actualizado localmente por Maestro de Datos', codigo);
+      await notificarResumenPorEstado(
+        estadoNuevo,
+        descripcion_sap,
+        'Código actualizado localmente por Maestro de Datos',
+        codigo,
+        nombreSolicitante || codigoActual.nombre_solicitante || '',
+        empresa || codigoActual.empresa || ''
+      );
     } catch (telegramError) {
       console.error('Error enviando notificación de Telegram:', telegramError);
     }

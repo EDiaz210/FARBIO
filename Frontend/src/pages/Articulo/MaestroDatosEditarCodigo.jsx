@@ -8,6 +8,7 @@ import { getAuthClaims } from '../../utils/authClaims';
 import EvioInpelClarel from '../BDDLOCAL/EvioInpelClarel';
 
 const ITEM_TYPES = [
+  { Code: 'A', Name: 'Activo' },
   { Code: 'B', Name: 'Bien' },
   { Code: 'S', Name: 'Servicio' },
 ];
@@ -20,6 +21,7 @@ const MaestroDatosEditarCodigo = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sapLoading, setSapLoading] = useState(false);
+  const [perfilUsuario, setPerfilUsuario] = useState(null);
 
   // Estados de carga independientes para mostrar "Cargando..." en los selects
   const [loadingItemsGroups, setLoadingItemsGroups] = useState(true);
@@ -32,6 +34,26 @@ const MaestroDatosEditarCodigo = () => {
 
   const claims = getAuthClaims(token);
   const userID = claims?.id || null;
+  const authenticatedUserId = perfilUsuario?.id || userID;
+  const authenticatedUserName = perfilUsuario?.nombre || claims?.nombre || 'Maestro';
+
+  useEffect(() => {
+    const cargarDatosUsuario = async () => {
+      if (!token) return;
+
+      try {
+        const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/mi-perfil`;
+        const response = await fetchDataBackend(url, null, 'GET', token, false);
+        if (response?.usuario) {
+          setPerfilUsuario(response.usuario);
+        }
+      } catch (error) {
+        console.error('Error al cargar perfil de usuario en Maestro:', error);
+      }
+    };
+
+    cargarDatosUsuario();
+  }, [token, fetchDataBackend]);
 
   const {
     register,
@@ -215,8 +237,15 @@ const MaestroDatosEditarCodigo = () => {
     try {
       setIsSubmitting(true);
 
+      if (!authenticatedUserId) {
+        toast.error('No se pudo validar el usuario autenticado');
+        return;
+      }
+
       const codigoData = {
-        nombreMaestroDatos: claims?.nombre || 'Maestro',
+        nombreMaestroDatos: authenticatedUserName,
+        nombreSolicitante: data.nombreSolicitante,
+        empresa: data.Empresa,
         codigo: data.ItemCode,
         descripcion: data.RequestorDescription,
         detalles: data.Details,
@@ -234,8 +263,8 @@ const MaestroDatosEditarCodigo = () => {
         inventario: data.InventoryItem ? 'tYES' : 'tNO',
         venta: data.SalesItem ? 'tYES' : 'tNO',
         compra: data.PurchaseItem ? 'tYES' : 'tNO',
-        userId: userID,
-        userName: claims?.nombre || 'Maestro',
+        userId: authenticatedUserId,
+        userName: authenticatedUserName,
       };
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/maestro/codigos/${id}`;
@@ -389,8 +418,8 @@ const MaestroDatosEditarCodigo = () => {
                     id={id}
                     token={token}
                     getValues={getValues}
-                    userId={userID}
-                    userName={claims?.nombre || 'Maestro'}
+                    userId={authenticatedUserId}
+                    userName={authenticatedUserName}
                   />
                 </div>
               </div>
