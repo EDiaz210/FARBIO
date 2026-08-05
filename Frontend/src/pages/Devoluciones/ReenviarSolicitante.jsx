@@ -223,6 +223,7 @@ const ReenviarSolicitante = () => {
       const response = await fetchDataBackend(url, codigoData, 'PUT', token);
 
       if (response?.success) {
+        window.dispatchEvent(new CustomEvent('dashboard:rejected-count-refresh'));
         toast.success('Código actualizado exitosamente');
         setTimeout(() => {
           navigate('/dashboard/solicitante/rechazados');

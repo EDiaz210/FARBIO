@@ -577,7 +577,7 @@ const updateMaestroDatosBase = async (req, res) => {
     const finalSetClause = `${baseSetClause}status = ?, r_maestrodatos = ?, updated_by = ?`;
     
     // Cambiamos el estado, puedes ajustarlo si necesitas que siga siendo "Finalizado"
-    const estadoNuevo = 'Actualizado Local'; 
+    const estadoNuevo = 'Finalizado'; 
 
     const finalValues = [
       ...values,

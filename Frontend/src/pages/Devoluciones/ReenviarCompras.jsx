@@ -197,6 +197,7 @@ const ReenviarCompras = () => {
       const response = await fetchDataBackend(url, codigoData, 'PUT', token);
 
       if (response?.success) {
+        window.dispatchEvent(new CustomEvent('dashboard:rejected-count-refresh'));
         toast.success(response?.message || 'Código actualizado exitosamente');
         setTimeout(() => {
           navigate('/dashboard/compras/rechazados');

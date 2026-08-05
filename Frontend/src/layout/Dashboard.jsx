@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import storeAuth from "../context/storeAuth";
 import useFetch from "../hooks/useFetch";
@@ -65,41 +65,52 @@ const Dashboard = () => {
   }, [token, fetchDataBackend]);
 
   // Contador de códigos rechazados según rol
-  useEffect(() => {
-    const fetchRejectedCount = async () => {
-      try {
-        if (!token) return setRejectedCount(0);
+  const fetchRejectedCount = useCallback(async () => {
+    try {
+      if (!token) return setRejectedCount(0);
 
-        // Solicitante: contamos los códigos devueltos que pertenezcan al usuario
-        if (esSolicitante) {
-          if (!perfilUsuario?.id) return setRejectedCount(0);
-          const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/mis-codigos?created_by=${perfilUsuario.id}`;
-          const res = await fetchDataBackend(url, null, 'GET', token, false);
-          const rows = res?.data || res?.codigos || [];
-          const count = Array.isArray(rows) ? rows.filter(r => r.status === 'RetornoSolicitante').length : 0;
-          setRejectedCount(count);
-          return;
-        }
-
-        // Compras: contamos registros con status RetornoCompras
-        if (esCompras) {
-          const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=RetornoCompras`;
-          const res = await fetchDataBackend(url, null, 'GET', token, false);
-          const codigos = res?.codigos || [];
-          setRejectedCount(Array.isArray(codigos) ? codigos.length : 0);
-          return;
-        }
-
-        // Otros roles no muestran conteo por ahora
-        setRejectedCount(0);
-      } catch (error) {
-        console.error('Error fetching rejected count:', error);
-        setRejectedCount(0);
+      // Solicitante: contamos los códigos devueltos que pertenezcan al usuario
+      if (esSolicitante) {
+        if (!perfilUsuario?.id) return setRejectedCount(0);
+        const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/mis-codigos?created_by=${perfilUsuario.id}`;
+        const res = await fetchDataBackend(url, null, 'GET', token, false);
+        const rows = res?.data || res?.codigos || [];
+        const count = Array.isArray(rows) ? rows.filter(r => r.status === 'RetornoSolicitante').length : 0;
+        setRejectedCount(count);
+        return;
       }
+
+      // Compras: contamos registros con status RetornoCompras
+      if (esCompras) {
+        const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=RetornoCompras`;
+        const res = await fetchDataBackend(url, null, 'GET', token, false);
+        const codigos = res?.codigos || [];
+        setRejectedCount(Array.isArray(codigos) ? codigos.length : 0);
+        return;
+      }
+
+      // Otros roles no muestran conteo por ahora
+      setRejectedCount(0);
+    } catch (error) {
+      console.error('Error fetching rejected count:', error);
+      setRejectedCount(0);
+    }
+  }, [esSolicitante, esCompras, perfilUsuario, token, fetchDataBackend]);
+
+  useEffect(() => {
+    fetchRejectedCount();
+  }, [fetchRejectedCount]);
+
+  useEffect(() => {
+    const handleRejectedCountRefresh = () => {
+      fetchRejectedCount();
     };
 
-    fetchRejectedCount();
-  }, [esSolicitante, esCompras, perfilUsuario, token, fetchDataBackend]);
+    window.addEventListener('dashboard:rejected-count-refresh', handleRejectedCountRefresh);
+    return () => {
+      window.removeEventListener('dashboard:rejected-count-refresh', handleRejectedCountRefresh);
+    };
+  }, [fetchRejectedCount]);
 
   // Manejo de Logout
   const handleLogout = () => {
