@@ -400,9 +400,7 @@ const ContabilidadEditarCodigo = () => {
                 </label>
                 <select
                   disabled={loadingSap}
-                  className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 ${
-                    loadingSap ? 'cursor-wait' : ''
-                  }`}
+                  className={`w-full rounded-2xl border px-4 py-3 text-slate-900 outline-none transition ${errors.ItemsGroupCode ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 bg-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100'} disabled:bg-white disabled:text-slate-900 ${loadingSap ? 'cursor-wait' : ''}`}
                   {...register('ItemsGroupCode', {
                     required: 'El grupo de artículos es obligatorio',
                   })}
@@ -431,7 +429,7 @@ const ContabilidadEditarCodigo = () => {
                   Tipo de Bien *
                 </label>
                 <select
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100"
+                  className={`w-full rounded-2xl border px-4 py-3 text-slate-900 outline-none transition ${errors.ItemType ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 bg-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100'}`}
                   {...register('ItemType', {
                     required: 'El tipo de bien es obligatorio',
                   })}
@@ -456,9 +454,7 @@ const ContabilidadEditarCodigo = () => {
                     </label>
                     <select
                       disabled={loadingSap}
-                      className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 ${
-                        loadingSap ? 'cursor-wait' : ''
-                      }`}
+                      className={`w-full rounded-2xl border px-4 py-3 text-slate-900 outline-none transition ${errors.PurchaseTaxCode ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 bg-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100'} disabled:bg-white disabled:text-slate-900 ${loadingSap ? 'cursor-wait' : ''}`}
                       {...register('PurchaseTaxCode', {
                         required: gravaIva === 'SI' ? 'El IVA de compra es obligatorio' : false,
                       })}
@@ -488,9 +484,7 @@ const ContabilidadEditarCodigo = () => {
                     </label>
                     <select
                       disabled={loadingSap}
-                      className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 disabled:bg-white disabled:text-slate-900 ${
-                        loadingSap ? 'cursor-wait' : ''
-                      }`}
+                      className={`w-full rounded-2xl border px-4 py-3 text-slate-900 outline-none transition ${errors.SalesTaxCode ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 bg-white focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100'} disabled:bg-white disabled:text-slate-900 ${loadingSap ? 'cursor-wait' : ''}`}
                       {...register('SalesTaxCode', {
                         required: gravaIva === 'SI' ? 'El IVA de venta es obligatorio' : false,
                       })}
