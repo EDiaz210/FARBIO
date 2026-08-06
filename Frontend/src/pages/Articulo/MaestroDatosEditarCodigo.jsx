@@ -213,13 +213,13 @@ const MaestroDatosEditarCodigo = () => {
       const existeDescripcion = response?.detalle?.existeDescripcion;
 
       if (existeCodigo && existeDescripcion) {
-        toast.success('item encontrado por descripción del sap y code');
+        toast.warning('Item encontrado por código y descripción SAP');
       } else if (existeCodigo) {
-        toast.success('item encontrado por code');
+        toast.warning('Item encontrado por código SAP');
       } else if (existeDescripcion) {
-        toast.success('item encontrado por descripcion sap');
+        toast.warning('Item encontrado por descripción SAP');
       } else {
-        toast.warning('No se encontraron coincidencias en SAP');
+        toast.success('No se encontraron coincidencias en SAP');
       }
     } else {
       toast.error(response?.msg || 'Error al consultar SAP');
