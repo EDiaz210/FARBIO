@@ -107,7 +107,6 @@ const obtenerCodigosFinalizadosMaestro = async (req, res) => {
 
 
 // UPDATE Y ENVIO A SAP - MAESTRO DE DATOS
-// UPDATE Y ENVIO A SAP - MAESTRO DE DATOS
 const MAESTRODATOS_FIELD_MAP = {
   codigo: 'codigo',
   descripcion_sap: 'descripcion_sap',
@@ -278,6 +277,7 @@ const updateMaestroDatos = async (req, res) => {
       ItemCode: codigo,
       ItemName: descripcion_sap,
       ForeignName: nombre_extranjero,
+      U_FAR_SOLICITANTE: nombreSolicitante || codigoActual.nombre_solicitante ,
       ArTaxCode: salesVAT,      // ArTaxCode es para Ventas
       ApTaxCode: purchaseVAT,   // ApTaxCode es para Compras
       LeadTime: parseInt(lead_time) || 0,
