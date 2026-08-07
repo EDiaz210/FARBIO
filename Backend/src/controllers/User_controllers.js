@@ -1,7 +1,15 @@
 import bcryptjs from 'bcryptjs';
 import pool from '../database.js';
 import { crearTokenJWT } from '../middlewares/JWT.js';
+import { registrarReporteUsuario } from '../utils/reportesUsuarios.js';
 
+const formatearUsuarioParaAuditoria = (usuario = {}) => ({
+  id: usuario.id,
+  nombre: usuario.nombre,
+  cedula: usuario.cedula,
+  email: usuario.email,
+  rol: usuario.rol,
+});
 
 // Login de usuario - NO REQUIERE ROL
   const login = async (req, res) => {
@@ -156,6 +164,26 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
       [nombre, cedula, emailLower, passwordEncriptada, rol]
     );
 
+    const usuarioCreado = formatearUsuarioParaAuditoria({
+      id: result.insertId,
+      nombre,
+      cedula,
+      email: emailLower,
+      rol,
+    });
+
+    await registrarReporteUsuario({
+      usuarioId: req.user?.id,
+      usuarioNombre: req.user?.nombre,
+      accion: 'crear_usuario',
+      modulo: 'usuarios',
+      campoAfectado: 'usuario',
+      valorAnterior: null,
+      valorNuevo: usuarioCreado,
+      targetUserId: result.insertId,
+      targetUserName: nombre,
+    });
+
     return res.status(201).json({
       msg: "Usuario registrado exitosamente",
       usuario: {
@@ -257,6 +285,8 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
       return res.status(404).json({ msg: "Usuario no encontrado" });
     }
 
+    const usuarioAntes = formatearUsuarioParaAuditoria(usuarioExistente[0]);
+
     // Preparar datos a actualizar
     const actualizaciones = {};
     if (nombre) actualizaciones.nombre = nombre;
@@ -281,6 +311,29 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
       `UPDATE usuarios SET ${campos}, updated_at = NOW() WHERE id = ?`,
       valores
     );
+
+    const usuarioDespues = {
+      ...usuarioAntes,
+      nombre: actualizaciones.nombre ?? usuarioAntes.nombre,
+      email: actualizaciones.email ?? usuarioAntes.email,
+      rol: actualizaciones.rol ?? usuarioAntes.rol,
+      ...(actualizaciones.password ? { password: 'actualizada' } : {}),
+    };
+
+    await registrarReporteUsuario({
+      usuarioId: req.user?.id,
+      usuarioNombre: req.user?.nombre,
+      accion: 'editar_usuario',
+      modulo: 'usuarios',
+      campoAfectado: Object.keys(actualizaciones).join(', ') || 'usuario',
+      valorAnterior: {
+        ...usuarioAntes,
+        ...(actualizaciones.password ? { password: 'actualizada' } : {}),
+      },
+      valorNuevo: usuarioDespues,
+      targetUserId: Number(id),
+      targetUserName: usuarioDespues.nombre,
+    });
 
     return res.status(200).json({
       msg: "Usuario actualizado exitosamente",
@@ -309,6 +362,17 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
 
     const { id } = req.params;
 
+    const [usuarioExistente] = await connection.query(
+      'SELECT * FROM usuarios WHERE id = ?',
+      [id]
+    );
+
+    if (usuarioExistente.length === 0) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+
+    const usuarioAntes = formatearUsuarioParaAuditoria(usuarioExistente[0]);
+
     const [resultado] = await connection.query(
       'DELETE FROM usuarios WHERE id = ?',
       [id]
@@ -317,6 +381,18 @@ import { crearTokenJWT } from '../middlewares/JWT.js';
     if (resultado.affectedRows === 0) {
       return res.status(404).json({ msg: "Usuario no encontrado" });
     }
+
+    await registrarReporteUsuario({
+      usuarioId: req.user?.id,
+      usuarioNombre: req.user?.nombre,
+      accion: 'eliminar_usuario',
+      modulo: 'usuarios',
+      campoAfectado: 'usuario',
+      valorAnterior: usuarioAntes,
+      valorNuevo: null,
+      targetUserId: Number(id),
+      targetUserName: usuarioAntes.nombre,
+    });
 
     return res.status(200).json({ msg: "Usuario eliminado exitosamente" });
 
