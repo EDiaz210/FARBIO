@@ -68,8 +68,8 @@ const ComprasEditarCodigo = () => {
     }
 
     const trimmed = value.trim();
-    if (trimmed.length < 2) {
-      return 'La unidad de medida debe tener mínimo 2 caracteres';
+    if (trimmed.length < 1) {
+      return 'La unidad de medida debe tener mínimo 1 caracter';
     }
     if (trimmed.length > 50) {
       return 'La unidad de medida debe tener máximo 50 caracteres';
@@ -79,6 +79,9 @@ const ComprasEditarCodigo = () => {
     }
     if (/[0-9]/.test(trimmed)) {
       return 'La unidad de medida no acepta números';
+    }
+    if (!/^[A-ZÁÉÍÓÚÜÑ ]+$/.test(trimmed)) {
+      return 'La unidad de medida únicamente acepta letras';
     }
 
     return true;

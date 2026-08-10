@@ -37,6 +37,38 @@ const MaestroDatosEditarCodigo = () => {
   const authenticatedUserId = perfilUsuario?.id || userID;
   const authenticatedUserName = perfilUsuario?.nombre || claims?.nombre || 'Maestro';
 
+  const inputClass = (hasError) => `w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition ${hasError ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'}`;
+  const validateInteger = (value, fieldName) => {
+    if (value === undefined || value === null || String(value).trim() === '') {
+      return `${fieldName} es obligatorio`;
+    }
+    if (!/^\d+$/.test(String(value).trim())) {
+      return `${fieldName} solo acepta números`;
+    }
+    if (Number(value) < 1) {
+      return `El valor mínimo para ${fieldName} es 1`;
+    }
+    return true;
+  };
+
+  const validateUppercaseText = (value, fieldName, minLength, maxLength) => {
+    if (!value || value.trim() === '') return `${fieldName} es obligatorio`;
+    const trimmedValue = value.trim();
+    if (trimmedValue.length < minLength) return `${fieldName} debe tener mínimo ${minLength} caracteres`;
+    if (trimmedValue.length > maxLength) return `${fieldName} debe tener máximo ${maxLength} caracteres`;
+    if (/[a-z]/.test(trimmedValue)) return `${fieldName} no acepta letras minúsculas`;
+    return true;
+  };
+
+  const validateUnidadMedida = (value) => {
+    if (!value || value.trim() === '') return 'La unidad de medida es obligatoria';
+    const trimmedValue = value.trim();
+    if (trimmedValue.length < 1) return 'La unidad de medida debe tener mínimo 1 carácter';
+    if (trimmedValue.length > 50) return 'La unidad de medida debe tener máximo 50 caracteres';
+    if (!/^[A-ZÁÉÍÓÚÜÑ ]+$/.test(trimmedValue)) return 'La unidad de medida solo acepta letras mayúsculas';
+    return true;
+  };
+
   useEffect(() => {
     const cargarDatosUsuario = async () => {
       if (!token) return;
@@ -74,6 +106,7 @@ const MaestroDatosEditarCodigo = () => {
       CantidadMinimaPedido: '',
       ItemsGroupCode: '',
       ItemType: 'B',
+      gravaIva: 'SI',
       PurchaseTaxCode: '',
       SalesTaxCode: '',
       RequestorDescription: '',
@@ -85,7 +118,7 @@ const MaestroDatosEditarCodigo = () => {
       descripcion_sap: '',
       InventoryItem: false,
       SalesItem: false,
-      PurchaseItem: false,
+      PurchaseItem: true,
     },
   });
 
@@ -112,6 +145,7 @@ const MaestroDatosEditarCodigo = () => {
             SalesTaxCode: item.impuesto_venta || item.indicadorIVAVentas || '',
             RequestorDescription: item.descripcion || '',
             Details: item.detalles || '',
+            gravaIva: item.grava_iva || 'SI',
             ReferenceLink: item.link_referencia || '',
             RequestorArea: item.requestor_area || '',
             Empresa: item.empresa || '',
@@ -119,7 +153,7 @@ const MaestroDatosEditarCodigo = () => {
             descripcion_sap: item.descripcion_sap || '',
             InventoryItem: item.inventoryItem === 'tYES',
             SalesItem: item.salesItem === 'tYES',
-            PurchaseItem: item.purchaseItem === 'tYES',
+            PurchaseItem: item.purchaseItem === undefined ? true : item.purchaseItem === 'tYES',
           };
 
           rawDataRef.current = formattedData;
@@ -380,6 +414,20 @@ const MaestroDatosEditarCodigo = () => {
 
                 <div className="flex items-center gap-4 md:col-span-2">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-6 w-6">
+                      <circle cx="7" cy="7" r="2" fill="currentColor" />
+                      <circle cx="17" cy="17" r="2" fill="currentColor" />
+                      <path d="M19 5L5 19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Grava o no grava IVA</p>
+                    <p className="mt-1 text-sm text-slate-700">{watch('gravaIva') || 'Sin datos'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 md:col-span-2">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                       <path d="M3 5h18v14H3z" opacity=".3" />
                       <path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm2 2v10h14V7H5z" />
@@ -397,6 +445,7 @@ const MaestroDatosEditarCodigo = () => {
               <input type="hidden" {...register('ReferenceLink')} />
               <input type="hidden" {...register('RequestorArea')} />
               <input type="hidden" {...register('nombreSolicitante')} />
+              <input type="hidden" {...register('gravaIva')} />
             </section>
 
             {/* Datos de Maestro (Editable al instante) */}
@@ -472,8 +521,15 @@ const MaestroDatosEditarCodigo = () => {
                         <input
                           type="text"
                           placeholder="Ej: ARTICULO001"
-                          className="flex-1 rounded-lg rounded-r-none border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                          {...register('ItemCode', { required: 'El código es obligatorio' })}
+                          className={`${inputClass(errors.ItemCode)} flex-1 rounded-r-none`}
+                          {...register('ItemCode', {
+                            validate: (value) => {
+                              if (!value || value.trim() === '') return 'El código es obligatorio';
+                              if (value.trim().length < 5) return 'El código debe tener mínimo 5 caracteres';
+                              if (value.trim().length > 35) return 'El código debe tener máximo 35 caracteres';
+                              return true;
+                            },
+                          })}
                         />
                         <button
                           type="button"
@@ -505,8 +561,10 @@ const MaestroDatosEditarCodigo = () => {
                       <input
                         type="text"
                         placeholder="Ej: Jabón S3"
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                        {...register('ItemName', { required: 'La descripción SAP es obligatoria' })}
+                        className={inputClass(errors.ItemName)}
+                        {...register('ItemName', {
+                          validate: (value) => validateUppercaseText(value, 'La descripción SAP', 10, 100),
+                        })}
                       />
                       {errors.ItemName && <p className="text-sm text-red-600">{errors.ItemName.message}</p>}
                     </div>
@@ -517,8 +575,10 @@ const MaestroDatosEditarCodigo = () => {
                       <input
                         type="text"
                         placeholder="Ej: Soap S3"
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                        {...register('ForeignName', { required: 'El nombre extranjero es obligatorio' })}
+                        className={inputClass(errors.ForeignName)}
+                        {...register('ForeignName', {
+                          validate: (value) => validateUppercaseText(value, 'El nombre extranjero', 10, 100),
+                        })}
                       />
                       {errors.ForeignName && <p className="text-sm text-red-600">{errors.ForeignName.message}</p>}
                     </div>
@@ -529,8 +589,8 @@ const MaestroDatosEditarCodigo = () => {
                       <input
                         type="text"
                         placeholder="Ej: CAJA"
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                        {...register('unidad_medida', { required: 'La unidad de medida es obligatoria' })}
+                        className={inputClass(errors.unidad_medida)}
+                        {...register('unidad_medida', { validate: validateUnidadMedida })}
                       />
                       {errors.unidad_medida && <p className="text-sm text-red-600">{errors.unidad_medida.message}</p>}
                     </div>
@@ -543,10 +603,9 @@ const MaestroDatosEditarCodigo = () => {
                         min="1"
                         step="1"
                         placeholder="Ej: 10"
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                        className={inputClass(errors.CantidadMinimaPedido)}
                         {...register('CantidadMinimaPedido', {
-                          required: 'La cantidad mínima de pedido es obligatoria',
-                          min: { value: 1, message: 'Debe ser mayor a 0' }
+                          validate: (value) => validateInteger(value, 'La cantidad mínima de pedido'),
                         })}
                       />
                       {errors.CantidadMinimaPedido && <p className="text-sm text-red-600">{errors.CantidadMinimaPedido.message}</p>}
@@ -559,10 +618,9 @@ const MaestroDatosEditarCodigo = () => {
                         type="number"
                         min="0"
                         placeholder="Ej: 30"
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                        className={inputClass(errors.LeadTime)}
                         {...register('LeadTime', {
-                          required: 'El lead time es obligatorio',
-                          min: { value: 0, message: 'Debe ser positivo' }
+                          validate: (value) => validateInteger(value, 'El lead time'),
                         })}
                       />
                       {errors.LeadTime && <p className="text-sm text-red-600">{errors.LeadTime.message}</p>}
@@ -575,10 +633,9 @@ const MaestroDatosEditarCodigo = () => {
                         type="number"
                         min="0"
                         placeholder="Ej: 5"
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                        className={inputClass(errors.ToleranceDays)}
                         {...register('ToleranceDays', {
-                          required: 'Los días de tolerancia son obligatorios',
-                          min: { value: 0, message: 'Debe ser positivo' }
+                          validate: (value) => validateInteger(value, 'Los días de tolerancia'),
                         })}
                       />
                       {errors.ToleranceDays && <p className="text-sm text-red-600">{errors.ToleranceDays.message}</p>}
@@ -592,13 +649,13 @@ const MaestroDatosEditarCodigo = () => {
                       {loadingItemsGroups ? (
                         <select
                           disabled
-                          className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                          className={`${inputClass(errors.ItemsGroupCode)} disabled:bg-white disabled:text-slate-900`}
                         >
                           <option value="">Cargando datos...</option>
                         </select>
                       ) : (
                         <select
-                          className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                          className={inputClass(errors.ItemsGroupCode)}
                           {...register('ItemsGroupCode', { required: 'El grupo de artículos es obligatorio' })}
                           defaultValue={getValues('ItemsGroupCode') || ''}
                         >
@@ -617,7 +674,7 @@ const MaestroDatosEditarCodigo = () => {
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-slate-900">Tipo de Bien *</label>
                       <select
-                        className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
+                        className={inputClass(errors.ItemType)}
                         {...register('ItemType', { required: 'El tipo de bien es obligatorio' })}
                       >
                         {ITEM_TYPES.map((type) => (
@@ -635,13 +692,17 @@ const MaestroDatosEditarCodigo = () => {
                         <label className="block text-sm font-semibold text-slate-900">IVA Compra *</label>
                       </div>
                       {loadingVatGroups ? (
-                        <select disabled className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white">
+                        <select disabled className={`${inputClass(errors.PurchaseTaxCode)} disabled:bg-white disabled:text-slate-900`}>
                           <option value="">Cargando datos...</option>
                         </select>
                       ) : (
                         <select
-                          className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                          {...register('PurchaseTaxCode', { required: 'El IVA de compra es obligatorio' })}
+                          className={inputClass(errors.PurchaseTaxCode)}
+                          {...register('PurchaseTaxCode', {
+                            validate: (value) => watch('gravaIva') === 'SI' && !value
+                              ? 'El IVA de compra es obligatorio'
+                              : true,
+                          })}
                           defaultValue={getValues('PurchaseTaxCode') || ''}
                         >
                           <option value="">Selecciona IVA</option>
@@ -661,13 +722,17 @@ const MaestroDatosEditarCodigo = () => {
                         <label className="block text-sm font-semibold text-slate-900">IVA Venta *</label>
                       </div>
                       {loadingVatGroups ? (
-                        <select disabled className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white">
+                        <select disabled className={`${inputClass(errors.SalesTaxCode)} disabled:bg-white disabled:text-slate-900`}>
                           <option value="">Cargando datos...</option>
                         </select>
                       ) : (
                         <select
-                          className="w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition border-slate-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-50"
-                          {...register('SalesTaxCode', { required: 'El IVA de venta es obligatorio' })}
+                          className={inputClass(errors.SalesTaxCode)}
+                          {...register('SalesTaxCode', {
+                            validate: (value) => watch('gravaIva') === 'SI' && !value
+                              ? 'El IVA de venta es obligatorio'
+                              : true,
+                          })}
                           defaultValue={getValues('SalesTaxCode') || ''}
                         >
                           <option value="">Selecciona IVA</option>
