@@ -16,6 +16,7 @@ import CodigosRechazadosCompras from "./pages/Tabla/CodigosRechazadosCompras";
 import CodigosRechazadosSolicitante from "./pages/Tabla/CodigosRechazadosSolicitante";
 import CodigosFinalizadosMaestro from "./pages/Tabla/CodigosFinalizadosMaestro";
 import AdminUsuarios from "./pages/Administrador/AdminUsuarios";
+import Sincronizar from "./pages/Sincronizar/Sincronizar";
 import AdminReportes from "./pages/Reportes/AdminReportes";
 import MisSolicitudes from "./pages/Solicitudes/MisSolicitudes";
 import CrearUsuarioPage from "./pages/Administrador/CrearUsuarioPage";
@@ -177,6 +178,14 @@ function App() {
           <Route path="admin/usuarios" element={<AdminUsuarios />} />
           <Route path="admin/usuarios/nuevo" element={<CrearUsuarioPage />} />
           <Route path="admin/usuarios/editar/:id" element={<EditarUsuario />} />
+          <Route
+            path="admin/sincronizar"
+            element={
+              <PrivateRouteWithRole allowedRoles={["administrador"]}>
+                <Sincronizar />
+              </PrivateRouteWithRole>
+            }
+          />
           <Route path="admin/reportes" element={<AdminReportes />} />
         </Route>
 
