@@ -9,9 +9,9 @@ import storeAuth from '../../context/storeAuth';
 const VALID_EMAIL_REGEX = /^[^@]+@(farbiopharma\.com|inpel\.com)$/;
 const DEFAULT_VALUES = { email: '', password: '' };
 
-const inputClasses = 'p-3 w-full bg-[#dee2e6] rounded-lg text-[#17243D] max-w-full';
-const iconButtonClasses = 'absolute top-1/2 right-3 -translate-y-1/2 bg-transparent border-none cursor-pointer p-0 flex items-center justify-center';
-const submitButtonClasses = 'flex items-center justify-center gap-2 bg-[#17243D] hover:bg-[#EF3340] text-white px-6 py-2 rounded-md font-medium transition disabled:opacity-50 disabled:cursor-not-allowed mt-2 shrink';
+const inputClasses = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-[#17243D] shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#3d5a80] focus:ring-4 focus:ring-[#3d5a80]/10';
+const iconButtonClasses = 'absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer rounded-lg border-none bg-transparent p-2 text-slate-500 transition hover:bg-slate-100 hover:text-[#3d5a80] flex items-center justify-center';
+const submitButtonClasses = 'mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#3d5a80] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#324b6b] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -68,23 +68,35 @@ const Login = () => {
 
   return (
     
-    <div className="flex flex-col sm:flex-row h-screen bg-black overflow-hidden" style={{ fontFamily: 'Gowun Batang, serif' }}>
+    <div className="flex min-h-screen flex-col overflow-hidden bg-white sm:flex-row" style={{ fontFamily: 'Gowun Batang, serif' }}>
       <ToastContainer />
 
-      <div className="hidden sm:block sm:w-8/12 h-screen relative bg-[url('/fondo-login.jpg')] bg-no-repeat bg-cover bg-center" style={{ backgroundAttachment: 'fixed' }}>
-        <div className="absolute inset-0 bg-black/30 backdrop-brightness-110" />
-        <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/black-linen.png')] mix-blend-overlay" />
+      <div className="relative hidden min-h-screen overflow-hidden bg-[#dce3ea] sm:block sm:w-1/2 lg:w-7/12">
+        <img
+          src="/fondo-login.jpg"
+          alt="Laboratorio Farbiopharma"
+          className="absolute inset-0 h-full w-full object-contain"
+        />
+        <div className="absolute inset-0 bg-[#17243D]/55" />
+        <div className="absolute bottom-12 left-12 max-w-sm text-white">
+          <p className="mb-3 text-xs uppercase tracking-[0.3em] text-white/70">Farbiopharma</p>
+          <p className="text-3xl leading-tight">Gestión simple para cada proceso.</p>
+        </div>
       </div>
 
-      <div className="w-full sm:w-4/12 bg-[#ffff] flex justify-center overflow-y-auto">
-        <div className="w-full max-w-[500px] px-4 py-10 flex flex-col items-center min-h-screen">
-          <div className="flex items-center justify-center mb-5">
-            <img src="/logo.png" alt="logo" className="w-[200px] h-[200px] object-contain drop-shadow-lg" />
+      <div className="flex w-full items-start justify-center overflow-y-auto bg-white px-5 py-10 sm:w-1/2 sm:py-16 lg:w-5/12 lg:py-20">
+        <div className="w-full max-w-md">
+          <div className="-mb-20 flex items-center justify-center">
+            <img src="/logo.png" alt="logo" className="h-80 w-80 object-contain" />
           </div>
 
-          <h1 className="text-3xl font-semibold text-center text-[#17243D] mb-5">Iniciar sesión</h1>
+          <div className="mb-8 text-center">
+            <p className="mb-2 text-xs uppercase tracking-[0.25em] text-[#17243D]">Bienvenido</p>
+            <h1 className="text-3xl font-semibold text-[#17243D]">Iniciar sesión</h1>
+            <p className="mt-2 text-sm text-slate-700">Accede a tu cuenta para continuar</p>
+          </div>
 
-          <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit(loginUser)}>
+          <form className="flex w-full flex-col gap-6" onSubmit={handleSubmit(loginUser)}>
             <div className="flex flex-col w-full min-w-0">
               <input
                 type="email"
@@ -98,7 +110,7 @@ const Login = () => {
                   }
                 })}
               />
-              {errors.email && <p className="text-red-800 text-sm mt-1 ml-1">{errors.email.message}</p>}
+              {errors.email && <p className="ml-1 mt-1 text-sm text-red-800">{errors.email.message}</p>}
             </div>
 
             <div className="relative flex flex-col w-full min-w-0">
@@ -135,7 +147,7 @@ const Login = () => {
                 )}
               </button>
 
-              {errors.password && <p className="text-red-800 text-sm mt-1 ml-1">{errors.password.message}</p>}
+              {errors.password && <p className="ml-1 mt-1 text-sm text-red-800">{errors.password.message}</p>}
             </div>
 
             <button type="submit" disabled={isLoading} className={submitButtonClasses}>
