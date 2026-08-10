@@ -4,6 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import useFetch from '../../hooks/useFetch';
 import storeAuth from '../../context/storeAuth';
 import UsuariosList from './UsuariosList';
+import Sincronizar from '../Sincronizar/Sincronizar';
 
 const AdminUsuarios = () => {
   const navigate = useNavigate();
@@ -84,7 +85,7 @@ const AdminUsuarios = () => {
           </div>
 
           <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/50">
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto] items-end mb-6">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px_auto_auto_auto] items-end mb-6">
               <label className="block">
                 <span className="text-sm font-medium text-slate-700">Buscar usuario</span>
                 <input
@@ -129,6 +130,8 @@ const AdminUsuarios = () => {
               >
                 Nuevo Usuario
               </button>
+
+              <Sincronizar compact token={token} />
             </div>
 
             <UsuariosList
