@@ -171,6 +171,7 @@ const EditarUsuario = () => {
       email: '',
       password: '',
       rol: 'solicitante',
+      estado: 'activo',
     },
   });
 
@@ -210,6 +211,7 @@ const EditarUsuario = () => {
       email: usuario.email || '',
       password: '',
       rol: usuario.rol || 'solicitante',
+      estado: usuario.estado || 'activo',
     });
   }, [usuario, reset]);
 
@@ -229,6 +231,7 @@ const EditarUsuario = () => {
         email: data.email,
         password: data.password || null,
         rol: data.rol,
+        estado: data.estado,
       };
 
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/users/usuarios/${usuario.id}`;
@@ -369,7 +372,7 @@ const EditarUsuario = () => {
                 {errors.rol && <p className="text-red-600 text-sm mt-1">{errors.rol.message}</p>}
               </div>
 
-              <div className="flex flex-col md:col-span-2">
+              <div className="flex flex-col md:col-span-1">
                 <label className="text-slate-800 font-semibold mb-2">Contraseña (opcional)</label>
                 <div className="relative">
                   <input
@@ -405,6 +408,18 @@ const EditarUsuario = () => {
                 {errors.password && (
                   <p className="text-red-600 text-sm mt-2 font-medium">{errors.password.message}</p>
                 )}
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-slate-800 font-semibold mb-2">Estado *</label>
+                <select
+                  className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                  {...register('estado', { required: 'El estado es obligatorio' })}
+                >
+                  <option value="activo">Activo</option>
+                  <option value="bloqueado">Bloqueado</option>
+                </select>
+                {errors.estado && <p className="text-red-600 text-sm mt-2 font-medium">{errors.estado.message}</p>}
               </div>
             </div>
 
