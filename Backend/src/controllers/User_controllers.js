@@ -3,12 +3,33 @@ import pool from '../database.js';
 import { crearTokenJWT } from '../middlewares/JWT.js';
 import { registrarReporteUsuario } from '../utils/reportesUsuarios.js';
 
+// Sistema de protección contra fuerza bruta
+const loginAttempts = new Map();
+const MAX_INTENTOS = 3; // Después de 3 intentos, la cuenta se bloquea permanentemente
+
+const registrarIntento = (email) => {
+  if (!loginAttempts.has(email)) {
+    loginAttempts.set(email, 0);
+  }
+  const intentos = loginAttempts.get(email);
+  loginAttempts.set(email, intentos + 1);
+};
+
+const obtenerIntentosFallidos = (email) => {
+  return loginAttempts.get(email) || 0;
+};
+
+const limpiarIntentosLogin = (email) => {
+  loginAttempts.delete(email);
+};
+
 const formatearUsuarioParaAuditoria = (usuario = {}) => ({
   id: usuario.id,
   nombre: usuario.nombre,
   cedula: usuario.cedula,
   email: usuario.email,
   rol: usuario.rol,
+  estado: usuario.estado,
 });
 
 // Login de usuario - NO REQUIERE ROL
@@ -23,10 +44,12 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
       return res.status(400).json({ msg: "Email y contraseña son requeridos" });
     }
 
+    const emailLower = email.toLowerCase();
+
     // Buscar usuario por email
     const [usuarios] = await connection.query(
       'SELECT * FROM usuarios WHERE email = ?',
-      [email.toLowerCase()]
+      [emailLower]
     );
 
     if (usuarios.length === 0) {
@@ -35,11 +58,40 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
 
     const usuario = usuarios[0];
 
+    // Verificar si la cuenta está bloqueada
+    if (usuario.estado === 'bloqueado') {
+      return res.status(403).json({ 
+        msg: "Tu cuenta está bloqueada. Por favor contacta al administrador para desbloquearla." 
+      });
+    }
+
     // Verificar contraseña
     const passwordValida = await bcryptjs.compare(password, usuario.password);
     if (!passwordValida) {
-      return res.status(401).json({ msg: "Email o contraseña incorrectos" });
+      const intentosActuales = obtenerIntentosFallidos(emailLower);
+      registrarIntento(emailLower);
+      const nuevoConteo = intentosActuales + 1;
+
+      // Si llega a 3 intentos fallidos, bloquear la cuenta de forma permanente
+      if (nuevoConteo >= MAX_INTENTOS) {
+        await connection.query(
+          'UPDATE usuarios SET estado = ? WHERE id = ?',
+          ['bloqueado', usuario.id]
+        );
+        limpiarIntentosLogin(emailLower);
+        return res.status(403).json({ 
+          msg: "Tu cuenta ha sido bloqueada por seguridad. Por favor contacta al administrador." 
+        });
+      }
+
+      const intentosRestantes = MAX_INTENTOS - nuevoConteo;
+      return res.status(401).json({ 
+        msg: `Email o contraseña incorrectos. Tienes ${intentosRestantes} intento(s) restante(s) antes de que tu cuenta se bloquee.` 
+      });
     }
+
+    // Login exitoso - limpiar intentos de sesión
+    limpiarIntentosLogin(emailLower);
 
     // Generar token JWT
     const token = crearTokenJWT(usuario.id, usuario.rol);
@@ -76,7 +128,7 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
     }
 
     const [usuarios] = await connection.query(
-      'SELECT id, nombre, cedula, email, rol, created_at FROM usuarios WHERE id = ?',
+      'SELECT id, nombre, cedula, email, rol, estado, created_at FROM usuarios WHERE id = ?',
       [usuarioId]
     );
 
@@ -158,10 +210,10 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
     // Encriptar contraseña
     const passwordEncriptada = await bcryptjs.hash(password, 10);
 
-    // Insertar el nuevo usuario en la base de datos
+    // Insertar el nuevo usuario en la base de datos (estado predeterminado: activo)
     const [result] = await connection.query(
-      'INSERT INTO usuarios (nombre, cedula, email, password, rol) VALUES (?, ?, ?, ?, ?)',
-      [nombre, cedula, emailLower, passwordEncriptada, rol]
+      'INSERT INTO usuarios (nombre, cedula, email, password, rol, estado) VALUES (?, ?, ?, ?, ?, ?)',
+      [nombre, cedula, emailLower, passwordEncriptada, rol, 'activo']
     );
 
     const usuarioCreado = formatearUsuarioParaAuditoria({
@@ -191,7 +243,8 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
         nombre,
         cedula,
         email: emailLower,
-        rol
+        rol,
+        estado: 'activo'
       }
     });
 
@@ -215,7 +268,7 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
       });
     }
 
-    const [usuarios] = await connection.query('SELECT id, nombre, cedula, email, rol, created_at FROM usuarios');
+    const [usuarios] = await connection.query('SELECT id, nombre, cedula, email, rol, estado, created_at FROM usuarios');
 
     return res.status(200).json({
       msg: "Usuarios obtenidos exitosamente",
@@ -245,7 +298,7 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
     const { id } = req.params;
 
     const [usuarios] = await connection.query(
-      'SELECT id, nombre, cedula, email, rol, created_at FROM usuarios WHERE id = ?',
+      'SELECT id, nombre, cedula, email, rol, estado, created_at FROM usuarios WHERE id = ?',
       [id]
     );
 
@@ -273,7 +326,7 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
 
   try {
     const { id } = req.params;
-    const { nombre, email, rol, password } = req.body;
+    const { nombre, email, rol, password, estado } = req.body;
 
     // Validar que el usuario exista
     const [usuarioExistente] = await connection.query(
@@ -292,7 +345,9 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
     if (nombre) actualizaciones.nombre = nombre;
     if (email) actualizaciones.email = email.toLowerCase();
     if (rol) actualizaciones.rol = rol;
-  
+    if (estado && (estado === 'activo' || estado === 'bloqueado')) {
+      actualizaciones.estado = estado;
+    }
 
     if (password) {
       actualizaciones.password = await bcryptjs.hash(password, 10);
@@ -312,11 +367,18 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
       valores
     );
 
+    // Si se cambia el estado a activo, limpiar intentos de sesión
+    if (actualizaciones.estado === 'activo') {
+      const emailUsuario = usuarioExistente[0].email.toLowerCase();
+      limpiarIntentosLogin(emailUsuario);
+    }
+
     const usuarioDespues = {
       ...usuarioAntes,
       nombre: actualizaciones.nombre ?? usuarioAntes.nombre,
       email: actualizaciones.email ?? usuarioAntes.email,
       rol: actualizaciones.rol ?? usuarioAntes.rol,
+      estado: actualizaciones.estado ?? usuarioAntes.estado,
       ...(actualizaciones.password ? { password: 'actualizada' } : {}),
     };
 
@@ -337,7 +399,13 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
 
     return res.status(200).json({
       msg: "Usuario actualizado exitosamente",
-      usuario: { id, nombre: actualizaciones.nombre || usuarioExistente[0].nombre, email: actualizaciones.email || usuarioExistente[0].email, rol: actualizaciones.rol || usuarioExistente[0].rol }
+      usuario: { 
+        id, 
+        nombre: actualizaciones.nombre || usuarioExistente[0].nombre, 
+        email: actualizaciones.email || usuarioExistente[0].email, 
+        rol: actualizaciones.rol || usuarioExistente[0].rol,
+        estado: actualizaciones.estado || usuarioExistente[0].estado
+      }
     });
 
   } catch (err) {
