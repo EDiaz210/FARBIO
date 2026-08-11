@@ -75,7 +75,7 @@ const Login = () => {
         <img
           src="/fondo-login.jpg"
           alt="Laboratorio Farbiopharma"
-          className="absolute inset-0 h-full w-full object-contain"
+          className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-[#17243D]/55" />
         <div className="absolute bottom-12 left-12 max-w-sm text-white">
