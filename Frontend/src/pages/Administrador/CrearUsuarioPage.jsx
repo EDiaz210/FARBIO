@@ -183,9 +183,13 @@ const CrearUsuarioPage = () => {
       const response = await fetchDataBackend(url, data, 'POST', token);
 
       if (response?.usuario) {
-        toast.success('Usuario creado correctamente');
-        reset();
-        handleExit();
+        toast.success('Usuario creado correctamente', {
+          onClose: () => {
+            reset();
+            handleExit();
+          },
+          autoClose: 2000,
+        });
       } else {
         toast.error(response?.msg || 'No se pudo crear el usuario');
       }
