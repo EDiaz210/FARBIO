@@ -326,7 +326,7 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
 
   try {
     const { id } = req.params;
-    const { nombre, email, rol, password, estado } = req.body;
+    const { nombre, cedula, email, rol, password, estado } = req.body;
 
     // Validar que el usuario exista
     const [usuarioExistente] = await connection.query(
@@ -343,6 +343,7 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
     // Preparar datos a actualizar
     const actualizaciones = {};
     if (nombre) actualizaciones.nombre = nombre;
+    if (cedula) actualizaciones.cedula = cedula;
     if (email) actualizaciones.email = email.toLowerCase();
     if (rol) actualizaciones.rol = rol;
     if (estado && (estado === 'activo' || estado === 'bloqueado')) {
@@ -376,6 +377,7 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
     const usuarioDespues = {
       ...usuarioAntes,
       nombre: actualizaciones.nombre ?? usuarioAntes.nombre,
+      cedula: actualizaciones.cedula ?? usuarioAntes.cedula,
       email: actualizaciones.email ?? usuarioAntes.email,
       rol: actualizaciones.rol ?? usuarioAntes.rol,
       estado: actualizaciones.estado ?? usuarioAntes.estado,
@@ -402,6 +404,7 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
       usuario: { 
         id, 
         nombre: actualizaciones.nombre || usuarioExistente[0].nombre, 
+        cedula: actualizaciones.cedula || usuarioExistente[0].cedula,
         email: actualizaciones.email || usuarioExistente[0].email, 
         rol: actualizaciones.rol || usuarioExistente[0].rol,
         estado: actualizaciones.estado || usuarioExistente[0].estado
