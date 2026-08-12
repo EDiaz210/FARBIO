@@ -238,8 +238,10 @@ const EditarUsuario = () => {
       const response = await fetchDataBackend(url, payload, 'PUT', token);
 
       if (response?.usuario) {
-        toast.success('Usuario actualizado correctamente');
-        handleExit();
+        toast.success('Usuario actualizado correctamente', {
+          onClose: handleExit,
+          autoClose: 2000,
+        });
       } else {
         toast.error(response?.msg || 'No se pudo actualizar el usuario');
       }
