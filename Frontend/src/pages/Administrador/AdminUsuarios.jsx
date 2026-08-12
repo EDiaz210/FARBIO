@@ -45,6 +45,8 @@ const AdminUsuarios = () => {
     return ['Todos', ...uniqueRoles];
   }, [usuarios]);
 
+  const searchError = searchTerm.length > 70 ? 'La búsqueda no puede tener más de 70 caracteres' : '';
+
   const filteredUsuarios = useMemo(() => {
     return usuarios.filter((usuario) => {
       const search = searchTerm.toLowerCase().trim();
@@ -92,9 +94,12 @@ const AdminUsuarios = () => {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Nombre, email, username o cédula"
+                  placeholder="Nombre, email o cédula"
                   className="mt-2 w-full rounded-[28px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
                 />
+                {searchError && (
+                  <p className="mt-2 text-sm font-medium text-red-600">{searchError}</p>
+                )}
               </label>
 
               <label className="block">
