@@ -164,7 +164,8 @@ const EditarUsuario = () => {
     formState: { errors, isValidating },
     reset,
   } = useForm({
-    mode: 'onBlur',
+    mode: 'onChange',
+    reValidateMode: 'onChange',
     defaultValues: {
       nombre: '',
       cedula: '',
