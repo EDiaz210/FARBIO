@@ -62,6 +62,19 @@ const CodigosEstadoPage = ({
     clasesColor
   } = useTablaCodigos('', status, editRoute, colorConfig, { endpoint });
 
+  const [loadStalled, setLoadStalled] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (loading && (!currentItems || currentItems.length === 0)) {
+      timer = setTimeout(() => setLoadStalled(true), 2500);
+    } else {
+      setLoadStalled(false);
+    }
+
+    return () => clearTimeout(timer);
+  }, [loading, currentItems]);
+
 
   // Si el colorConfig incluye 'bg-green' asumimos que es Compras, de lo contrario es Solicitante
   const esCompras = colorConfig?.includes('bg-green') || colorConfig?.includes('emerald');
@@ -138,7 +151,7 @@ const CodigosEstadoPage = ({
           
           {/* Vista Móvil */}
           <div className="block md:hidden divide-y divide-slate-100">
-            {loading ? (
+            {(loading && !loadStalled) ? (
               <div className="p-10 text-center text-slate-500 text-sm">Cargando registros...</div>
             ) : currentItems.length === 0 ? (
               <div className="p-10 text-center text-slate-500 text-sm">{emptyMessage}</div>
@@ -171,7 +184,7 @@ const CodigosEstadoPage = ({
                 </tr>
               </thead>
               <tbody>
-                {loading ? (
+                {(loading && !loadStalled) ? (
                   <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">Cargando registros...</td></tr>
                 ) : currentItems.length === 0 ? (
                   <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">{emptyMessage}</td></tr>
