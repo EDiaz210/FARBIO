@@ -43,16 +43,17 @@ const EMPRESA_OPTIONS = [
 ];
 
   const createCodigo = async (req, res) => {
+  // Use the authenticated user from the JWT middleware to avoid trusting client-provided userId/userName
   const {
     nombreSolicitante,
     descripcionSolicitante, 
     detalles, 
     link_referencia,
     RequestorArea,
-    empresa, 
-    userId,
-    userName
+    empresa
   } = req.body;
+  const userId = req.user?.id;
+  const userName = req.user?.nombre || req.user?.nombre_solicitante || req.user?.name || null;
 
   try {
     // Validar que sea solicitante
@@ -104,8 +105,8 @@ const EMPRESA_OPTIONS = [
       detalles,               // 4. detalles
       link_referencia,        // 5. link_referencia
       historyEntry,           // 6. r_creacion (JSON con historial)
-      userId,                 // 7. created_by
-      nombreSolicitante,      // 8. nombre_solicitante
+      userId,                 // 7. created_by (from token)
+      nombreSolicitante || userName,      // 8. nombre_solicitante
       empresa                 // 9. empresa
     ]);
 
@@ -128,7 +129,7 @@ const EMPRESA_OPTIONS = [
         empresa: empresa
       },
       usuarioId: userId,
-      usuarioNombre: nombreSolicitante 
+      usuarioNombre: nombreSolicitante || userName 
     });
 
     try {
@@ -166,13 +167,14 @@ const EMPRESA_OPTIONS = [
 
 const updateSolicitante = async (req, res) => {
   const { id } = req.params;
+  // Use authenticated user to avoid trusting client-sent userId
   const {
-    userId,
-    userName,
     RequestorArea,
     empresa,
     forceStatusUpdate = false
   } = req.body;
+  const userId = req.user?.id;
+  const userName = req.user?.nombre || req.user?.name || null;
 
   try {
     // 1. Validar usuario y rol
