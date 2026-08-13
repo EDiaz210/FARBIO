@@ -147,6 +147,11 @@ const updateMaestroDatos = async (req, res) => {
     userName
   } = req.body;
 
+  // Determinar si el artículo grava IVA. Soportamos varias posibles keys desde el frontend.
+  const gravaIvaVal = req.body.gravaIva ?? req.body.grava_iva ?? req.body.gravaIVA ?? '';
+  const gravaIvaFlag = String(gravaIvaVal || '').toLowerCase();
+  const isTaxed = gravaIvaFlag.startsWith('s') || gravaIvaFlag === 'true' || gravaIvaFlag === 't';
+
   let sessionId = null;
 
   try {
@@ -181,7 +186,9 @@ const updateMaestroDatos = async (req, res) => {
     }
 
     // 3. VALIDACIONES DE CAMPOS REQUERIDOS
-    if (!codigo || !descripcion_sap || !nombre_extranjero || !unidad_compra || !grupo_articulos || !tipo_bien || !impuesto_compra || !impuesto_venta || cantidad_minima_pedido === undefined) {
+    // Los impuestos (`impuesto_compra` / `impuesto_venta`) solo son obligatorios cuando el artículo grava IVA.
+    const vatRequired = !!isTaxed;
+    if (!codigo || !descripcion_sap || !nombre_extranjero || !unidad_compra || !grupo_articulos || !tipo_bien || (vatRequired && (!impuesto_compra || !impuesto_venta)) || cantidad_minima_pedido === undefined) {
       return res.status(400).json({
         success: false,
         msg: 'Faltan campos obligatorios para el registro en SAP'
@@ -212,26 +219,29 @@ const updateMaestroDatos = async (req, res) => {
     const purchaseVAT = (impuesto_compra || '').trim();
     const salesVAT = (impuesto_venta || '').trim();
 
-    const vatResp = await axios.get(
-      `${process.env.SAP_URL}/SalesTaxAuthorities?$select=Code`,
-      {
-        httpsAgent,
-        headers: { Cookie: `B1SESSION=${sessionId}` }
+    // Validar VATs en SAP solo si corresponde (artículo grava IVA)
+    if (isTaxed) {
+      const vatResp = await axios.get(
+        `${process.env.SAP_URL}/SalesTaxAuthorities?$select=Code`,
+        {
+          httpsAgent,
+          headers: { Cookie: `B1SESSION=${sessionId}` }
+        }
+      );
+
+      const availableCodes = (vatResp.data.value || []).map(v => String(v.Code).trim());
+      const missingVATs = [];
+      if (purchaseVAT && !availableCodes.includes(purchaseVAT)) missingVATs.push(purchaseVAT);
+      if (salesVAT && !availableCodes.includes(salesVAT)) missingVATs.push(salesVAT);
+
+      if (missingVATs.length) {
+        await closeSapSession(sessionId);
+        return res.status(400).json({
+          success: false,
+          msg: `VATs no válidos en SAP: ${missingVATs.join(', ')}`,
+          missing: missingVATs
+        });
       }
-    );
-
-    const availableCodes = (vatResp.data.value || []).map(v => String(v.Code).trim());
-    const missingVATs = [];
-    if (purchaseVAT && !availableCodes.includes(purchaseVAT)) missingVATs.push(purchaseVAT);
-    if (salesVAT && !availableCodes.includes(salesVAT)) missingVATs.push(salesVAT);
-
-    if (missingVATs.length) {
-      await closeSapSession(sessionId);
-      return res.status(400).json({
-        success: false,
-        msg: `VATs no válidos en SAP: ${missingVATs.join(', ')}`,
-        missing: missingVATs
-      });
     }
 
     // 6. VALIDAR DUPLICADO EN SAP
@@ -273,13 +283,14 @@ const updateMaestroDatos = async (req, res) => {
     const isPurchase = compra === 'tYES';
 
     const sapItemPayload = {
-      IndirectTax: 'tYES',
+      IndirectTax: isTaxed ? 'tYES' : 'tNO',
       ItemCode: codigo,
       ItemName: descripcion_sap,
       ForeignName: nombre_extranjero,
       U_FAR_SOLICITANTE: nombreSolicitante || codigoActual.nombre_solicitante ,
-      ArTaxCode: salesVAT,      // ArTaxCode es para Ventas
-      ApTaxCode: purchaseVAT,   // ApTaxCode es para Compras
+      // Solo asignar códigos de impuesto si existen
+      ...(salesVAT ? { ArTaxCode: salesVAT } : {}),      // ArTaxCode es para Ventas
+      ...(purchaseVAT ? { ApTaxCode: purchaseVAT } : {}),   // ApTaxCode es para Compras
       LeadTime: parseInt(lead_time) || 0,
       ItemsGroupCode: parseInt(grupo_articulos) || 0,
       U_TIPO_BIEN: tipo_bien,
@@ -504,6 +515,11 @@ const updateMaestroDatosBase = async (req, res) => {
     userName
   } = req.body;
 
+  // Determinar si el artículo grava IVA (aceptamos varias keys del frontend)
+  const gravaIvaVal = req.body.gravaIva ?? req.body.grava_iva ?? req.body.gravaIVA ?? '';
+  const gravaIvaFlag = String(gravaIvaVal || '').toLowerCase();
+  const isTaxed = gravaIvaFlag.startsWith('s') || gravaIvaFlag === 'true' || gravaIvaFlag === 't';
+
   try {
     // 1. VALIDAR QUE EL CÓDIGO EXISTA EN BD
     const codigoQuery = 'SELECT * FROM codigos WHERE id = ?';
@@ -533,7 +549,9 @@ const updateMaestroDatosBase = async (req, res) => {
 
     // Usar el ID del usuario autenticado, no del body
     const authenticatedUserId = req.user.id;
-    if (!codigo || !descripcion_sap || !nombre_extranjero || !unidad_compra || !grupo_articulos || !tipo_bien || !impuesto_compra || !impuesto_venta || cantidad_minima_pedido === undefined) {
+    // Los impuestos solo son obligatorios cuando el artículo grava IVA
+    const vatRequired = !!isTaxed;
+    if (!codigo || !descripcion_sap || !nombre_extranjero || !unidad_compra || !grupo_articulos || !tipo_bien || (vatRequired && (!impuesto_compra || !impuesto_venta)) || cantidad_minima_pedido === undefined) {
       return res.status(400).json({
         success: false,
         msg: 'Faltan campos obligatorios para la actualización local'
