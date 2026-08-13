@@ -158,10 +158,11 @@ const MisSolicitudes = () => {
     if (!userID) return;
     const url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/mis-codigos?created_by=${userID}`;
     const response = await fetchDataBackend(url, null, 'GET', token, false);
-    if (response?.codigos) {
-      setSolicitudes(response.codigos);
-      setCurrentPage(1);
-    }
+    // Aceptar varios formatos de respuesta: { codigos: [...] } o { data: [...] } o una lista directa
+    const resultados = response?.codigos || response?.data || (Array.isArray(response) ? response : []);
+    // Resultados recibidos
+    setSolicitudes(resultados || []);
+    setCurrentPage(1);
   }, [fetchDataBackend, userID, token]);
 
   useEffect(() => {
@@ -227,29 +228,33 @@ const MisSolicitudes = () => {
 
           {/* Paginación */}
           {totalPages > 1 && (
-            <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <div className="text-xs sm:text-sm text-slate-600 text-center sm:text-left">
-                Mostrando <span className="font-semibold text-slate-900">{currentPage}</span> de <span className="font-semibold text-slate-900">{totalPages}</span> páginas
+            <div className="p-4 sm:p-6 bg-gradient-to-r from-[#274C77] via-[#2F5D8A] to-[#1F3F5B] text-white border-t border-slate-100 rounded-b-[20px] flex flex-col sm:flex-row gap-4 items-center justify-between">
+              <div className="text-xs sm:text-sm text-white text-center sm:text-left">
+                Página <span className="font-semibold">{currentPage}</span> de <span className="font-semibold">{totalPages}</span>
               </div>
-              
-              <div className="flex flex-wrap justify-center gap-2 w-full sm:w-auto">
+
+              <div className="flex flex-wrap justify-center gap-2 w-full sm:w-auto items-center">
                 <button
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-3 sm:px-4 py-2 bg-[#B2EBF2] text-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0f1b35] hover:text-white transition-colors text-xs sm:text-sm flex-1 sm:flex-none text-center"
+                  aria-label="Anterior"
+                  className={`p-2 rounded-lg transition-colors text-white disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center ${currentPage === 1 ? 'bg-white/10' : 'bg-white/20 hover:bg-white/30'}`}
                 >
-                  ← Anterior
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </button>
-                
-                <div className="hidden sm:flex gap-1">
+
+                <div className="hidden sm:flex gap-2">
                   {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-2 rounded-lg transition-colors text-sm ${
+                      aria-label={`Página ${page}`}
+                      className={`px-3 py-1 rounded-lg transition-colors text-sm ${
                         page === currentPage
-                          ? 'bg-[#B2EBF2] text-black font-semibold'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                          ? 'bg-white text-[#1F3F5B] font-semibold shadow-inner'
+                          : 'bg-white/20 text-white hover:bg-white/30'
                       }`}
                     >
                       {page}
@@ -260,9 +265,12 @@ const MisSolicitudes = () => {
                 <button
                   onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="px-3 sm:px-4 py-2 bg-[#B2EBF2] text-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0f1b35] hover:text-white transition-colors text-xs sm:text-sm flex-1 sm:flex-none text-center"
+                  aria-label="Siguiente"
+                  className={`p-2 rounded-lg transition-colors text-white disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center ${currentPage === totalPages ? 'bg-white/10' : 'bg-white/20 hover:bg-white/30'}`}
                 >
-                  Siguiente →
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               </div>
             </div>
