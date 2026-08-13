@@ -67,8 +67,7 @@ const obtenerMisCodigos = async (req, res) => {
 
   try {
     // Recibe el ID enviado desde el frontend (?created_by=...)
-    const { created_by } = req.query; 
-    console.log("ID recibido para created_by:", created_by); // Depuración
+    const { created_by } = req.query;
     // Validación para depurar en consola:
     if (!created_by) {
       console.log("Error: created_by no recibido desde el frontend");
@@ -76,14 +75,17 @@ const obtenerMisCodigos = async (req, res) => {
     }
 
     // Consulta a la base de datos filtrando por el creador
+    // Excluir códigos que estén 'Finalizado' y cuya fecha de creación sea mayor a 20 días
     const [codigos] = await connection.query(
-      'SELECT * FROM codigos WHERE created_by = ? ORDER BY id ASC',
+      `SELECT * FROM codigos
+       WHERE created_by = ?
+         AND (status <> 'Finalizado' OR created_at >= DATE_SUB(NOW(), INTERVAL 20 DAY))
+       ORDER BY id ASC`,
       [created_by]
     );
 
     // Devolver array con los códigos encontrados
     return res.status(200).json({ codigos });
-    console.log(`Códigos obtenidos para created_by=${created_by}:`, codigos);
 
   } catch (err) {
     console.error('Error obteniendo códigos por usuario:', err);
@@ -96,7 +98,9 @@ const obtenerMisCodigos = async (req, res) => {
 
 const eliminarCodigo = async (req, res) => {
   const { id } = req.params;
-  const { userId, userName } = req.body;
+  // Use authenticated user info from token
+  const userId = req.user?.id;
+  const userName = req.user?.nombre || req.user?.name || null;
   
   try {
     // Validar que el usuario sea solicitante
