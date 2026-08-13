@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTablaCodigos } from '../../hooks/useTablaCodigos';
 import { CardMovil, TableRowEscritorio } from './TablaCodigos_Components';
 import DevolucionCompras from '../Devoluciones/DevolucionCompras';
@@ -24,6 +24,19 @@ const ComprasTablaCodigos = () => {
 
   const [isDevolucionOpen, setIsDevolucionOpen] = useState(false);
   const [codigoSeleccionado, setCodigoSeleccionado] = useState(null);
+  const [loadStalled, setLoadStalled] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    // Si `loading` permanece true y no hay items visibles, consideramos la carga "agotada" tras 2500ms
+    if (loading && (!currentItems || currentItems.length === 0)) {
+      timer = setTimeout(() => setLoadStalled(true), 2500);
+    } else {
+      setLoadStalled(false);
+    }
+
+    return () => clearTimeout(timer);
+  }, [loading, currentItems]);
 
   const handleOpenReturn = (id) => {
     setCodigoSeleccionado(id);
@@ -68,9 +81,9 @@ const ComprasTablaCodigos = () => {
           
           {/* VERSIÓN MÓVIL */}
           <div className="block md:hidden divide-y divide-slate-100">
-            {loading ? (
+            {(loading && !loadStalled) ? (
               <div className="p-10 text-center text-slate-500 text-sm">Cargando registros...</div>
-            ) : currentItems.length === 0 ? (
+            ) : (currentItems.length === 0) ? (
               <div className="p-10 text-center text-slate-500 text-sm">No hay códigos pendientes para compras.</div>
             ) : (
               currentItems.map((item) => (
@@ -87,15 +100,15 @@ const ComprasTablaCodigos = () => {
                 {renderTableHeader()}
               </thead>
               <tbody>
-                {loading ? (
-                  <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">Cargando registros...</td></tr>
-                ) : currentItems.length === 0 ? (
-                  <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">No hay códigos pendientes para compras.</td></tr>
-                ) : (
-                  currentItems.map((item) => (
-                    <TableRowEscritorio key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} onReturn={handleOpenReturn} showReturnButton={true} />
-                  ))
-                )}
+                  {(loading && !loadStalled) ? (
+                    <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">Cargando registros...</td></tr>
+                  ) : currentItems.length === 0 ? (
+                    <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">No hay códigos pendientes para compras.</td></tr>
+                  ) : (
+                    currentItems.map((item) => (
+                      <TableRowEscritorio key={item.id} item={item} onEdit={handleEdit} clasesColor={clasesColor} onReturn={handleOpenReturn} showReturnButton={true} />
+                    ))
+                  )}
               </tbody>
             </table>
           </div>
