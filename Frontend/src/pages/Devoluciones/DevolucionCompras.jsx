@@ -5,24 +5,32 @@ import { toast } from 'react-toastify';
 const DevolucionCompras = ({ isOpen, onClose, codigoId, onSuccess }) => {
   const [comentario, setComentario] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState('');
   const { fetchDataBackend } = useFetch();
 
   useEffect(() => {
     if (!isOpen) setComentario('');
+    if (!isOpen) setValidationError('');
   }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async () => {
+    // Validaciones en línea (mostrar mensajes bajo el textarea)
     if (!comentario || comentario.trim().length === 0) {
-      toast.error('Ingrese un comentario para devolver el código');
+      setValidationError('Ingrese un comentario para devolver el código');
+      return;
+    }
+    if (comentario.trim().length < 10) {
+      setValidationError('El comentario debe tener al menos 10 caracteres');
       return;
     }
     if (comentario.length > 200) {
-      toast.error('El comentario debe tener máximo 200 caracteres');
+      setValidationError('El comentario debe tener máximo 200 caracteres');
       return;
     }
 
+    setValidationError('');
     setSubmitting(true);
     try {
       const url = `${import.meta.env.VITE_BACKEND_URL}/api/compras/retorno`;
@@ -43,6 +51,21 @@ const DevolucionCompras = ({ isOpen, onClose, codigoId, onSuccess }) => {
     }
   };
 
+  const handleChange = (e) => {
+    const v = e.target.value;
+    setComentario(v);
+    // Validación instantánea
+    if (!v || v.trim().length === 0) {
+      setValidationError('Ingrese un comentario para devolver el código');
+    } else if (v.trim().length < 10) {
+      setValidationError('El comentario debe tener al menos 10 caracteres');
+    } else if (v.length > 200) {
+      setValidationError('El comentario debe tener máximo 200 caracteres');
+    } else {
+      setValidationError('');
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-lg p-6">
@@ -55,13 +78,15 @@ const DevolucionCompras = ({ isOpen, onClose, codigoId, onSuccess }) => {
           <label className="block text-sm font-medium text-slate-600">Comentario</label>
           <textarea
             value={comentario}
-            onChange={(e) => setComentario(e.target.value)}
+            onChange={handleChange}
             maxLength={200}
             rows={5}
-            className="w-full border border-slate-200 rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            className={`w-full border rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-yellow-300 ${validationError ? 'border-red-300' : 'border-slate-200'}`}
             placeholder="Indique la razón del retorno (máx. 200 caracteres)"
           />
-          <div className="text-xs text-slate-500">{comentario.length}/200</div>
+          {validationError ? (
+            <div className="text-xs text-red-600 mt-1">{validationError}</div>
+          ) : null}
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
