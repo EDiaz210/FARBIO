@@ -50,10 +50,27 @@ export const useTablaCodigos = (userRole, status, editRoute, colorConfig, option
     try {
       const sanitizedStatus = encodeURIComponent((status || '').trim());
       const url = options.endpoint || `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=${sanitizedStatus}`;
-      const response = await fetchDataBackend(url, null, 'GET', null);
-      if (response?.codigos) setItems(response.codigos);
+
+      // Crear AbortController y watchdog para evitar que una petición colgada deje `loading` en true
+      const controller = new AbortController();
+      const abortSignal = controller.signal;
+      const abortTimer = setTimeout(() => {
+        try {
+          controller.abort();
+        } catch (e) {
+          // ignore
+        }
+      }, 10000); // 10s
+
+      const response = await fetchDataBackend(url, null, 'GET', null, false, abortSignal);
+
+      // Asegurarnos de limpiar items cuando la respuesta no trae códigos
+      setItems(response?.codigos || []);
+      clearTimeout(abortTimer);
     } catch (err) {
       console.error('Error cargando códigos:', err);
+      // En caso de error, limpiamos items para evitar estado stale
+      setItems([]);
     } finally {
       setLoading(false);
       setCurrentPage(1);
