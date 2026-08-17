@@ -306,7 +306,7 @@ const ContabilidadEditarCodigo = () => {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">Área Solicitante</p>
+                  <p className="text-sm font-semibold text-slate-900">Área de Destino</p>
                   <p className="mt-1 text-sm text-slate-700">
                     {loadingCodigo ? 'Cargando...' : codigoInfo?.requestor_area || 'Sin datos'}
                   </p>

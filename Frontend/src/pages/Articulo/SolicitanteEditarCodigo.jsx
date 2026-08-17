@@ -300,7 +300,7 @@ const SolicitanteEditarCodigo = () => {
               {/* Área solicitante */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-900">
-                  Área Solicitante *
+                  Área de Destino *
                 </label>
                 <select
                   className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition focus:ring-2 ${
