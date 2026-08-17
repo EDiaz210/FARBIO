@@ -67,39 +67,59 @@ const DevolucionCompras = ({ isOpen, onClose, codigoId, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-lg p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Devolver código #{codigoId}</h3>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-700">✕</button>
-        </div>
-
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-slate-600">Comentario</label>
-          <textarea
-            value={comentario}
-            onChange={handleChange}
-            maxLength={200}
-            rows={5}
-            className={`w-full border rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-yellow-300 ${validationError ? 'border-red-300' : 'border-slate-200'}`}
-            placeholder="Indique la razón del retorno (máx. 200 caracteres)"
-          />
-          {validationError ? (
-            <div className="text-xs text-red-600 mt-1">{validationError}</div>
-          ) : null}
-        </div>
-
-        <div className="mt-6 flex justify-end gap-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 py-6">
+      <div className="w-full max-w-lg rounded-[24px] border border-slate-200 bg-white p-4 shadow-2xl sm:p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-lg font-semibold text-slate-900">Devolver código al solicitante </p>
+            <p className="mt-1 text-sm text-slate-600">
+              Describe el motivo de la devolución para que el solicitante  pueda corregirlo .
+            </p>
+          </div>
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
+            className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+            aria-label="Cerrar modal"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="mt-6 space-y-4">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-900">
+              Comentario de devolución <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={comentario}
+              onChange={handleChange}
+              maxLength={200}
+              rows={5}
+              placeholder="Indica la razón del retorno (máx. 200 caracteres)"
+              className={`w-full rounded-2xl px-4 py-3 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-red-100 ${validationError ? 'border border-red-300 bg-white' : 'border border-slate-300 bg-slate-50'}`}
+            />
+            {validationError ? (
+              <div className="mt-1 text-xs text-red-600">{validationError}</div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
             disabled={submitting}
           >
             Cancelar
           </button>
           <button
+            type="button"
             onClick={handleSubmit}
-            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
+            className="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
             disabled={submitting}
           >
             {submitting ? 'Enviando...' : 'Devolver'}
