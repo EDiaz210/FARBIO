@@ -283,7 +283,7 @@ const updateMaestroDatos = async (req, res) => {
     const isPurchase = compra === 'tYES';
 
     const sapItemPayload = {
-      IndirectTax: isTaxed ? 'tYES' : 'tNO',
+      IndirectTax: 'tYES',
       ItemCode: codigo,
       ItemName: descripcion_sap,
       ForeignName: nombre_extranjero,
