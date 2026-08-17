@@ -61,7 +61,7 @@ const EvioInpelClarel = ({ id, token, getValues, userId, userName, onSuccess, on
       disabled={isSubmitting || !id}
       className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700 shadow-sm transition hover:bg-emerald-100 hover:text-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
     >
-      {isSubmitting ? 'Enviando...' : 'Enviar a INPEL'}
+      {isSubmitting ? 'Enviando...' : 'SINCRONIZAR'}
     </button>
   );
 };
