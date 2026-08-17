@@ -91,9 +91,9 @@ const DevolucionContabilidad = ({ isOpen, onClose, codigoId, onSuccess }) => {
       <div className="w-full max-w-lg rounded-[24px] border border-slate-200 bg-white p-6 shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-lg font-semibold text-slate-900">Devolver código a solicitante</p>
+            <p className="text-lg font-semibold text-slate-900">Devolver código al departamento de compras</p>
             <p className="mt-1 text-sm text-slate-600">
-              Describe el motivo de la devolución para que el solicitante pueda corregirlo .
+              Describe el motivo de la devolución para que el departamento de compras pueda corregirlo .
             </p>
           </div>
           <button
