@@ -305,16 +305,22 @@ const MaestroDatosEditarCodigo = () => {
       const response = await fetchDataBackend(url, codigoData, 'PUT', token);
 
       if (response?.success) {
-        toast.success('Código actualizado exitosamente y enviado a SAP');
-        setTimeout(() => {
-          navigate('/dashboard/tablas');
-        }, 1500);
+        toast.success('Código actualizado exitosamente y enviado a SAP', {
+          autoClose: 2200,
+          onClose: () => {
+            navigate('/dashboard/tablas');
+          },
+        });
       } else {
-        toast.error(response?.message || response?.msg || 'Error al actualizar el código');
+        toast.error(response?.message || response?.msg || 'Error al actualizar el código', {
+          autoClose: 2200,
+        });
       }
     } catch (error) {
       console.error('Error al actualizar:', error);
-      toast.error('Error al actualizar el código');
+      toast.error('Error al actualizar el código', {
+        autoClose: 2200,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -325,15 +331,15 @@ const MaestroDatosEditarCodigo = () => {
       <ToastContainer />
 
       <div className="w-full bg-blue-300 text-black shadow-sm">
-        <div className="px-6 lg:px-8 py-4 lg:py-5">
-          <h1 className="text-4xl font-bold text-black">Maestro de Datos - Código #{id}</h1>
-          <p className="text-sm text-black/80 mt-2">
+        <div className="px-4 py-4 sm:px-6 lg:px-8 lg:py-5">
+          <h1 className="text-3xl font-bold text-black sm:text-4xl">Maestro de Datos - Código #{id}</h1>
+          <p className="mt-2 text-sm text-black/80 sm:text-base">
             Completa todos los datos del artículo. Al guardar, se sincronizará con SAP automáticamente.
           </p>
         </div>
       </div>
 
-      <div className="w-full max-w-7xl px-6 lg:px-8 mx-auto py-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <form onSubmit={handleSubmit(updateCodigo)} className="space-y-6">
           <div className="space-y-6">
             {/* Info General (Solo lectura) */}
@@ -347,95 +353,95 @@ const MaestroDatosEditarCodigo = () => {
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-6 md:grid-cols-2">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+              <div className="mt-6 grid gap-6 sm:grid-cols-2">
+                <div className="flex items-start gap-4 min-w-0">
+                  <div className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                       <path d="M12 12a4 4 0 100-8 4 4 0 000 8z" />
                       <path d="M4 20a8 8 0 0116 0v1H4v-1z" />
                     </svg>
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-slate-900">Nombre del Solicitante</p>
-                    <p className="mt-1 text-sm text-slate-700">{watch('nombreSolicitante') || 'Sin datos'}</p>
+                    <p className="mt-1 break-words text-sm text-slate-700">{watch('nombreSolicitante') || 'Sin datos'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                <div className="flex items-start gap-4 min-w-0">
+                  <div className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                       <path d="M3 21h18v-2H3v2zM6 7h2v2H6V7zm0 4h2v2H6v-2zM10 7h2v2h-2V7zm0 4h2v2h-2v-2zM14 7h2v2h-2V7zm0 4h2v2h-2v-2z" />
                       <path d="M19 3H5v14h14V3z" opacity=".3" />
                     </svg>
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-slate-900">Área Solicitante</p>
-                    <p className="mt-1 text-sm text-slate-700">{watch('RequestorArea') || 'Sin datos'}</p>
+                    <p className="mt-1 break-words text-sm text-slate-700">{watch('RequestorArea') || 'Sin datos'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                <div className="flex items-start gap-4 min-w-0">
+                  <div className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                       <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM14 3.5L18.5 8H14a1 1 0 01-1-1V3.5z" />
                       <path d="M8 12h8v2H8v-2zm0-4h8v2H8V8z" />
                     </svg>
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-slate-900">Descripción del Solicitante</p>
-                    <p className="mt-1 text-sm text-slate-700 whitespace-pre-wrap">{watch('RequestorDescription') || 'Sin datos'}</p>
+                    <p className="mt-1 break-words whitespace-pre-wrap text-sm text-slate-700">{watch('RequestorDescription') || 'Sin datos'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                <div className="flex items-start gap-4 min-w-0">
+                  <div className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                       <path d="M5 12c0-3.86 3.14-7 7-7s7 3.14 7 7-3.14 7-7 7-7-3.14-7-7zm7-5c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z" />
                       <path d="M12 4c.41 0 .75.34.75.75V7h1.5V4.75c0-.41.34-.75.75-.75s.75.34.75.75V7h1.5V4.75c0-.41.34-.75.75-.75s.75.34.75.75V7h.25A3.75 3.75 0 0119.75 10.75v.5a3.75 3.75 0 01-3.75 3.75H8.75A3.75 3.75 0 015 11.25v-.5A3.75 3.75 0 018.75 7H9V4.75c0-.41.34-.75.75-.75z" opacity=".3" />
                     </svg>
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-slate-900">Empresa</p>
-                    <p className="mt-1 text-sm text-slate-700">{watch('Empresa') || 'Sin datos'}</p>
+                    <p className="mt-1 break-words text-sm text-slate-700">{watch('Empresa') || 'Sin datos'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 md:col-span-2">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                <div className="flex items-start gap-4 min-w-0 md:col-span-2">
+                  <div className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                       <path d="M4 6.5C4 5.67 4.67 5 5.5 5S7 5.67 7 6.5 6.33 8 5.5 8 4 7.33 4 6.5zM4 12.5C4 11.67 4.67 11 5.5 11S7 11.67 7 12.5 6.33 14 5.5 14 4 13.33 4 12.5zM4 18.5C4 17.67 4.67 17 5.5 17S7 17.67 7 18.5 6.33 20 5.5 20 4 19.33 4 18.5zM9 6h11v2H9V6zm0 6h11v2H9v-2zm0 6h11v2H9v-2z" />
                     </svg>
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-slate-900">Detalles</p>
-                    <p className="mt-1 text-sm text-slate-700 whitespace-pre-wrap">{watch('Details') || 'Sin datos'}</p>
+                    <p className="mt-1 break-words whitespace-pre-wrap text-sm text-slate-700">{watch('Details') || 'Sin datos'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 md:col-span-2">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                <div className="flex items-start gap-4 min-w-0 md:col-span-2">
+                  <div className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-6 w-6">
                       <circle cx="7" cy="7" r="2" fill="currentColor" />
                       <circle cx="17" cy="17" r="2" fill="currentColor" />
                       <path d="M19 5L5 19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-slate-900">Grava o no grava IVA</p>
-                    <p className="mt-1 text-sm text-slate-700">{watch('gravaIva') || 'Sin datos'}</p>
+                    <p className="mt-1 break-words text-sm text-slate-700">{watch('gravaIva') || 'Sin datos'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 md:col-span-2">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                <div className="flex items-start gap-4 min-w-0 md:col-span-2">
+                  <div className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                       <path d="M3 5h18v14H3z" opacity=".3" />
                       <path d="M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm2 2v10h14V7H5z" />
                     </svg>
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-slate-900">Link de Referencia</p>
-                    <p className="mt-1 text-sm text-slate-700 break-words">{watch('ReferenceLink') || 'Sin datos'}</p>
+                    <p className="mt-1 break-all text-sm text-slate-700">{watch('ReferenceLink') || 'Sin datos'}</p>
                   </div>
                 </div>
               </div>
@@ -450,17 +456,17 @@ const MaestroDatosEditarCodigo = () => {
 
             {/* Datos de Maestro (Editable al instante) */}
             <section aria-label="Datos Maestro" className="w-full overflow-hidden rounded-[28px] border border-slate-200 border-l-4 border-l-blue-300 bg-white shadow-[0_25px_50px_-30px_rgba(15,23,42,0.2)]">
-              <div className="flex items-center justify-between px-6 py-5 shadow-sm">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col gap-4 px-4 py-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <div className="flex items-center gap-4 min-w-0">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-700 shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
                       <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 1.58l-1.67-1.67 9.19-9.19 1.67 1.67-9.19 9.19zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                     </svg>
                   </div>
-                  <p className="text-xl font-semibold text-slate-900">Datos del Artículo</p>
+                  <p className="text-lg font-semibold text-slate-900 sm:text-xl">Datos del Artículo</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">
+                <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                  <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-700 sm:text-xs">
                     Ingrese la información
                   </span>
                   <EvioInpelClarel
@@ -473,8 +479,8 @@ const MaestroDatosEditarCodigo = () => {
                 </div>
               </div>
 
-              <div className="px-6 py-6">
-                <div className="mb-8 grid gap-4 md:grid-cols-3">
+              <div className="px-4 py-4 sm:px-6 sm:py-6">
+                <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   <div className="flex items-center space-x-3 rounded-2xl border border-slate-200 bg-blue-50/70 p-4 shadow-sm">
                     <input
                       type="checkbox"
@@ -752,26 +758,25 @@ const MaestroDatosEditarCodigo = () => {
           </div>
 
           {/* Botones */}
-          <div className="grid gap-6 md:grid-cols-2 mt-8">
-            <div>
-              <button
-                type="button"
-                onClick={() => navigate('/dashboard/tablas')}
-                className="w-full inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
-              >
-                Cancelar
-              </button>
-            </div>
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            
 
-            <div>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full inline-flex items-center justify-center rounded-lg bg-blue-300 px-6 py-3 text-sm font-semibold text-black transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isSubmitting ? 'Sincronizando con SAP...' : 'Guardar Cambios'}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard/tablas')}
+              className="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex w-full items-center justify-center rounded-lg bg-blue-300 px-6 py-3 text-sm font-semibold text-black transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSubmitting ? 'Sincronizando con SAP...' : 'Guardar Cambios'}
+            </button>
+
           </div>
         </form>
       </div>
