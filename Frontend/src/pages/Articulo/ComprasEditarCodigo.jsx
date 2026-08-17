@@ -284,15 +284,6 @@ const ComprasEditarCodigo = () => {
                 </div>
               </fieldset>
 
-              <div className="flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => navigate('/dashboard/tablas')}
-                  className="w-full inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
-                >
-                  Cancelar
-                </button>
-              </div>
             </div>
 
             <div className="space-y-6">
@@ -387,16 +378,25 @@ const ComprasEditarCodigo = () => {
                 </div>
               </fieldset>
 
-              <div className="flex justify-center">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full inline-flex items-center justify-center rounded-lg bg-green-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
-                </button>
-              </div>
             </div>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard/tablas')}
+              className="order-2 w-full inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 sm:order-1 sm:w-auto"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="order-1 w-full inline-flex items-center justify-center rounded-lg bg-green-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50 sm:order-2 sm:w-auto"
+            >
+              {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+            </button>
           </div>
         </form>
       </div>
