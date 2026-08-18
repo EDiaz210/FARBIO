@@ -200,6 +200,13 @@ const updateSolicitante = async (req, res) => {
 
     const codigoAnterior = existe[0];
 
+    if (userRole.includes('solicitante') && Number(codigoAnterior.created_by) !== Number(userId)) {
+      return res.status(403).json({
+        success: false,
+        msg: 'No puedes editar un código que no te pertenece'
+      });
+    }
+
     // 3. Validar opciones permitidas
     if (RequestorArea && typeof AREA_OPTIONS !== 'undefined' && !AREA_OPTIONS.includes(RequestorArea)) {
       return res.status(400).json({ 
