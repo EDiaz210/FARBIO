@@ -7,14 +7,21 @@ import pool from '../database.js';
 
   try {
     const { id } = req.params;
+    const userRole = (req.user?.rol || '').toLowerCase();
+    const userId = req.user?.id;
 
-    const [codigos] = await connection.query(
-      'SELECT id, codigo, status, descripcion, detalles, link_referencia, descripcion_sap, nombre_extranjero, lead_time, dias_tolerancia, cantidad_minima_pedido, unidad_compra, grupo_articulos, requestor_area, tipo_bien, unidad_medida, nombre_solicitante, grava_iva, impuesto_compra, impuesto_venta, indicadorIVACompras, indicadorIVAVentas, empresa FROM codigos WHERE id = ?',
-      [id]
-    );
+    let query = 'SELECT id, codigo, status, descripcion, detalles, link_referencia, descripcion_sap, nombre_extranjero, lead_time, dias_tolerancia, cantidad_minima_pedido, unidad_compra, grupo_articulos, requestor_area, tipo_bien, unidad_medida, nombre_solicitante, grava_iva, impuesto_compra, impuesto_venta, indicadorIVACompras, indicadorIVAVentas, empresa, created_by FROM codigos WHERE id = ?';
+    const params = [id];
+
+    if (userRole.includes('solicitante')) {
+      query += ' AND created_by = ?';
+      params.push(userId);
+    }
+
+    const [codigos] = await connection.query(query, params);
 
     if (codigos.length === 0) {
-      return res.status(404).json({ msg: "Código no encontrado" });
+      return res.status(404).json({ msg: "Código no encontrado o no autorizado" });
     }
 
     return res.status(200).json({
@@ -36,21 +43,29 @@ import pool from '../database.js';
   const connection = await pool.getConnection();
 
   try {
-    // Si usas GET, los parámetros vienen en .query
-    const { status } = req.query; 
+    const { status, created_by } = req.query;
+    const userRole = (req.user?.rol || '').toLowerCase();
+    const authenticatedUserId = req.user?.id;
 
-    // Validación para depurar:
     if (!status) {
-      console.log("Error: Status no recibido");
-      return res.status(400).json({ msg: "El status es requerido" });
+      console.log('Error: Status no recibido');
+      return res.status(400).json({ msg: 'El status es requerido' });
     }
 
-    const [codigos] = await connection.query(
-      'SELECT * FROM codigos WHERE status = ?',
-      [status]
-    );
+    let query = 'SELECT * FROM codigos WHERE status = ?';
+    const params = [status];
 
-    // Devolver array sin mensaje cuando no hay resultados (sin notificación)
+    // Seguridad: los solicitantes solo deben ver sus propios códigos aunque usen la búsqueda genérica
+    if (userRole.includes('solicitante')) {
+      query += ' AND created_by = ?';
+      params.push(authenticatedUserId);
+    } else if (created_by) {
+      query += ' AND created_by = ?';
+      params.push(created_by);
+    }
+
+    const [codigos] = await connection.query(query, params);
+
     return res.status(200).json({ codigos });
 
   } catch (err) {
@@ -66,25 +81,27 @@ const obtenerMisCodigos = async (req, res) => {
   const connection = await pool.getConnection();
 
   try {
-    // Recibe el ID enviado desde el frontend (?created_by=...)
-    const { created_by } = req.query;
-    // Validación para depurar en consola:
-    if (!created_by) {
-      console.log("Error: created_by no recibido desde el frontend");
-      return res.status(400).json({ msg: "El ID del creador (created_by) es requerido" });
+    const userRole = (req.user?.rol || '').toLowerCase();
+    const requesterId = Number(req.user?.id);
+    const requestedUserId = req.query.created_by ? Number(req.query.created_by) : requesterId;
+
+    if (!requestedUserId && !requesterId) {
+      console.log('Error: created_by no recibido desde el frontend');
+      return res.status(400).json({ msg: 'El ID del creador (created_by) es requerido' });
     }
 
-    // Consulta a la base de datos filtrando por el creador
-    // Excluir códigos que estén 'Finalizado' y cuya fecha de creación sea mayor a 20 días
+    if (userRole.includes('solicitante') && requestedUserId !== requesterId) {
+      return res.status(403).json({ msg: 'No puedes ver códigos de otro solicitante' });
+    }
+
     const [codigos] = await connection.query(
       `SELECT * FROM codigos
        WHERE created_by = ?
          AND (status <> 'Finalizado' OR created_at >= DATE_SUB(NOW(), INTERVAL 20 DAY))
        ORDER BY id ASC`,
-      [created_by]
+      [requestedUserId]
     );
 
-    // Devolver array con los códigos encontrados
     return res.status(200).json({ codigos });
 
   } catch (err) {
@@ -98,12 +115,10 @@ const obtenerMisCodigos = async (req, res) => {
 
 const eliminarCodigo = async (req, res) => {
   const { id } = req.params;
-  // Use authenticated user info from token
   const userId = req.user?.id;
   const userName = req.user?.nombre || req.user?.name || null;
   
   try {
-    // Validar que el usuario sea solicitante
     const userQuery = 'SELECT rol FROM usuarios WHERE id = ?';
     const [userResults] = await pool.query(userQuery, [userId]);
 
@@ -111,12 +126,21 @@ const eliminarCodigo = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
     }
 
-    const userRole = userResults[0].rol;
+    const userRole = (userResults[0].rol || '').toLowerCase();
     if (userRole !== 'solicitante' && userRole !== 'maestrodedatos') {
       return res.status(403).json({ success: false, message: 'Rol no autorizado' });
     }
 
-    // Eliminar el código
+    if (userRole.includes('solicitante')) {
+      const [codigo] = await pool.query('SELECT created_by FROM codigos WHERE id = ?', [id]);
+      if (!codigo.length) {
+        return res.status(404).json({ success: false, message: 'Código no encontrado' });
+      }
+      if (Number(codigo[0].created_by) !== Number(userId)) {
+        return res.status(403).json({ success: false, message: 'No puedes eliminar un código que no te pertenece' });
+      }
+    }
+
     const deleteQuery = 'DELETE FROM codigos WHERE id = ?';
     const [deleteResults] = await pool.query(deleteQuery, [id]);
 
