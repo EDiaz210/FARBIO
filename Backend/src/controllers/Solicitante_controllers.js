@@ -280,6 +280,27 @@ const updateSolicitante = async (req, res) => {
       usuarioNombre: userName || codigoAnterior.nombre_solicitante
     });
 
+    const esReenvio = Boolean(forceStatusUpdate) && ['RetornoSolicitante', 'RetornoCompras'].includes(codigoAnterior.status);
+
+    if (esReenvio) {
+      const solicitanteNombre = req.body.nombreSolicitante || codigoAnterior.nombre_solicitante || userName || 'Solicitante';
+      const empresaCodigo = req.body.empresa || codigoAnterior.empresa || 'No especificada';
+      const descripcionParaTelegram = req.body.descripcionSolicitante || codigoAnterior.descripcion || 'Reenvío de solicitud';
+
+      try {
+        await notificarResumenPorEstado(
+          'Nuevo',
+          descripcionParaTelegram,
+          'Código reenviado por Solicitante',
+          codigoAnterior.codigo,
+          solicitanteNombre,
+          empresaCodigo
+        );
+      } catch (telegramError) {
+        console.error('Error enviando notificación de Telegram en reenvío de solicitante:', telegramError);
+      }
+    }
+
     console.log(`Código ${id} actualizado exitosamente por ${userName}. Campos alterados:`, Object.keys(changedFields));
     
     return res.status(200).json({ 
