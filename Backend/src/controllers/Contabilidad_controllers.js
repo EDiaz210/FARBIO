@@ -152,14 +152,25 @@ const retornoCodigosContabilidad = async (req, res) => {
       });
     }
   
-    // 3. Cambiar el estado a 'nuevo' y reescribir el comentario
+    const [codigoActual] = await pool.query(
+      'SELECT codigo, nombre_solicitante, empresa FROM codigos WHERE id = ?',
+      [id]
+    );
+
     const query = 'UPDATE codigos SET status = ?, comentario = ? WHERE id = ?';
     await pool.query(query, ['RetornoCompras', comentario, id]);
     try{
-      await notificarResumenPorEstado('Nuevo', comentario, 'Código rechazado por Contabilidad');
+      const infoCodigo = codigoActual?.[0] || {};
+      await notificarResumenPorEstado(
+        'Nuevo',
+        comentario,
+        'Código rechazado por Contabilidad',
+        infoCodigo.codigo || '',
+        infoCodigo.nombre_solicitante || '',
+        infoCodigo.empresa || ''
+      );
     } catch (telegramError) {
       console.error('Error enviando notificación de Telegram:', telegramError);
-      // No lanzamos el error para que la petición responda 200/201 aunque falle Telegram
     }
     return res.status(200).json({ msg: 'Envio con exito a compras para revisión' });
   } catch (error) {

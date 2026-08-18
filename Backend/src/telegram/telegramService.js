@@ -61,6 +61,8 @@ ${lineaEmpresa}
       mensaje = `
 🔴 <b>${evento.toUpperCase()}</b>
 ➖➖➖➖➖➖➖➖➖➖➖➖
+${lineaSolicitante}
+${lineaEmpresa}
 💬 <b>Motivo:</b> <i>"${comentario || 'No se especificó un motivo.'}"</i>
 
 🚨 <b>Atención:</b> Hay <b>${devueltosSolicitante}</b> código(s) en la bandeja de devueltos que requieren revisión.

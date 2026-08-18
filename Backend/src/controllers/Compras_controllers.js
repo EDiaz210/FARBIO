@@ -154,28 +154,36 @@ const retornoCodigosCompras = async (req, res) => {
   try {
     const { id, comentario } = req.body;
 
-    // 1. Validar que vengan los datos requeridos
     if (!id || !comentario) {
       return res.status(400).json({ msg: 'El ID y el comentario son obligatorios' });
     }
 
-    // 2. Validar la longitud máxima (200 caracteres)
     if (comentario.length > 200) {
       return res.status(400).json({ 
         msg: `El comentario es demasiado largo. Máximo 200 caracteres (actual: ${comentario.length})` 
       });
     }
 
-    // 3. Si todo está bien, actualizamos en la base de datos
+    const [codigoActual] = await pool.query(
+      'SELECT codigo, nombre_solicitante, empresa FROM codigos WHERE id = ?',
+      [id]
+    );
+
     const query = 'UPDATE codigos SET status = ?, comentario = ? WHERE id = ?';
     await pool.query(query, ['RetornoSolicitante', comentario, id]);
 
-
     try {
-    await notificarResumenPorEstado('Solicitante', comentario, 'Código rechazado por Compras');
+      const infoCodigo = codigoActual?.[0] || {};
+      await notificarResumenPorEstado(
+        'Solicitante',
+        comentario,
+        'Código rechazado por Compras',
+        infoCodigo.codigo || '',
+        infoCodigo.nombre_solicitante || '',
+        infoCodigo.empresa || ''
+      );
     } catch (telegramError) {
       console.error('Error enviando notificación de Telegram:', telegramError);
-      // No lanzamos el error para que la petición responda 200/201 aunque falle Telegram
     }
     
     return res.status(200).json({ msg: 'Envio con exito al solicitante para revisión' });

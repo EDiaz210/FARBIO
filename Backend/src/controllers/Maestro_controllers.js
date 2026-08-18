@@ -474,13 +474,25 @@ const retornoCodigosMaestroDatos = async (req, res) => {
       });
     }
 
+    const [codigoActual] = await pool.query(
+      'SELECT codigo, nombre_solicitante, empresa FROM codigos WHERE id = ?',
+      [id]
+    );
+
     const query = 'UPDATE codigos SET status = ?, comentario = ? WHERE id = ?';
     await pool.query(query, ['RetornoSolicitante', comentario, id]);
     try {
-      await notificarResumenPorEstado('RetornoSolicitante', comentario, 'Código devuelto por Maestro de Datos');
+      const infoCodigo = codigoActual?.[0] || {};
+      await notificarResumenPorEstado(
+        'RetornoSolicitante',
+        comentario,
+        'Código devuelto por Maestro de Datos',
+        infoCodigo.codigo || '',
+        infoCodigo.nombre_solicitante || '',
+        infoCodigo.empresa || ''
+      );
     } catch (telegramError) {
       console.error('Error enviando notificación de Telegram:', telegramError);
-      // No lanzamos el error para que la petición responda 200/201 aunque falle Telegram
     }
 
     return res.status(200).json({ success: true, msg: 'Código devuelto exitosamente al solicitante para revisión' });
