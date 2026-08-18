@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useFetch from './useFetch';
 import storeAuth from '../context/storeAuth';
+import { getAuthClaims } from '../utils/authClaims';
 
 /**
  * Hook personalizado para gestionar la lógica de tablas de códigos por rol
@@ -19,6 +20,8 @@ export const useTablaCodigos = (userRole, status, editRoute, colorConfig, option
 
   const { fetchDataBackend } = useFetch();
   const navigate = useNavigate();
+  const { token } = storeAuth();
+  const currentUserId = getAuthClaims(token)?.id;
 
   // Calcular items por página dinámicamente basado en altura de pantalla
   useEffect(() => {
@@ -49,7 +52,15 @@ export const useTablaCodigos = (userRole, status, editRoute, colorConfig, option
     setLoading(true);
     try {
       const sanitizedStatus = encodeURIComponent((status || '').trim());
-      const url = options.endpoint || `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=${sanitizedStatus}`;
+      let url = options.endpoint;
+
+      if (!url && userRole === 'solicitante' && currentUserId) {
+        url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=${sanitizedStatus}&created_by=${encodeURIComponent(currentUserId)}`;
+      }
+
+      if (!url) {
+        url = `${import.meta.env.VITE_BACKEND_URL}/api/codigos/search?status=${sanitizedStatus}`;
+      }
 
       // Crear AbortController y watchdog para evitar que una petición colgada deje `loading` en true
       const controller = new AbortController();
@@ -75,7 +86,7 @@ export const useTablaCodigos = (userRole, status, editRoute, colorConfig, option
       setLoading(false);
       setCurrentPage(1);
     }
-  }, [fetchDataBackend, options.endpoint, status]);
+  }, [fetchDataBackend, options.endpoint, status, userRole, currentUserId]);
 
   // Cargar datos del backend
   useEffect(() => {
