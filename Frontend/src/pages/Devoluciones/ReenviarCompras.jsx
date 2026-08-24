@@ -126,6 +126,7 @@ const ReenviarCompras = () => {
       Details: '',
       ReferenceLink: '',
       RequestorArea: '',
+      Solicitante: '',
       descripcion_sap: '',
       unidad_medida: '',
       gravaIva: 'SI',
@@ -142,6 +143,7 @@ const ReenviarCompras = () => {
 
         if (response?.codigo) {
           const item = response.codigo;
+          setValue('Solicitante', item.nombre_solicitante || '');
           setValue('ItemCode', item.codigo || '');
           setValue('ItemName', item.descripcion_sap || '');
           setValue('ForeignName', item.nombre_extranjero || '');
@@ -246,6 +248,26 @@ const ReenviarCompras = () => {
 
                 <div className="grid gap-6 pt-1">
                   <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700">Solicitante</label>
+                    <input
+                      type="text"
+                      disabled
+                      className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
+                      {...register('Solicitante')}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-slate-700">Área Solicitante</label>
+                    <input
+                      type="text"
+                      disabled
+                      className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
+                      {...register('RequestorArea')}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <label className="block text-sm font-semibold text-slate-700">Descripción del Solicitante</label>
                     <textarea
                       disabled
@@ -276,18 +298,8 @@ const ReenviarCompras = () => {
                         window.open(href, '_blank', 'noopener,noreferrer');
                       }}
                       title="Abrir enlace en nueva pestaña"
-                      className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-pointer"
+                      className="w-full rounded-lg border border-blue-300 bg-white px-4 py-3 text-blue-700 underline decoration-blue-300 underline-offset-2 cursor-pointer transition hover:border-blue-500 hover:bg-blue-50 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
                       {...register('ReferenceLink')}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-slate-700">Área Solicitante</label>
-                    <input
-                      type="text"
-                      disabled
-                      className="w-full rounded-lg border px-4 py-3 text-slate-600 bg-slate-100 cursor-not-allowed"
-                      {...register('RequestorArea')}
                     />
                   </div>
                 </div>
@@ -390,11 +402,11 @@ const ReenviarCompras = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <div className="grid gap-3 lg:grid-cols-2">
             <button
               type="button"
               onClick={() => navigate('/dashboard/compras/rechazados')}
-              className="order-2 w-full inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 sm:order-1 sm:w-auto"
+              className="order-2 w-full inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 sm:order-1 lg:order-none"
             >
               Cancelar
             </button>
@@ -402,7 +414,7 @@ const ReenviarCompras = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="order-1 w-full inline-flex items-center justify-center rounded-lg bg-green-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50 sm:order-2 sm:w-auto"
+              className="order-1 w-full inline-flex items-center justify-center rounded-lg bg-green-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50 sm:order-2 lg:order-none"
             >
               {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
             </button>
