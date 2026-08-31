@@ -273,7 +273,7 @@ const SolicitanteEditarCodigo = () => {
               {/* Empresa */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-900">
-                  Empresa *
+                  Empresa en la que se va a crear el código *
                 </label>
                 <select
                   className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition focus:ring-2 ${
@@ -300,7 +300,7 @@ const SolicitanteEditarCodigo = () => {
               {/* Área solicitante */}
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-900">
-                  Área de Destino *
+                  Área Solicitante  *
                 </label>
                 <select
                   className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition focus:ring-2 ${
@@ -352,7 +352,8 @@ const SolicitanteEditarCodigo = () => {
                 </label>
                 <textarea
                   rows={4}
-                  placeholder="Describe detalladamente el artículo que necesitas"
+                  placeholder="Describe detalladamente el artículo que necesitas, ingresa las dimensiones , el nombre de la persona que lo va a usar y para que se va a usar"
+
                   className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition focus:ring-2 ${
                     errors.Details
                       ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100'

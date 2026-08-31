@@ -24,6 +24,7 @@ CREATE TABLE codigos (
   tipo_bien VARCHAR(50),
   indicadorIVACompras varchar(30),
   indicadorIVAVentas varchar(30),
+  unidad_compra VARCHAR(50),
   unidad_medida VARCHAR(50),
   cantidad_minima_pedido INT,
   empresa VARCHAR(40),
