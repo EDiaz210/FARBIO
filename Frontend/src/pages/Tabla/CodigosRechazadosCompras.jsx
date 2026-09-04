@@ -10,6 +10,7 @@ const CodigosRechazadosCompras = () => (
     headerTitleClass="text-black"
     headerSubtitleClass="text-black/70"
     emptyMessage="No hay códigos rechazados para compras."
+    showReturnButton
   />
 );
 

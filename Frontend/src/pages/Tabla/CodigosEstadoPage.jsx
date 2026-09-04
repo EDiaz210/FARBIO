@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import { useTablaCodigos } from '../../hooks/useTablaCodigos';
+import DevolucionCompras from '../Devoluciones/DevolucionCompras';
 import { CardMovil, TableRowEscritorio } from './TablaCodigos_Components';
 
 const PHONE_FONT_LINK = 'https://fonts.googleapis.com/css2?family=Gowun+Batang&display=swap';
@@ -48,9 +49,12 @@ const CodigosEstadoPage = ({
   exportLabel = 'Descargar CSV',
   exportFilePrefix = 'codigos',
   endpoint,
-  showCommentButton = true
+  showCommentButton = true,
+  showReturnButton = false
 }) => {
   const [commentItem, setCommentItem] = useState(null);
+  const [isDevolucionOpen, setIsDevolucionOpen] = useState(false);
+  const [codigoSeleccionado, setCodigoSeleccionado] = useState(null);
   const {
     items,
     loading,
@@ -59,7 +63,8 @@ const CodigosEstadoPage = ({
     totalPages,
     currentItems,
     handleEdit,
-    clasesColor
+    clasesColor,
+    refreshItems
   } = useTablaCodigos('', status, editRoute, colorConfig, { endpoint });
 
   const [loadStalled, setLoadStalled] = useState(false);
@@ -120,6 +125,20 @@ const CodigosEstadoPage = ({
     setCommentItem(null);
   };
 
+  const handleOpenReturn = (id) => {
+    setCodigoSeleccionado(id);
+    setIsDevolucionOpen(true);
+  };
+
+  const handleCloseReturn = () => {
+    setIsDevolucionOpen(false);
+    setCodigoSeleccionado(null);
+  };
+
+  const handleAfterSuccessReturn = async () => {
+    await refreshItems();
+  };
+
   return (
     <div className={`min-h-full overflow-auto ${pageClassName}`} style={{ fontFamily: 'Gowun Batang, serif' }}>
       {/* Header */}
@@ -164,6 +183,8 @@ const CodigosEstadoPage = ({
                   clasesColor={clasesColor}
                   onComment={handleOpenComment}
                   showCommentButton={showCommentButton}
+                  onReturn={handleOpenReturn}
+                  showReturnButton={showReturnButton}
                   actionButtonClass={computedActionButtonClass} 
                 />
               ))
@@ -197,6 +218,8 @@ const CodigosEstadoPage = ({
                       clasesColor={clasesColor}
                       onComment={handleOpenComment}
                       showCommentButton={showCommentButton}
+                      onReturn={handleOpenReturn}
+                      showReturnButton={showReturnButton}
                       actionButtonClass={computedActionButtonClass} // <-- Pasado al hijo escritorio
                     />
                   ))
@@ -206,6 +229,15 @@ const CodigosEstadoPage = ({
           </div>
 
         </div>
+
+        {showReturnButton && (
+          <DevolucionCompras
+            isOpen={isDevolucionOpen}
+            onClose={handleCloseReturn}
+            codigoId={codigoSeleccionado}
+            onSuccess={handleAfterSuccessReturn}
+          />
+        )}
 
         {/* Paginación */}
         {!loading && currentItems.length > 0 && totalPages > 1 && (
