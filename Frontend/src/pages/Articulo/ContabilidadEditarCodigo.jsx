@@ -125,6 +125,7 @@ const ContabilidadEditarCodigo = () => {
             unidad_medida: item.unidad_medida || '',
             gravaIva: item.grava_iva || 'SI',
             Details: item.detalles || '',
+            ReferenceLink: item.link_referencia || '',
           });
 
           // Cargar datos editables en el formulario
@@ -354,6 +355,34 @@ const ContabilidadEditarCodigo = () => {
                   <p className="text-sm font-semibold text-slate-900">Grava o no grava IVA</p>
                   <p className="mt-1 text-sm text-slate-700">
                     {loadingCodigo ? 'Cargando...' : codigoInfo?.gravaIva || 'Sin datos'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 text-yellow-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-6 w-6">
+                    <path d="M10 13a5 5 0 007.07.07l2-2a5 5 0 00-7.07-7.07l-1.15 1.15" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M14 11a5 5 0 00-7.07-.07l-2 2A5 5 0 0010 20l1.15-1.15" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-900">Link de Referencia</p>
+                  <p className="mt-1 truncate text-sm text-slate-700">
+                    {loadingCodigo ? (
+                      'Cargando...'
+                    ) : codigoInfo?.ReferenceLink ? (
+                      <a
+                        href={codigoInfo.ReferenceLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-700 underline hover:text-blue-900"
+                      >
+                        {codigoInfo.ReferenceLink}
+                      </a>
+                    ) : (
+                      'Sin datos'
+                    )}
                   </p>
                 </div>
               </div>
