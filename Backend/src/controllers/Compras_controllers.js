@@ -108,9 +108,9 @@ const COMPRAS_FIELDS_MAPPING = {
     });
 
     const finalSetClause = setClause
-      ? `${setClause}, status = ?, r_compras = ?, updated_by = ?`
-      : 'status = ?, r_compras = ?, updated_by = ?';
-    const finalValues = [...values, 'En Contabilidad', JSON.stringify(currentHistory), authenticatedUserId, id];
+      ? `${setClause}, status = ?, r_compras = ?, updated_by = ?, compras_enviado_por = ?`
+      : 'status = ?, r_compras = ?, updated_by = ?, compras_enviado_por = ?';
+    const finalValues = [...values, 'En Contabilidad', JSON.stringify(currentHistory), authenticatedUserId, authenticatedUserId, id];
 
     const updateQuery = `UPDATE codigos SET ${finalSetClause} WHERE id = ?`;
     await pool.query(updateQuery, finalValues);

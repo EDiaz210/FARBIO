@@ -19,6 +19,8 @@ import AdminUsuarios from "./pages/Administrador/AdminUsuarios";
 import Sincronizar from "./pages/Sincronizar/Sincronizar";
 import AdminReportes from "./pages/Reportes/AdminReportes";
 import MisSolicitudes from "./pages/Solicitudes/MisSolicitudes";
+import MisSolicitudesCompras from "./pages/Solicitudes/MisSolicitudesCompras";
+import MisCodigosCompras from "./pages/Tabla/MisCodigosCompras";
 import CrearUsuarioPage from "./pages/Administrador/CrearUsuarioPage";
 import EditarUsuario from "./pages/Administrador/EditarUsuario";
 import NotFound from "./pages/NotFound";
@@ -173,6 +175,24 @@ function App() {
           />
 
           <Route path="mis-solicitudes" element={<MisSolicitudes />} />
+
+          <Route
+            path="mis-codigos-compras"
+            element={
+              <PrivateRouteWithRole allowedRoles={["compras"]}>
+                <MisCodigosCompras />
+              </PrivateRouteWithRole>
+            }
+          />
+
+          <Route
+            path="mis-codigos-compras/:id"
+            element={
+              <PrivateRouteWithRole allowedRoles={["compras"]}>
+                <MisSolicitudesCompras />
+              </PrivateRouteWithRole>
+            }
+          />
 
           {/* 🔹 Rutas para Administrador */}
           <Route path="admin/usuarios" element={<AdminUsuarios />} />

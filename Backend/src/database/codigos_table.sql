@@ -48,6 +48,7 @@ CREATE TABLE codigos (
   -- Control de quién crea y actualiza
   created_by INT,
   updated_by INT,
+  compras_enviado_por INT,
   
   -- Timestamps
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -56,6 +57,7 @@ CREATE TABLE codigos (
   -- Relaciones
   FOREIGN KEY (created_by) REFERENCES usuarios(id) ON DELETE SET NULL,
   FOREIGN KEY (updated_by) REFERENCES usuarios(id) ON DELETE SET NULL,
+  FOREIGN KEY (compras_enviado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
   FOREIGN KEY (compras_responsable_id) REFERENCES usuarios(id) ON DELETE SET NULL,
   
   -- Índices para búsquedas rápidas

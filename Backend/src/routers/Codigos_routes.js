@@ -3,6 +3,7 @@ import {
   obtenerCodigos,
   obtenerCodigoID,
   obtenerMisCodigos,
+  obtenerMisCodigosCompras,
   eliminarCodigo
 } from '../controllers/Codigos_controllers.js';
 import { verificarTokenJWT } from '../middlewares/JWT.js';
@@ -11,6 +12,8 @@ const router = express.Router();
 //GET- Obtener códigos creados por el usuario actual
 // La ruta es GET /api/codigos/mis-codigos?created_by=ID_USUARIO
 router.get('/mis-codigos', verificarTokenJWT, obtenerMisCodigos);
+// GET - Obtener códigos enviados por el usuario actual de Compras
+router.get('/mis-codigos-compras', verificarTokenJWT, obtenerMisCodigosCompras);
 // GET - Obtener un códigos
 // La ruta es GET /api/codigos/search
 router.get('/search', verificarTokenJWT, obtenerCodigos);

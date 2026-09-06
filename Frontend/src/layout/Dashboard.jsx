@@ -404,6 +404,23 @@ const Dashboard = () => {
                             )}
                         </Link>
                       </li>
+                      <li>
+                        <Link
+                          to="/dashboard/mis-codigos-compras"
+                          onClick={handleMenuItemClick}
+                          className={`flex items-center p-2 rounded-lg transition ${
+                            urlActual === "/dashboard/mis-codigos-compras"
+                              ? `${menuClassesByRole[userRole]?.active || 'bg-green-100 text-green-800'} font-bold`
+                              : `${menuClassesByRole[userRole]?.inactive || 'text-slate-800 hover:bg-green-100'} `
+                          } ${isCollapsed ? "justify-center" : ""}`}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                            <path d="M4 4h16v16H4z" />
+                            <path d="M8 8h8M8 12h8M8 16h5" />
+                          </svg>
+                          {!isCollapsed && <span className="ml-3">Mis códigos</span>}
+                        </Link>
+                      </li>
                     </>
                   )}
 

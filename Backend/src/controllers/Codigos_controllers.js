@@ -10,14 +10,14 @@ import pool from '../database.js';
     const userRole = (req.user?.rol || '').toLowerCase();
     const userId = req.user?.id;
 
-    let query = 'SELECT id, codigo, status, descripcion, detalles, link_referencia, descripcion_sap, nombre_extranjero, lead_time, dias_tolerancia, cantidad_minima_pedido, unidad_compra, grupo_articulos, requestor_area, tipo_bien, unidad_medida, nombre_solicitante, grava_iva, impuesto_compra, impuesto_venta, indicadorIVACompras, indicadorIVAVentas, empresa, compras_responsable_id, created_by FROM codigos WHERE id = ?';
+    let query = 'SELECT c.id, c.codigo, c.status, c.descripcion, c.detalles, c.link_referencia, c.descripcion_sap, c.nombre_extranjero, c.lead_time, c.dias_tolerancia, c.cantidad_minima_pedido, c.unidad_compra, c.grupo_articulos, c.requestor_area, c.tipo_bien, c.unidad_medida, c.nombre_solicitante, c.grava_iva, c.impuesto_compra, c.impuesto_venta, c.indicadorIVACompras, c.indicadorIVAVentas, c.empresa, c.compras_responsable_id, c.compras_enviado_por, c.created_by, u.nombre AS responsable_compras FROM codigos c LEFT JOIN usuarios u ON u.id = c.compras_responsable_id WHERE c.id = ?';
     const params = [id];
 
     if (userRole.includes('solicitante')) {
-      query += ' AND created_by = ?';
+      query += ' AND c.created_by = ?';
       params.push(userId);
     } else if (userRole.includes('compras')) {
-      query += ' AND (compras_responsable_id IS NULL OR compras_responsable_id = ?)';
+      query += ' AND (c.compras_responsable_id IS NULL OR c.compras_responsable_id = ?)';
       params.push(userId);
     }
 
@@ -169,9 +169,37 @@ const eliminarCodigo = async (req, res) => {
   }
 };
 
+// Obtener códigos enviados por el usuario actual de Compras
+const obtenerMisCodigosCompras = async (req, res) => {
+  try {
+    const userRole = (req.user?.rol || '').toLowerCase();
+    const userId = req.user?.id;
+
+    if (!userRole.includes('compras')) {
+      return res.status(403).json({ msg: 'Solo los usuarios de Compras pueden consultar esta bandeja' });
+    }
+
+    const [codigos] = await pool.query(
+      `SELECT c.id, c.codigo, c.descripcion, c.status, c.nombre_solicitante,
+            c.compras_responsable_id, c.compras_enviado_por, c.created_at, c.updated_at,
+            u.nombre AS responsable_compras
+       FROM codigos c
+       LEFT JOIN usuarios u ON u.id = c.compras_responsable_id
+       WHERE c.compras_enviado_por = ?
+       ORDER BY c.updated_at DESC, c.id DESC`,
+      [userId]
+    );
+
+    return res.status(200).json({ codigos });
+  } catch (err) {
+    console.error('Error obteniendo códigos enviados por Compras:', err);
+    return res.status(500).json({ msg: 'Error de servidor' });
+  }
+};
 
 
-export { obtenerCodigoID, obtenerCodigos, obtenerMisCodigos, eliminarCodigo };
+
+export { obtenerCodigoID, obtenerCodigos, obtenerMisCodigos, obtenerMisCodigosCompras, eliminarCodigo };
 
 
 
