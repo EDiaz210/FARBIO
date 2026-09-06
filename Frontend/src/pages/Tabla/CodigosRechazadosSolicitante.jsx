@@ -9,6 +9,7 @@ const CodigosRechazadosSolicitante = () => (
     colorConfig="bg-gradient-to-r from-[#274C77] via-[#2F5D8A] to-[#1F3F5B] text-white shadow-sm"
     emptyMessage="No hay códigos rechazados para solicitante."
     showCommentButton
+    showDeleteButton
   />
 );
 

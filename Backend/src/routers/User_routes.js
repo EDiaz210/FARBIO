@@ -1,13 +1,14 @@
 import express from 'express';
 import { 
   obtenerMiPerfil,
+  obtenerUsuariosCompras,
   registro, 
   login, 
   obtenerUsuarios, 
   obtenerUsuario, 
   actualizarUsuario, 
   eliminarUsuario 
-} from '../controllers/user_controllers.js';
+} from '../controllers/User_controllers.js';
 import { verificarTokenJWT } from '../middlewares/JWT.js';
 
 const router = express.Router();
@@ -18,6 +19,8 @@ router.post('/login', login);
 // GET - Obtener perfil del usuario
 // La ruta es /api/users/mi-perfil
 router.get('/mi-perfil', verificarTokenJWT, obtenerMiPerfil);
+// GET - Obtener usuarios activos con rol Compras
+router.get('/usuarios/compras', verificarTokenJWT, obtenerUsuariosCompras);
 // POST - Registro de usuario
 // La ruta es /api/users/registro
 router.post('/registro', verificarTokenJWT, registro);

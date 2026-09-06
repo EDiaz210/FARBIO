@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import { useTablaCodigos } from '../../hooks/useTablaCodigos';
 import DevolucionCompras from '../Devoluciones/DevolucionCompras';
+import SolicitanteEliminacion from '../eliminacion/SolicitanteEliminación';
 import { CardMovil, TableRowEscritorio } from './TablaCodigos_Components';
 
 const PHONE_FONT_LINK = 'https://fonts.googleapis.com/css2?family=Gowun+Batang&display=swap';
@@ -50,11 +51,13 @@ const CodigosEstadoPage = ({
   exportFilePrefix = 'codigos',
   endpoint,
   showCommentButton = true,
-  showReturnButton = false
+  showReturnButton = false,
+  showDeleteButton = false
 }) => {
   const [commentItem, setCommentItem] = useState(null);
   const [isDevolucionOpen, setIsDevolucionOpen] = useState(false);
   const [codigoSeleccionado, setCodigoSeleccionado] = useState(null);
+  const [deleteItem, setDeleteItem] = useState(null);
   const {
     items,
     loading,
@@ -139,6 +142,19 @@ const CodigosEstadoPage = ({
     await refreshItems();
   };
 
+  const handleOpenDelete = (item) => {
+    setDeleteItem(item);
+  };
+
+  const handleCloseDelete = () => {
+    setDeleteItem(null);
+  };
+
+  const handleAfterDelete = async () => {
+    await refreshItems();
+    handleCloseDelete();
+  };
+
   return (
     <div className={`min-h-full overflow-auto ${pageClassName}`} style={{ fontFamily: 'Gowun Batang, serif' }}>
       {/* Header */}
@@ -185,6 +201,7 @@ const CodigosEstadoPage = ({
                   showCommentButton={showCommentButton}
                   onReturn={handleOpenReturn}
                   showReturnButton={showReturnButton}
+                  onDelete={showDeleteButton ? handleOpenDelete : undefined}
                   actionButtonClass={computedActionButtonClass} 
                 />
               ))
@@ -220,6 +237,7 @@ const CodigosEstadoPage = ({
                       showCommentButton={showCommentButton}
                       onReturn={handleOpenReturn}
                       showReturnButton={showReturnButton}
+                      onDelete={showDeleteButton ? handleOpenDelete : undefined}
                       actionButtonClass={computedActionButtonClass} // <-- Pasado al hijo escritorio
                     />
                   ))
@@ -236,6 +254,15 @@ const CodigosEstadoPage = ({
             onClose={handleCloseReturn}
             codigoId={codigoSeleccionado}
             onSuccess={handleAfterSuccessReturn}
+          />
+        )}
+
+        {showDeleteButton && (
+          <SolicitanteEliminacion
+            codigo={deleteItem}
+            isOpen={Boolean(deleteItem)}
+            onClose={handleCloseDelete}
+            onDeleted={handleAfterDelete}
           />
         )}
 

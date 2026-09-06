@@ -10,11 +10,14 @@ import pool from '../database.js';
     const userRole = (req.user?.rol || '').toLowerCase();
     const userId = req.user?.id;
 
-    let query = 'SELECT id, codigo, status, descripcion, detalles, link_referencia, descripcion_sap, nombre_extranjero, lead_time, dias_tolerancia, cantidad_minima_pedido, unidad_compra, grupo_articulos, requestor_area, tipo_bien, unidad_medida, nombre_solicitante, grava_iva, impuesto_compra, impuesto_venta, indicadorIVACompras, indicadorIVAVentas, empresa, created_by FROM codigos WHERE id = ?';
+    let query = 'SELECT id, codigo, status, descripcion, detalles, link_referencia, descripcion_sap, nombre_extranjero, lead_time, dias_tolerancia, cantidad_minima_pedido, unidad_compra, grupo_articulos, requestor_area, tipo_bien, unidad_medida, nombre_solicitante, grava_iva, impuesto_compra, impuesto_venta, indicadorIVACompras, indicadorIVAVentas, empresa, compras_responsable_id, created_by FROM codigos WHERE id = ?';
     const params = [id];
 
     if (userRole.includes('solicitante')) {
       query += ' AND created_by = ?';
+      params.push(userId);
+    } else if (userRole.includes('compras')) {
+      query += ' AND (compras_responsable_id IS NULL OR compras_responsable_id = ?)';
       params.push(userId);
     }
 
@@ -58,6 +61,9 @@ import pool from '../database.js';
     // Seguridad: los solicitantes solo deben ver sus propios códigos aunque usen la búsqueda genérica
     if (userRole.includes('solicitante')) {
       query += ' AND created_by = ?';
+      params.push(authenticatedUserId);
+    } else if (userRole.includes('compras')) {
+      query += ' AND (compras_responsable_id IS NULL OR compras_responsable_id = ?)';
       params.push(authenticatedUserId);
     } else if (created_by) {
       query += ' AND created_by = ?';

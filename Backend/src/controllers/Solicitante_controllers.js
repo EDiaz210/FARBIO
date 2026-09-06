@@ -42,6 +42,18 @@ const EMPRESA_OPTIONS = [
   'CLAREL',
 ];
 
+const validarResponsableCompras = async (comprasResponsableId) => {
+  if (!comprasResponsableId) return false;
+
+  const [usuarios] = await pool.query(
+    `SELECT id FROM usuarios
+     WHERE id = ? AND estado = 'activo' AND LOWER(rol) LIKE '%compras%'`,
+    [comprasResponsableId]
+  );
+
+  return usuarios.length > 0;
+};
+
   const createCodigo = async (req, res) => {
   // Use the authenticated user from the JWT middleware to avoid trusting client-provided userId/userName
   const {
@@ -50,7 +62,8 @@ const EMPRESA_OPTIONS = [
     detalles, 
     link_referencia,
     RequestorArea,
-    empresa
+    empresa,
+    comprasResponsableId
   } = req.body;
   const userId = req.user?.id;
   const userName = req.user?.nombre || req.user?.nombre_solicitante || req.user?.name || null;
@@ -70,8 +83,8 @@ const EMPRESA_OPTIONS = [
     }
 
     // Validaciones básicas
-    if (!detalles || !link_referencia || !descripcionSolicitante || !RequestorArea || !nombreSolicitante || !empresa) {
-      return res.status(400).json({ success: false, msg: 'Detalles, link de referencia, descripción, área, nombre del solicitante y empresa son requeridos' });
+    if (!detalles || !link_referencia || !descripcionSolicitante || !RequestorArea || !nombreSolicitante || !empresa || !comprasResponsableId) {
+      return res.status(400).json({ success: false, msg: 'Todos los campos obligatorios deben estar completos' });
     }
 
     // Validar área
@@ -84,6 +97,32 @@ const EMPRESA_OPTIONS = [
       return res.status(400).json({ success: false, msg: `Empresa inválida. Debe ser una de: ${EMPRESA_OPTIONS.join(', ')}` });
     }
 
+    if (!(await validarResponsableCompras(comprasResponsableId))) {
+      return res.status(400).json({ success: false, msg: 'El responsable seleccionado no es un usuario activo de Compras' });
+    }
+
+    const [solicitudDuplicada] = await pool.query(
+      `SELECT id FROM codigos
+       WHERE created_by = ?
+         AND status = 'Nuevo'
+         AND descripcion = ?
+         AND requestor_area = ?
+         AND detalles = ?
+         AND link_referencia = ?
+         AND empresa = ?
+         AND compras_responsable_id = ?
+         AND created_at >= DATE_SUB(NOW(), INTERVAL 30 SECOND)
+       LIMIT 1`,
+      [userId, descripcionSolicitante, RequestorArea, detalles, link_referencia, empresa, comprasResponsableId]
+    );
+
+    if (solicitudDuplicada.length > 0) {
+      return res.status(409).json({
+        success: false,
+        msg: 'Esta solicitud ya fue registrada recientemente'
+      });
+    }
+
     // Crear historial inicial
     const historyEntry = JSON.stringify([{
       usuario: userName || nombreSolicitante || 'Solicitante',
@@ -94,8 +133,8 @@ const EMPRESA_OPTIONS = [
 
     const insertQuery = `
       INSERT INTO codigos 
-      (status, descripcion, requestor_area, detalles, link_referencia, r_creacion, created_by, nombre_solicitante, empresa)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (status, descripcion, requestor_area, detalles, link_referencia, r_creacion, created_by, nombre_solicitante, empresa, compras_responsable_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [insertResult] = await pool.query(insertQuery, [
@@ -107,7 +146,8 @@ const EMPRESA_OPTIONS = [
       historyEntry,           // 6. r_creacion (JSON con historial)
       userId,                 // 7. created_by (from token)
       nombreSolicitante || userName,      // 8. nombre_solicitante
-      empresa                 // 9. empresa
+      empresa,                // 9. empresa
+      comprasResponsableId    // 10. responsable de Compras
     ]);
 
     const newId = insertResult.insertId;
@@ -159,6 +199,7 @@ const EMPRESA_OPTIONS = [
   const SOLICITANTE_FIELDS_MAPPING = {
   descripcionSolicitante: 'descripcion',
   RequestorArea: 'requestor_area',
+  comprasResponsableId: 'compras_responsable_id',
   detalles: 'detalles',
   link_referencia: 'link_referencia',
   nombreSolicitante: 'nombre_solicitante',
@@ -171,6 +212,7 @@ const updateSolicitante = async (req, res) => {
   const {
     RequestorArea,
     empresa,
+    comprasResponsableId,
     forceStatusUpdate = false
   } = req.body;
   const userId = req.user?.id;
@@ -219,6 +261,13 @@ const updateSolicitante = async (req, res) => {
       return res.status(400).json({
         success: false,
         msg: `Empresa inválida. Debe ser una de: ${EMPRESA_OPTIONS.join(', ')}`
+      });
+    }
+
+    if (!comprasResponsableId || !(await validarResponsableCompras(comprasResponsableId))) {
+      return res.status(400).json({
+        success: false,
+        msg: 'El responsable seleccionado no es un usuario activo de Compras'
       });
     }
 

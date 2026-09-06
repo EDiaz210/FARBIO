@@ -28,6 +28,7 @@ CREATE TABLE codigos (
   unidad_medida VARCHAR(50),
   cantidad_minima_pedido INT,
   empresa VARCHAR(40),
+  compras_responsable_id INT,
 
   
   -- Historial de cambios (JSON)
@@ -55,6 +56,7 @@ CREATE TABLE codigos (
   -- Relaciones
   FOREIGN KEY (created_by) REFERENCES usuarios(id) ON DELETE SET NULL,
   FOREIGN KEY (updated_by) REFERENCES usuarios(id) ON DELETE SET NULL,
+  FOREIGN KEY (compras_responsable_id) REFERENCES usuarios(id) ON DELETE SET NULL,
   
   -- Índices para búsquedas rápidas
   INDEX idx_id (id),

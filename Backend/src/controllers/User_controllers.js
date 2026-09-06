@@ -149,6 +149,23 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
   }
 };
 
+// Obtener usuarios activos del área de Compras para asignación de solicitudes
+const obtenerUsuariosCompras = async (req, res) => {
+  try {
+    const [usuarios] = await pool.query(
+      `SELECT id, nombre
+       FROM usuarios
+       WHERE estado = 'activo' AND LOWER(rol) LIKE '%compras%'
+       ORDER BY nombre ASC`
+    );
+
+    return res.status(200).json({ usuarios });
+  } catch (err) {
+    console.error('Error obteniendo usuarios de Compras:', err);
+    return res.status(500).json({ msg: 'Ocurrió un error al cargar los usuarios de Compras' });
+  }
+};
+
 
 // Registro de usuario - ROL ADMINISTRADOR
   const registro = async (req, res) => {
@@ -475,4 +492,4 @@ const formatearUsuarioParaAuditoria = (usuario = {}) => ({
   }
 };
 
-export { login, obtenerMiPerfil, registro, obtenerUsuarios, obtenerUsuario, actualizarUsuario, eliminarUsuario };
+export { login, obtenerMiPerfil, obtenerUsuariosCompras, registro, obtenerUsuarios, obtenerUsuario, actualizarUsuario, eliminarUsuario };

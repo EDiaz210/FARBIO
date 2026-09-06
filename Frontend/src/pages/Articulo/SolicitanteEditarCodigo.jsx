@@ -46,6 +46,7 @@ const EMPRESA_OPTIONS = [
 const defaultValues = {
   Empresa: '',
   RequestorArea: '',
+  ComprasResponsableId: '',
   RequestorDescription: '',
   Details: '',
   ReferenceLink: '',
@@ -62,6 +63,7 @@ const SolicitanteEditarCodigo = () => {
   const [cargandoUsuario, setCargandoUsuario] = useState(false);
   const [cargandoDatos, setCargandoDatos] = useState(true);
   const [perfilUsuario, setPerfilUsuario] = useState(null);
+  const [usuariosCompras, setUsuariosCompras] = useState([]);
 
   // Validadores custom
   const validateDescripcion = useCallback((value) => {
@@ -172,6 +174,28 @@ const SolicitanteEditarCodigo = () => {
     cargarDatosUsuario();
   }, [token, fetchDataBackend]);
 
+  useEffect(() => {
+    const cargarUsuariosCompras = async () => {
+      if (!token) return;
+
+      try {
+        const response = await fetchDataBackend(
+          `${import.meta.env.VITE_BACKEND_URL}/api/users/usuarios/compras`,
+          null,
+          'GET',
+          token,
+          false
+        );
+        setUsuariosCompras(Array.isArray(response?.usuarios) ? response.usuarios : []);
+      } catch (error) {
+        console.error('Error al cargar usuarios de Compras:', error);
+        toast.error('No se pudieron cargar los responsables de Compras');
+      }
+    };
+
+    cargarUsuariosCompras();
+  }, [token, fetchDataBackend]);
+
   // Cargar datos del código a editar
   useEffect(() => {
     const cargarDatosCodigo = async () => {
@@ -191,6 +215,7 @@ const SolicitanteEditarCodigo = () => {
             Empresa: codigo.empresa || '',
             RequestorDescription: codigo.descripcion || '',
             RequestorArea: codigo.requestor_area || '',
+            ComprasResponsableId: codigo.compras_responsable_id || '',
             Details: codigo.detalles || '',
             ReferenceLink: codigo.link_referencia || '',
           });
@@ -219,6 +244,7 @@ const SolicitanteEditarCodigo = () => {
         nombreSolicitante,
         descripcionSolicitante: data.RequestorDescription,
         RequestorArea: data.RequestorArea,
+        comprasResponsableId: data.ComprasResponsableId,
         empresa: data.Empresa,
         detalles: data.Details,
         link_referencia: data.ReferenceLink,
@@ -321,6 +347,33 @@ const SolicitanteEditarCodigo = () => {
                 </select>
                 {errors.RequestorArea && (
                   <p className="text-sm text-red-600">{errors.RequestorArea.message}</p>
+                )}
+              </div>
+
+              {/* Responsable de Compras */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-900">
+                  Responsable de Compras *
+                </label>
+                <select
+                  className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition focus:ring-2 ${
+                    errors.ComprasResponsableId
+                      ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100'
+                      : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'
+                  }`}
+                  {...register('ComprasResponsableId', {
+                    required: 'El responsable de Compras es obligatorio',
+                  })}
+                >
+                  <option value="">Selecciona un responsable</option>
+                  {usuariosCompras.map((usuario) => (
+                    <option key={usuario.id} value={usuario.id}>
+                      {usuario.nombre}
+                    </option>
+                  ))}
+                </select>
+                {errors.ComprasResponsableId && (
+                  <p className="text-sm text-red-600">{errors.ComprasResponsableId.message}</p>
                 )}
               </div>
 

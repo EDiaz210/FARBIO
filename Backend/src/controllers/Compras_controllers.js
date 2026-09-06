@@ -63,6 +63,14 @@ const COMPRAS_FIELDS_MAPPING = {
 
     const codigoActual = existe[0];
 
+    if (codigoActual.compras_responsable_id !== null
+      && Number(codigoActual.compras_responsable_id) !== Number(authenticatedUserId)) {
+      return res.status(403).json({
+        success: false,
+        msg: 'Este código está asignado a otro usuario de Compras'
+      });
+    }
+
     // 3. VALIDACIÓN DE CAMPOS
     if (!descripcion_sap) {
       return res.status(400).json({ success: false, msg: 'Falta campo requerido: descripcion_sap' });
@@ -164,10 +172,20 @@ const retornoCodigosCompras = async (req, res) => {
       });
     }
 
+    const authenticatedUserId = req.user?.id;
     const [codigoActual] = await pool.query(
-      'SELECT codigo, nombre_solicitante, empresa FROM codigos WHERE id = ?',
+      'SELECT codigo, nombre_solicitante, empresa, compras_responsable_id FROM codigos WHERE id = ?',
       [id]
     );
+
+    if (codigoActual.length === 0) {
+      return res.status(404).json({ msg: 'El código no existe' });
+    }
+
+    if (codigoActual[0].compras_responsable_id !== null
+      && Number(codigoActual[0].compras_responsable_id) !== Number(authenticatedUserId)) {
+      return res.status(403).json({ msg: 'Este código está asignado a otro usuario de Compras' });
+    }
 
     const query = 'UPDATE codigos SET status = ?, comentario = ? WHERE id = ?';
     await pool.query(query, ['RetornoSolicitante', comentario, id]);

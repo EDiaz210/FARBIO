@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast, ToastContainer } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -44,6 +44,7 @@ const EMPRESA_OPTIONS = [
 
 const defaultValues = {
   RequestorArea: '',
+  ComprasResponsableId: '',
   Empresa: '',
   RequestorDescription: '',
   Details: '',
@@ -58,6 +59,8 @@ const SolicitanteCrearCodigo = () => {
   // Estados
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [perfilUsuario, setPerfilUsuario] = useState(null);
+  const [usuariosCompras, setUsuariosCompras] = useState([]);
+  const submittingRef = useRef(false);
 
   // Validadores custom
   const validateDescripcion = useCallback((value) => {
@@ -169,8 +172,33 @@ const SolicitanteCrearCodigo = () => {
     cargarDatosUsuario();
   }, [token, fetchDataBackend]);
 
+  useEffect(() => {
+    const cargarUsuariosCompras = async () => {
+      if (!token) return;
+
+      try {
+        const response = await fetchDataBackend(
+          `${import.meta.env.VITE_BACKEND_URL}/api/users/usuarios/compras`,
+          null,
+          'GET',
+          token,
+          false
+        );
+        setUsuariosCompras(Array.isArray(response?.usuarios) ? response.usuarios : []);
+      } catch (error) {
+        console.error('Error al cargar usuarios de Compras:', error);
+        toast.error('No se pudieron cargar los responsables de Compras');
+      }
+    };
+
+    cargarUsuariosCompras();
+  }, [token, fetchDataBackend]);
+
   // Manejo de envío
   const createCodigo = async (data) => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+
     try {
       setIsSubmitting(true);
 
@@ -178,6 +206,7 @@ const SolicitanteCrearCodigo = () => {
         nombreSolicitante,
         descripcionSolicitante: data.RequestorDescription,
         RequestorArea: data.RequestorArea,
+        comprasResponsableId: data.ComprasResponsableId,
         empresa: data.Empresa,
         detalles: data.Details,
         link_referencia: data.ReferenceLink,
@@ -194,9 +223,11 @@ const SolicitanteCrearCodigo = () => {
           navigate('/dashboard/tablas');
         }, 1500);
       } else {
+        submittingRef.current = false;
         toast.error(response?.msg || 'Error al crear el código');
       }
     } catch (error) {
+      submittingRef.current = false;
       console.error('Error al crear el código:', error);
       toast.error('Error al crear el código');
     } finally {
@@ -271,6 +302,33 @@ const SolicitanteCrearCodigo = () => {
                 </select>
                 {errors.RequestorArea && (
                   <p className="text-red-600 text-sm font-medium">{errors.RequestorArea.message}</p>
+                )}
+              </div>
+
+              {/* Responsable de Compras */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-slate-900">
+                  Responsable de Compras *
+                </label>
+                <select
+                  className={`w-full rounded-lg border px-4 py-3 text-slate-900 outline-none transition focus:ring-2 ${
+                    errors.ComprasResponsableId
+                      ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100'
+                      : 'border-slate-300 bg-white focus:border-blue-500 focus:ring-blue-50'
+                  }`}
+                  {...register('ComprasResponsableId', {
+                    required: 'El responsable de Compras es obligatorio',
+                  })}
+                >
+                  <option value="">Selecciona un responsable</option>
+                  {usuariosCompras.map((usuario) => (
+                    <option key={usuario.id} value={usuario.id}>
+                      {usuario.nombre}
+                    </option>
+                  ))}
+                </select>
+                {errors.ComprasResponsableId && (
+                  <p className="text-red-600 text-sm font-medium">{errors.ComprasResponsableId.message}</p>
                 )}
               </div>
 
