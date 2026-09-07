@@ -8,7 +8,7 @@ import {
   obtenerUsuario, 
   actualizarUsuario, 
   eliminarUsuario 
-} from '../controllers/user_controllers.js';
+} from '../controllers/User_controllers.js';
 import { verificarTokenJWT } from '../middlewares/JWT.js';
 
 const router = express.Router();
