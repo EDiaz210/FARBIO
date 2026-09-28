@@ -106,7 +106,7 @@ const logoutFromSap = async (sessionId) => {
       140, 138, 197, 195, 211, 193, 187, 186, 142, 152, 
       178, 192, 151, 174, 134, 173, 137, 136, 135, 180, 
       194, 208, 209, 198, 133, 175, 176, 154, 153, 155,
-      184
+      184, 215, 212, 220
     ];
 
     // 2. Construimos la cadena del filtro: "Number eq 143 or Number eq 145 or ..."
