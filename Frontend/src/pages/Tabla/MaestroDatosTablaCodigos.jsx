@@ -89,7 +89,7 @@ const MaestroDatosTablaCodigos = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">Cargando registros...</td></tr>
+                  <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">Cargando registros...</td></tr> // P
                 ) : currentItems.length === 0 ? (
                   <tr><td colSpan={6} className="p-10 text-center text-slate-500 text-sm">No hay códigos pendientes para maestro de datos.</td></tr>
                 ) : (
