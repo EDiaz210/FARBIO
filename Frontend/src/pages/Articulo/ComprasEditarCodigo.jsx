@@ -43,7 +43,6 @@ const ComprasEditarCodigo = () => {
     if (!value || value.trim() === '') {
       return 'La descripción SAP es obligatoria';
     }
-
     const trimmed = value.trim();
     if (trimmed.length < 10) {
       return 'La descripción SAP debe tener mínimo 10 caracteres';
@@ -59,6 +58,10 @@ const ComprasEditarCodigo = () => {
       return 'La descripción SAP debe terminar en ADM, VTS o PROD';
     }
 
+    if (/[áéíóúÁÉÍÓÚ\u0301]/.test(trimmed)) {
+      return 'La descripción SAP no acepta tildes';
+    }
+
     return true;
   }, []);
 
@@ -66,8 +69,12 @@ const ComprasEditarCodigo = () => {
     if (!value || value.trim() === '') {
       return 'La unidad de medida es obligatoria';
     }
-
     const trimmed = value.trim();
+
+    if (!/^[A-ZÁÉÍÓÚÜÑ ]+$/.test(trimmed)) {
+      return 'La unidad de medida únicamente acepta letras';
+    }
+
     if (trimmed.length < 1) {
       return 'La unidad de medida debe tener mínimo 1 caracter';
     }
@@ -80,9 +87,7 @@ const ComprasEditarCodigo = () => {
     if (/[0-9]/.test(trimmed)) {
       return 'La unidad de medida no acepta números';
     }
-    if (!/^[A-ZÁÉÍÓÚÜÑ ]+$/.test(trimmed)) {
-      return 'La unidad de medida únicamente acepta letras';
-    }
+    
 
     return true;
   }, []);
