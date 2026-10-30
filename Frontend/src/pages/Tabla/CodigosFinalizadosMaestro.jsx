@@ -115,7 +115,7 @@ const CodigosFinalizadosMaestro = () => {
 	};
 
 	return (
-		<div className="min-h-screen overflow-auto bg-white" style={{ fontFamily: 'Gowun Batang, serif' }}>
+		<div className="min-h-screen w-full min-w-0 max-w-full bg-white" style={{ fontFamily: 'Gowun Batang, serif' }}>
 			<div className="w-full bg-blue-300 text-black shadow-sm">
 				<div className="px-6 lg:px-8 py-4 lg:py-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<div>
@@ -188,8 +188,8 @@ const CodigosFinalizadosMaestro = () => {
 						)}
 					</div>
 
-					<div className="hidden md:block w-full p-6 pb-0">
-						<table className="w-full text-left border-separate border-spacing-y-4 layout-fixed">
+					<div className="hidden md:block w-full min-w-0 overflow-x-auto p-6 pb-0">
+  						<table className="w-full min-w-[900px] table-fixed text-left border-separate border-spacing-y-4">
 							<thead>
 								<tr className={`${clasesColor} border-b border-slate-200`}>
 									<th className="rounded-tl-[24px] p-5 text-sm font-semibold uppercase tracking-[0.08em] w-[8%]">ID</th>
@@ -243,44 +243,79 @@ const CodigosFinalizadosMaestro = () => {
 				</div>
 
 				{!loading && currentItems.length > 0 && totalPages > 1 && (
-					<div className="p-4 sm:p-6 bg-slate-50 border border-slate-200 rounded-[24px] mt-4 flex flex-col sm:flex-row gap-4 items-center justify-between shadow-sm">
-						<div className="text-xs sm:text-sm text-slate-600 text-center sm:text-left">
-							Mostrando <span className="font-semibold text-slate-900">{(currentPage - 1) * 5 + 1}</span> a{' '}
-							<span className="font-semibold text-slate-900">{Math.min(currentPage * 5, currentItems.length)}</span> registros
-						</div>
-
-						<div className="flex flex-wrap justify-center gap-2 w-full sm:w-auto">
-							<button
-								onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-								disabled={currentPage === 1}
-								className={`px-3 sm:px-4 py-2 ${clasesColor} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs sm:text-sm flex-1 sm:flex-none text-center`}
-							>
-								← Anterior
-							</button>
-
-							<div className="hidden sm:flex gap-1">
-								{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-									<button
-										key={page}
-										onClick={() => setCurrentPage(page)}
-										className={`px-3 py-2 rounded-lg transition-colors text-sm ${
-											page === currentPage ? `${clasesColor} font-semibold` : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-										}`}
-									>
-										{page}
-									</button>
-								))}
-							</div>
-
-							<button
-								onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-								disabled={currentPage === totalPages}
-								className={`px-3 sm:px-4 py-2 ${clasesColor} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs sm:text-sm flex-1 sm:flex-none text-center`}
-							>
-								Siguiente →
-							</button>
-						</div>
+				<div className="mt-4 flex w-full min-w-0 flex-col items-center justify-between gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-4 shadow-sm lg:flex-row lg:p-6">
+					<div className="text-center text-sm text-slate-600 lg:text-left">
+					<span className="font-semibold text-slate-900">
+						{items.length}
+					</span>{' '}
+					registros · Página{' '}
+					<span className="font-semibold text-slate-900">
+						{currentPage}
+					</span>{' '}
+					de {totalPages}
 					</div>
+
+					<nav
+					aria-label="Paginación de códigos finalizados"
+					className="flex max-w-full flex-wrap items-center justify-center gap-2"
+					>
+					<button
+						type="button"
+						onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+						disabled={currentPage <= 1}
+						className={`rounded-lg px-3 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${clasesColor}`}
+					>
+						← Anterior
+					</button>
+
+					<span
+						aria-live="polite"
+						className="text-sm font-semibold text-slate-700 sm:hidden"
+					>
+						{currentPage} / {totalPages}
+					</span>
+
+					<div className="hidden flex-wrap items-center justify-center gap-1 sm:flex">
+						{Array.from(
+						{ length: Math.min(5, totalPages) },
+						(_, index) => {
+							const inicio = Math.max(
+							1,
+							Math.min(currentPage - 2, totalPages - 4)
+							);
+
+							return inicio + index;
+						}
+						).map((page) => (
+						<button
+							type="button"
+							key={page}
+							onClick={() => setCurrentPage(page)}
+							aria-label={`Ir a la página ${page}`}
+							aria-current={page === currentPage ? 'page' : undefined}
+							className={`min-w-[36px] rounded-lg px-3 py-2 text-sm transition-colors ${
+							page === currentPage
+								? `${clasesColor} font-semibold`
+								: 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+							}`}
+						>
+							{page}
+						</button>
+						))}
+					</div>
+
+					<button
+						type="button"
+						onClick={() =>
+						setCurrentPage((p) => Math.min(p + 1, totalPages))
+						}
+						disabled={currentPage >= totalPages}
+						className={`rounded-lg px-3 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${clasesColor}`}
+					>
+						Siguiente →
+					</button>
+					</nav>
+				</div>
 				)}
 			</div>
 
