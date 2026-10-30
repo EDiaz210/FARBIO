@@ -10,13 +10,11 @@
     "hash:password": "node src/utils/hashPassword.js"
   },
   "keywords": [],
-  "author": "Elkin Diaz",
+  "author": "Elkin Diaz - Ariel Catucuamba", 
   "license": "ISC",
   "devDependencies": {
-    "@sendgrid/mail": "^8.1.6",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
-    "cloudinary": "^2.6.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
