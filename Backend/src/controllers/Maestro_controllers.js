@@ -34,73 +34,83 @@ const closeSapSession = async (sessionId) => {
   }
 };
 
-// OBTENER CODIGOS FINALIZADOS PARA EXPORTACION
+
+const CAMPOS_OCULTOS = new Set([
+  'unidad_compra',
+  'impuesto_compra',
+  'impuesto_venta',
+  'r_creacion',
+  'r_compras',
+  'r_contabilidad',
+  'r_maestrodatos',
+  'r_sap',
+
+  // Se devuelven los nombres en lugar de estos IDs.
+  'compras_responsable_id',
+  'compras_enviado_por',
+]);
+
+// OBTENER CÓDIGOS FINALIZADOS PARA EXPORTACIÓN Y DETALLE
 const obtenerCodigosFinalizadosMaestro = async (req, res) => {
-  const descomprimirRSap = (valor) => {
-    if (!valor) return [];
-
-    let historial = valor;
-    if (typeof valor === 'string') {
-      try {
-        historial = JSON.parse(valor);
-      } catch {
-        return [valor];
-      }
-    }
-
-    if (Array.isArray(historial)) {
-      return historial.map((registro) => {
-        if (registro && typeof registro === 'object') {
-          return {
-            fecha: registro.fecha || '',
-            creador: registro.usuario || '',
-            raw: registro,
-          };
-        }
-        return {
-          fecha: '',
-          creador: String(registro),
-          raw: registro,
-        };
-      });
-    }
-
-    if (typeof historial === 'object') {
-      return [{ fecha: historial.fecha || '', creador: historial.usuario || '', raw: historial }];
-    }
-
-    return [{ fecha: '', creador: String(historial), raw: historial }];
-  };
-
   try {
-    // Usar directamente pool.query evita tener que gestionar manual el release del pool
     const [codigos] = await pool.query(
-      `SELECT id, codigo, status, descripcion_sap, r_sap
-       FROM codigos
-       WHERE status = ?
-       ORDER BY updated_at DESC, created_at DESC`,
+      `
+        SELECT
+          c.*,
+          c.r_maestrodatos AS r_sap_descomprimido,
+          creador.nombre AS created_by_nombre,
+          actualizador.nombre AS updated_by_nombre,
+          responsable.nombre AS responsable_compras,
+          enviado.nombre AS compras_enviado_por_nombre
+        FROM codigos AS c
+
+        LEFT JOIN usuarios AS responsable
+          ON responsable.id = c.compras_responsable_id
+
+        LEFT JOIN usuarios AS enviado
+          ON enviado.id = c.compras_enviado_por
+
+        LEFT JOIN usuarios AS creador
+          ON creador.id = c.created_by
+
+        LEFT JOIN usuarios AS actualizador
+          ON actualizador.id = c.updated_by
+
+        WHERE c.status = ?
+
+        ORDER BY
+          c.updated_at DESC,
+          c.created_at DESC,
+          c.id DESC
+      `,
       ['Finalizado']
     );
 
-    const codigosFinalizados = codigos.map((codigo) => ({
-      id: codigo.id,
-      codigo: codigo.codigo,
-      status: codigo.status,
-      descripcion_sap: codigo.descripcion_sap,
-      r_sap_descomprimido: descomprimirRSap(codigo.r_sap)
-    }));
+    const codigosFinalizados = codigos.map((codigo) =>
+      Object.fromEntries(
+        Object.entries(codigo).filter(
+          ([campo]) => !CAMPOS_OCULTOS.has(campo)
+        )
+      )
+    );
+    console.log(codigosFinalizados);
 
     return res.status(200).json({
       success: true,
       message: 'Códigos finalizados obtenidos exitosamente',
-      codigos: codigosFinalizados
+      codigos: codigosFinalizados,
+
     });
+
   } catch (error) {
-    console.error('Error obteniendo códigos finalizados para maestro:', error);
+    console.error(
+      'Error obteniendo códigos finalizados para Maestro de Datos:',
+      error
+    );
+
     return res.status(500).json({
       success: false,
       message: 'Error interno del servidor',
-      error: error.message
     });
   }
 };

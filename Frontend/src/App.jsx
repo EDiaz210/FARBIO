@@ -23,6 +23,7 @@ import MisSolicitudesCompras from "./pages/Solicitudes/MisSolicitudesCompras";
 import MisCodigosCompras from "./pages/Tabla/MisCodigosCompras";
 import CrearUsuarioPage from "./pages/Administrador/CrearUsuarioPage";
 import EditarUsuario from "./pages/Administrador/EditarUsuario";
+import DetalleCodigoFinalizadoMaestro from "./pages/Tabla/DetalleCodigoFinalizadoMaestro";
 import NotFound from "./pages/NotFound";
 
 // Componentes por Rol
@@ -102,7 +103,17 @@ function App() {
               </PrivateRouteWithRole>
             }
           />
-          
+
+          {/* Ver información de un código finalizado */}
+          <Route
+            path="maestro/finalizados/:id"
+            element={
+              <PrivateRouteWithRole allowedRoles={["maestrodedatos"]}>
+                <DetalleCodigoFinalizadoMaestro />
+              </PrivateRouteWithRole>
+            }
+          />
+                    
           {/* 🔹 Rutas de Creación/Edición por Rol */}
           {/* Solicitante: Crear Código */}
           <Route
