@@ -1,6 +1,5 @@
 import express from "express"; //framework
 import cors from "cors"; 
-import cloudinary from 'cloudinary'
 import http from 'http';
 import sapDataRoutes from './routers/SAP_routes.js';
 import userRoutes from './routers/User_routes.js';
